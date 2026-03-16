@@ -38,15 +38,24 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
 
   if (!course || !quiz) notFound()
 
-  const questions = (quiz.quiz_questions as {
-    id: string; text: string; order_index: number
-    quiz_options: { id: string; text: string; is_correct: boolean; order_index: number }[]
-  }[]).sort((a, b) => a.order_index - b.order_index)
+  type QuizOption = { id: string; text: string; is_correct: boolean; order_index: number }
+  type Question = { id: string; text: string; order_index: number; quiz_options: QuizOption[] }
+
+  const questions = ((quiz.quiz_questions as unknown as Question[]) ?? [])
+    .sort((a, b) => a.order_index - b.order_index)
+    .map(q => ({ ...q, quiz_options: q.quiz_options.sort((a, b) => a.order_index - b.order_index) }))
 
   const scorePct = attempt ? Math.round((attempt.score / attempt.total) * 100) : null
 
-  // Se già completato, mostra il risultato statico (senza rieseguire)
+  // Se già completato, mostra risultato + riepilogo risposte
   if (attempt) {
+    const { data: answers } = await supabase
+      .from('quiz_answers')
+      .select('question_id, option_id')
+      .eq('attempt_id', attempt.id)
+
+    const answerMap = new Map((answers ?? []).map(a => [a.question_id, a.option_id]))
+
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
@@ -60,6 +69,7 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
           {quiz.description && <p className="text-gray-500 text-sm mt-1">{quiz.description}</p>}
         </div>
 
+        {/* Score card */}
         <div className={`rounded-2xl p-8 text-center ${attempt.passed ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
           <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${attempt.passed ? 'bg-green-100' : 'bg-red-100'}`}>
             {attempt.passed
@@ -81,6 +91,58 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
               day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
             })}
           </p>
+        </div>
+
+        {/* Riepilogo risposte */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-900 text-sm">Riepilogo risposte</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Verde = risposta corretta · Rosso = risposta errata</p>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {questions.map((q, qi) => {
+              const selectedOptionId = answerMap.get(q.id)
+              const selectedOption = q.quiz_options.find(o => o.id === selectedOptionId)
+              const isCorrect = selectedOption?.is_correct ?? false
+              return (
+                <div key={q.id} className="px-5 py-4">
+                  <div className="flex items-start gap-3">
+                    {isCorrect
+                      ? <CheckCircle size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
+                      : <XCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
+                    }
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{qi + 1}. {q.text}</p>
+                      <div className="mt-2 space-y-1.5">
+                        {q.quiz_options.map(opt => {
+                          const isSelected = opt.id === selectedOptionId
+                          const isCorrectOpt = opt.is_correct
+                          return (
+                            <p
+                              key={opt.id}
+                              className={`text-xs flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${
+                                isSelected && isCorrectOpt ? 'bg-green-50 text-green-700 font-semibold' :
+                                isSelected && !isCorrectOpt ? 'bg-red-50 text-red-600 font-medium' :
+                                isCorrectOpt ? 'text-green-700 font-medium' :
+                                'text-gray-400'
+                              }`}
+                            >
+                              {isSelected && isCorrectOpt && <CheckCircle size={11} className="flex-shrink-0" />}
+                              {isSelected && !isCorrectOpt && <XCircle size={11} className="flex-shrink-0" />}
+                              {!isSelected && isCorrectOpt && <CheckCircle size={11} className="flex-shrink-0 text-green-600" />}
+                              {!isSelected && !isCorrectOpt && <span className="w-2.5 h-2.5 rounded-full border border-gray-300 inline-block flex-shrink-0" />}
+                              <span>{opt.text}</span>
+                              {isSelected && !isCorrectOpt && <span className="text-red-400 text-[10px]">(tua risposta)</span>}
+                            </p>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     )

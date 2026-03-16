@@ -5,6 +5,7 @@ import { ArrowLeft, Users, CheckCircle, XCircle, ClipboardCheck, ListChecks } fr
 import EliminaQuizBtn from './EliminaQuizBtn'
 import ModificaQuizBtn from './ModificaQuizBtn'
 import EsportaQuizCSV from './EsportaQuizCSV'
+import RisposteStudenteModal from './RisposteStudenteModal'
 
 export default async function DocenteQuizDetailPage({ params }: { params: Promise<{ id: string; quizId: string }> }) {
   const { id, quizId } = await params
@@ -158,6 +159,14 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
                 </div>
                 {attempt ? (
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    <RisposteStudenteModal
+                      attemptId={attempt.id}
+                      studentName={student.full_name}
+                      score={attempt.score}
+                      total={attempt.total}
+                      passed={attempt.passed}
+                      questions={questions}
+                    />
                     <span className="text-sm font-bold text-gray-700">{attempt.score}/{attempt.total}</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${scorePct !== null && scorePct >= quiz.passing_score ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                       {scorePct}% — {attempt.passed ? 'Superato' : 'Non superato'}
