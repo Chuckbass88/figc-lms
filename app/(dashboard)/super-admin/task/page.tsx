@@ -175,7 +175,7 @@ export default async function AdminTaskPage() {
                         </span>
                       )}
                       <Link
-                        href={`/docente/corsi/${courseId}/task/${task.id}`}
+                        href={`/super-admin/corsi/${courseId}/task/${task.id}`}
                         className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition"
                         title="Apri dettaglio task"
                       >

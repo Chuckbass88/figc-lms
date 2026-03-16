@@ -2,10 +2,10 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ArrowLeft, Clock, Users, FileText, Download, MessageSquare } from 'lucide-react'
-import ValutaBtn from './ValutaBtn'
-import EliminaTaskBtn from './EliminaTaskBtn'
-import ModificaTaskBtn from './ModificaTaskBtn'
-import EsportaTaskCSV from './EsportaTaskCSV'
+import ValutaBtn from '@/app/(dashboard)/docente/corsi/[id]/task/[taskId]/ValutaBtn'
+import EliminaTaskBtn from '@/app/(dashboard)/docente/corsi/[id]/task/[taskId]/EliminaTaskBtn'
+import ModificaTaskBtn from '@/app/(dashboard)/docente/corsi/[id]/task/[taskId]/ModificaTaskBtn'
+import EsportaTaskCSV from '@/app/(dashboard)/docente/corsi/[id]/task/[taskId]/EsportaTaskCSV'
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
@@ -13,24 +13,14 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export default async function DocenteTaskDetailPage({ params }: { params: Promise<{ id: string; taskId: string }> }) {
+export default async function AdminTaskDetailPage({ params }: { params: Promise<{ id: string; taskId: string }> }) {
   const { id, taskId } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  const isSuperAdmin = profile?.role === 'super_admin'
-
-  if (!isSuperAdmin) {
-    const { data: isInstructor } = await supabase
-      .from('course_instructors')
-      .select('instructor_id')
-      .eq('course_id', id)
-      .eq('instructor_id', user.id)
-      .single()
-    if (!isInstructor) notFound()
-  }
+  if (profile?.role !== 'super_admin') notFound()
 
   const [
     { data: course },
@@ -75,10 +65,10 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <Link
-          href={`/docente/corsi/${id}/task`}
+          href={`/super-admin/task`}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3 w-fit"
         >
-          <ArrowLeft size={15} /> Task del corso
+          <ArrowLeft size={15} /> Panoramica Task
         </Link>
         <h2 className="text-2xl font-bold text-gray-900">{task.title}</h2>
         {task.description && (
@@ -86,22 +76,25 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
         )}
         <div className="flex items-center gap-3 mt-3 flex-wrap justify-between">
           <div className="flex items-center gap-3 flex-wrap">
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
-            {group ? group.name : 'Tutto il corso'}
-          </span>
-          {task.due_date && (
-            <span className={`flex items-center gap-1.5 text-xs font-medium ${isOverdue ? 'text-red-500' : 'text-gray-500'}`}>
-              <Clock size={12} />
-              Scadenza: {new Date(task.due_date).toLocaleDateString('it-IT')}
-              {isOverdue && ' — Scaduto'}
+            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
+              {group ? group.name : 'Tutto il corso'}
             </span>
-          )}
-          <span className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Users size={12} /> {submittedCount}/{students.length} consegnati
-          </span>
-          {evaluatedCount > 0 && (
-            <span className="text-xs text-green-600 font-medium">{evaluatedCount} valutati</span>
-          )}
+            <span className="text-xs text-gray-500">
+              <Link href={`/super-admin/corsi/${id}`} className="hover:text-blue-600 transition">{course.name}</Link>
+            </span>
+            {task.due_date && (
+              <span className={`flex items-center gap-1.5 text-xs font-medium ${isOverdue ? 'text-red-500' : 'text-gray-500'}`}>
+                <Clock size={12} />
+                Scadenza: {new Date(task.due_date).toLocaleDateString('it-IT')}
+                {isOverdue && ' — Scaduto'}
+              </span>
+            )}
+            <span className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Users size={12} /> {submittedCount}/{students.length} consegnati
+            </span>
+            {evaluatedCount > 0 && (
+              <span className="text-xs text-green-600 font-medium">{evaluatedCount} valutati</span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <ModificaTaskBtn
