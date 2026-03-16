@@ -9,15 +9,16 @@ export async function PUT(request: Request) {
   const { courseId, studentId, content } = await request.json()
   if (!courseId || !studentId) return NextResponse.json({ error: 'Dati mancanti' }, { status: 400 })
 
-  // Verifica che il docente insegni in questo corso
-  const { data: isInstructor } = await supabase
-    .from('course_instructors')
-    .select('instructor_id')
-    .eq('course_id', courseId)
-    .eq('instructor_id', user.id)
-    .single()
-
-  if (!isInstructor) return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'super_admin') {
+    const { data: isInstructor } = await supabase
+      .from('course_instructors')
+      .select('instructor_id')
+      .eq('course_id', courseId)
+      .eq('instructor_id', user.id)
+      .single()
+    if (!isInstructor) return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
+  }
 
   if (!content?.trim()) {
     // Elimina la nota se il contenuto è vuoto

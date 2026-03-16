@@ -18,14 +18,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ta
 
   if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
 
-  const { data: isInstructor } = await supabase
-    .from('course_instructors')
-    .select('instructor_id')
-    .eq('course_id', task.course_id)
-    .eq('instructor_id', user.id)
-    .single()
-
-  if (!isInstructor) return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'super_admin') {
+    const { data: isInstructor } = await supabase
+      .from('course_instructors')
+      .select('instructor_id')
+      .eq('course_id', task.course_id)
+      .eq('instructor_id', user.id)
+      .single()
+    if (!isInstructor) return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
+  }
 
   const { error } = await supabase
     .from('course_tasks')
@@ -51,14 +53,16 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
 
-  const { data: isInstructor } = await supabase
-    .from('course_instructors')
-    .select('instructor_id')
-    .eq('course_id', task.course_id)
-    .eq('instructor_id', user.id)
-    .single()
-
-  if (!isInstructor) return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
+  const { data: profileDel } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profileDel?.role !== 'super_admin') {
+    const { data: isInstructor } = await supabase
+      .from('course_instructors')
+      .select('instructor_id')
+      .eq('course_id', task.course_id)
+      .eq('instructor_id', user.id)
+      .single()
+    if (!isInstructor) return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
+  }
 
   const { error } = await supabase.from('course_tasks').delete().eq('id', taskId)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
