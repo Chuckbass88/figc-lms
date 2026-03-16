@@ -151,7 +151,7 @@ export default async function AdminQuizPage() {
                       </div>
                     </div>
                     <Link
-                      href={`/docente/corsi/${courseId}/quiz/${quiz.id}`}
+                      href={`/super-admin/corsi/${courseId}/quiz/${quiz.id}`}
                       className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition flex-shrink-0"
                       title="Apri dettaglio quiz"
                     >

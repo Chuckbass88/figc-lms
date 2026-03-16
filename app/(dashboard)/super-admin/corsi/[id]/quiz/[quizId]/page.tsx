@@ -1,25 +1,18 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Users, CheckCircle, XCircle, ClipboardCheck, ListChecks } from 'lucide-react'
-import EliminaQuizBtn from './EliminaQuizBtn'
-import ModificaQuizBtn from './ModificaQuizBtn'
-import EsportaQuizCSV from './EsportaQuizCSV'
+import { ArrowLeft, Users, CheckCircle, ClipboardCheck, ListChecks } from 'lucide-react'
 import RisposteStudenteModal from '@/components/quiz/RisposteStudenteModal'
+import EsportaQuizCSV from '@/app/(dashboard)/docente/corsi/[id]/quiz/[quizId]/EsportaQuizCSV'
 
-export default async function DocenteQuizDetailPage({ params }: { params: Promise<{ id: string; quizId: string }> }) {
+export default async function AdminQuizDetailPage({ params }: { params: Promise<{ id: string; quizId: string }> }) {
   const { id, quizId } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: isInstructor } = await supabase
-    .from('course_instructors')
-    .select('instructor_id')
-    .eq('course_id', id)
-    .eq('instructor_id', user.id)
-    .single()
-  if (!isInstructor) notFound()
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'super_admin') notFound()
 
   const [
     { data: course },
@@ -62,16 +55,19 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <Link
-          href={`/docente/corsi/${id}/quiz`}
+          href={`/super-admin/quiz`}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3 w-fit"
         >
-          <ArrowLeft size={15} /> Quiz del corso
+          <ArrowLeft size={15} /> Panoramica Quiz
         </Link>
         <h2 className="text-2xl font-bold text-gray-900">{quiz.title}</h2>
         {quiz.description && <p className="text-gray-500 text-sm mt-1">{quiz.description}</p>}
         <div className="flex items-center gap-3 mt-3 flex-wrap">
           <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
             {group ? group.name : 'Tutto il corso'}
+          </span>
+          <span className="text-xs text-gray-500">
+            <Link href={`/super-admin/corsi/${id}`} className="hover:text-blue-600 transition">{course.name}</Link>
           </span>
           <span className="text-xs text-gray-500">Soglia: {quiz.passing_score}%</span>
           <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -82,20 +78,13 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
               <CheckCircle size={11} /> {passedCount} superati
             </span>
           )}
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto">
             <Link
               href={`/docente/corsi/${id}/quiz/${quizId}/domande`}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition"
             >
               <ListChecks size={14} /> Gestione Domande
             </Link>
-            <ModificaQuizBtn
-              quizId={quizId}
-              initialTitle={quiz.title}
-              initialDescription={quiz.description ?? null}
-              initialPassingScore={quiz.passing_score}
-            />
-            <EliminaQuizBtn quizId={quizId} courseId={id} />
           </div>
         </div>
       </div>

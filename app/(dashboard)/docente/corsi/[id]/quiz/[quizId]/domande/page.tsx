@@ -17,13 +17,18 @@ export default async function GestioneDomandeQuizPage({ params }: { params: Prom
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: isInstructor } = await supabase
-    .from('course_instructors')
-    .select('instructor_id')
-    .eq('course_id', id)
-    .eq('instructor_id', user.id)
-    .single()
-  if (!isInstructor) notFound()
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isSuperAdmin = profile?.role === 'super_admin'
+
+  if (!isSuperAdmin) {
+    const { data: isInstructor } = await supabase
+      .from('course_instructors')
+      .select('instructor_id')
+      .eq('course_id', id)
+      .eq('instructor_id', user.id)
+      .single()
+    if (!isInstructor) notFound()
+  }
 
   const [{ data: course }, { data: quiz }] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
