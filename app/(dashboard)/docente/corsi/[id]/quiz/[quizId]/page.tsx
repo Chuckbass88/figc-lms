@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Users, CheckCircle, XCircle, ClipboardCheck } from 'lucide-react'
+import { ArrowLeft, Users, CheckCircle, XCircle, ClipboardCheck, ListChecks } from 'lucide-react'
 import EliminaQuizBtn from './EliminaQuizBtn'
 import ModificaQuizBtn from './ModificaQuizBtn'
 import EsportaQuizCSV from './EsportaQuizCSV'
@@ -82,6 +82,12 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
             </span>
           )}
           <div className="ml-auto flex items-center gap-2">
+            <Link
+              href={`/docente/corsi/${id}/quiz/${quizId}/domande`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition"
+            >
+              <ListChecks size={14} /> Gestione Domande
+            </Link>
             <ModificaQuizBtn
               quizId={quizId}
               initialTitle={quiz.title}
