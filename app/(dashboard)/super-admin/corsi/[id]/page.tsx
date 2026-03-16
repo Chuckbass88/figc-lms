@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, Users, UserCheck, Layers, Pencil, GraduationCap, ClipboardList, BookMarked, CalendarDays, CalendarCheck, Megaphone, TrendingUp } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, UserCheck, Layers, Pencil, GraduationCap, ClipboardList, BookMarked, CalendarDays, CalendarCheck, Megaphone, TrendingUp, ClipboardCheck } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 import NotificaCorso from './NotificaCorso'
 import CambiaStatoBtn from './CambiaStatoBtn'
@@ -146,6 +146,18 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
             >
               <CalendarDays size={14} /> Sessioni
+            </Link>
+            <Link
+              href={`/docente/corsi/${id}/quiz`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
+            >
+              <ClipboardCheck size={14} /> Quiz
+            </Link>
+            <Link
+              href={`/docente/corsi/${id}/task`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
+            >
+              <ClipboardList size={14} /> Task
             </Link>
             <Link
               href={`/super-admin/corsi/${id}/modifica`}

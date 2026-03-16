@@ -10,14 +10,18 @@ export default async function DocenteTaskPage({ params }: { params: Promise<{ id
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: isInstructor } = await supabase
-    .from('course_instructors')
-    .select('instructor_id')
-    .eq('course_id', id)
-    .eq('instructor_id', user.id)
-    .single()
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isSuperAdmin = profile?.role === 'super_admin'
 
-  if (!isInstructor) notFound()
+  if (!isSuperAdmin) {
+    const { data: isInstructor } = await supabase
+      .from('course_instructors')
+      .select('instructor_id')
+      .eq('course_id', id)
+      .eq('instructor_id', user.id)
+      .single()
+    if (!isInstructor) notFound()
+  }
 
   const [
     { data: course },

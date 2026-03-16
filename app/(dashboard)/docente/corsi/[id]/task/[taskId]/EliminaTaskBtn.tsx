@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Loader2 } from 'lucide-react'
 
-export default function EliminaTaskBtn({ taskId, courseId }: { taskId: string; courseId: string }) {
+export default function EliminaTaskBtn({ taskId, courseId, redirectTo }: { taskId: string; courseId: string; redirectTo?: string }) {
   const [confirm, setConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -13,7 +13,7 @@ export default function EliminaTaskBtn({ taskId, courseId }: { taskId: string; c
     setLoading(true)
     await fetch(`/api/task/${taskId}`, { method: 'DELETE' })
     setLoading(false)
-    router.push(`/docente/corsi/${courseId}/task`)
+    router.push(redirectTo ?? `/docente/corsi/${courseId}/task`)
     router.refresh()
   }
 

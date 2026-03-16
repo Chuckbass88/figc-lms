@@ -103,7 +103,7 @@ export default async function AdminTaskDetailPage({ params }: { params: Promise<
               initialDescription={task.description ?? null}
               initialDueDate={task.due_date ?? null}
             />
-            <EliminaTaskBtn taskId={taskId} courseId={id} />
+            <EliminaTaskBtn taskId={taskId} courseId={id} redirectTo="/super-admin/task" />
           </div>
         </div>
       </div>
