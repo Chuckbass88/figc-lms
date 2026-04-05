@@ -1,14 +1,16 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
-import { CheckCircle, AlertCircle, LogIn, BookOpen } from 'lucide-react'
+import { CheckCircle, AlertCircle, BookOpen } from 'lucide-react'
+import RegistrazioneForm from './RegistrazioneForm'
 
 export default async function InvitoPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const supabase = await createClient()
+  const admin = createAdminClient()
 
-  // Cerca il corso con questo token
-  const { data: course } = await supabase
+  // Cerca il corso con questo token — admin bypassa RLS (utente non autenticato)
+  const { data: course } = await admin
     .from('courses')
     .select('id, name, description, location, start_date, end_date, status')
     .eq('invite_token', token)
@@ -27,39 +29,34 @@ export default async function InvitoPage({ params }: { params: Promise<{ token: 
   }
 
   // Verifica se l'utente è già autenticato
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    // Non autenticato → mostra la pagina del corso + invito al login
+    // Non autenticato → form di registrazione
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4" style={{ background: 'linear-gradient(180deg, #001233 0%, #003DA5 50%, #f8faff 100%)' }}>
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(180deg, #1B3768 0%, #1565C0 50%, #f8faff 100%)' }}>
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
           <div className="text-center mb-6">
-            <div className="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #E8C96A 100%)' }}>
-              <span className="font-black text-sm" style={{ color: '#001233' }}>FIGC</span>
+            <div className="inline-block bg-gray-50 rounded-xl px-5 py-2 mb-4 border border-gray-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-coachlab.png" alt="CoachLab" className="h-7 w-auto object-contain" />
             </div>
             <p className="text-xs text-gray-400 font-medium tracking-wide uppercase mb-1">Sei stato invitato a</p>
             <h1 className="text-xl font-bold text-gray-900">{course.name}</h1>
             {course.description && (
               <p className="text-sm text-gray-500 mt-2">{course.description}</p>
             )}
-            {course.location && (
-              <p className="text-xs text-gray-400 mt-1">📍 {course.location}</p>
-            )}
           </div>
 
-          <div className="bg-blue-50 rounded-xl p-4 mb-6 text-sm text-blue-700">
-            Per completare l&apos;iscrizione, accedi con il tuo account FIGC LMS.
-          </div>
+          <p className="text-xs text-gray-500 text-center mb-5">Compila il modulo per creare il tuo account e iscriverti al corso.</p>
 
-          <Link
-            href={`/login?redirect=/invito/${token}`}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition"
-            style={{ backgroundColor: '#003DA5' }}
-          >
-            <LogIn size={16} /> Accedi e iscriviti
-          </Link>
+          <RegistrazioneForm token={token} courseId={course.id} />
+
+          <p className="text-center text-xs text-gray-400 mt-5">
+            Hai già un account?{' '}
+            <Link href={`/login?redirect=/invito/${token}`} className="text-blue-600 hover:underline">Accedi</Link>
+          </p>
         </div>
       </div>
     )
@@ -105,7 +102,7 @@ export default async function InvitoPage({ params }: { params: Promise<{ token: 
           <Link
             href={`/studente/corsi/${course.id}`}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             <BookOpen size={16} /> Vai al corso
           </Link>

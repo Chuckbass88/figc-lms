@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, UserCheck, BookMarked, ClipboardList, Clock, Award, ClipboardCheck, Megaphone, TrendingUp, CheckCircle } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, UserCheck, BookMarked, ClipboardList, Clock, Award, ClipboardCheck, Megaphone, TrendingUp, CheckCircle, Star } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 
 const STATUS_LABELS: Record<string, string> = { active: 'In Corso', completed: 'Completato', draft: 'Bozza' }
@@ -52,7 +52,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
       .eq('course_group_members.student_id', user.id)
       .maybeSingle(),
     supabase.from('course_materials')
-      .select('id, name, description, file_url, file_type, file_size, created_at')
+      .select('id, name, description, file_url, file_type, file_size, created_at, target_type, target_id')
       .eq('course_id', id)
       .order('created_at', { ascending: false }),
     supabase.from('course_sessions')
@@ -65,6 +65,17 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
       .select('*', { count: 'exact', head: true })
       .eq('course_id', id),
   ])
+
+  // Filtra materiali per target (all | group | student)
+  const myGroupId = myGroupRow?.id ?? null
+  const visibleMaterials = (materials ?? []).filter(m => {
+    const tt = (m as { target_type?: string | null }).target_type ?? 'all'
+    const ti = (m as { target_id?: string | null }).target_id ?? null
+    if (tt === 'all') return true
+    if (tt === 'group') return ti !== null && ti === myGroupId
+    if (tt === 'student') return ti !== null && ti === user.id
+    return true
+  })
 
   // Progressi quiz e task per questo corso
   const [{ data: courseQuizzes }, { data: courseTasks }] = await Promise.all([
@@ -152,7 +163,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
           <Link
             href={`/studente/corsi/${id}/presenze`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             <ClipboardList size={14} /> Le mie presenze
           </Link>
@@ -160,7 +171,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
             href={`/studente/corsi/${id}/task`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition"
           >
-            <ClipboardCheck size={14} /> I miei task
+            <ClipboardCheck size={14} /> Le mie task
           </Link>
           <Link
             href={`/studente/corsi/${id}/quiz`}
@@ -178,6 +189,12 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
                 {announcementCount}
               </span>
             )}
+          </Link>
+          <Link
+            href={`/studente/corsi/${id}/valutazioni`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 transition"
+          >
+            <Star size={14} /> Le mie valutazioni
           </Link>
           {attendancePct !== null && (
             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${attendancePct >= 75 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
@@ -311,7 +328,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
               <div className="space-y-1.5">
                 {myGroup.course_group_instructors.map(i => (
                   <div key={i.instructor_id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-blue-50">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#003DA5' }}>
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
                       {i.profiles?.full_name.charAt(0) ?? '?'}
                     </div>
                     <span className="text-sm text-gray-800 font-medium">{i.profiles?.full_name}</span>
@@ -356,7 +373,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
           <BookMarked size={15} className="text-amber-600" />
           <h3 className="font-semibold text-gray-900 text-sm">Materiali del corso</h3>
         </div>
-        <MaterialiClient courseId={id} initialMaterials={materials ?? []} canUpload={false} />
+        <MaterialiClient courseId={id} initialMaterials={visibleMaterials} canUpload={false} />
       </div>
 
       {/* Docenti del corso */}
@@ -371,7 +388,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
         <div className="divide-y divide-gray-50">
           {docenti.map(d => (
             <div key={d.id} className="px-5 py-3 flex items-center gap-3">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#003DA5' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
                 {d.full_name.charAt(0)}
               </div>
               <div className="min-w-0">

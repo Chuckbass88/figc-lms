@@ -70,7 +70,7 @@ export default function RisposteStudenteModal({ attemptId, studentName, score, t
               <div>
                 <h3 className="font-bold text-gray-900">{studentName}</h3>
                 <p className={`text-sm font-semibold mt-0.5 ${passed ? 'text-green-600' : 'text-red-500'}`}>
-                  {score}/{total} risposte corrette · {passed ? 'Superato' : 'Non superato'}
+                  {score}/{total} punti · {passed ? 'Superato' : 'Non superato'}
                 </p>
               </div>
               <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 transition">

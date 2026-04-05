@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ClipboardList, Clock, CheckCircle, Star, BookOpen } from 'lucide-react'
+import GuideTooltip from '@/components/guida/GuideTooltip'
 
 export default async function StudenteTaskGlobale() {
   const supabase = await createClient()
@@ -24,7 +25,7 @@ export default async function StudenteTaskGlobale() {
     return (
       <div className="max-w-3xl mx-auto">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">I Miei Task</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Le Mie Task</h2>
           <p className="text-gray-500 text-sm mt-1">Nessun corso attivo.</p>
         </div>
         <div className="mt-6 bg-white rounded-xl border border-gray-200 p-12 text-center">
@@ -160,7 +161,14 @@ export default async function StudenteTaskGlobale() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">I Miei Task</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-gray-900">Le Mie Task</h2>
+          <GuideTooltip
+            title="📋 Come funzionano le Task"
+            content="Le task sono compiti assegnati dal docente. Clicca su una task per vedere i dettagli e allegare il tuo lavoro (file). Le task scadute senza consegna appaiono in rosso."
+            position="bottom"
+          />
+        </div>
         <p className="text-gray-500 text-sm mt-1">
           {tasks.length} task · {submitted.length} consegnati
           {overdue.length > 0 && (

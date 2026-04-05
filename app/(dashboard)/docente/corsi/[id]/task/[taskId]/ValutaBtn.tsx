@@ -94,7 +94,7 @@ export default function ValutaBtn({ submissionId, studentId, taskTitle, initialG
           onClick={salva}
           disabled={loading}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-white font-semibold disabled:opacity-50 hover:opacity-90 transition"
-          style={{ backgroundColor: '#003DA5' }}
+          style={{ backgroundColor: '#1565C0' }}
         >
           {loading && <Loader2 size={11} className="animate-spin" />}
           <Check size={11} /> Salva valutazione

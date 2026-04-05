@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, GraduationCap, Mail, Calendar, Shield, TrendingUp, Award, ClipboardList, ClipboardCheck, CheckCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, GraduationCap, Mail, Calendar, Shield, TrendingUp, Award, ClipboardList, ClipboardCheck, CheckCircle, XCircle, FileText, UserRound } from 'lucide-react'
 import ResetPasswordBtn from './ResetPasswordBtn'
 import EliminaUtenteBtn from './EliminaUtenteBtn'
 import ToggleAttivazioneBtn from './ToggleAttivazioneBtn'
 import RimuoviIscrizioneBtn from './RimuoviIscrizioneBtn'
 import IscriviCorsoBtn from './IscriviCorsoBtn'
+import CambiaRuoloBtn from './CambiaRuoloBtn'
 
 type UserRole = 'super_admin' | 'docente' | 'studente'
 
@@ -177,6 +178,15 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           Torna agli utenti
         </Link>
         <div className="flex items-center gap-2 flex-wrap justify-end">
+          {profile.role === 'studente' && (
+            <Link
+              href={`/docente/corsisti/${id}`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
+            >
+              <UserRound size={14} /> Dettaglio Corsista
+            </Link>
+          )}
+          <CambiaRuoloBtn userId={id} currentRole={profile.role} />
           <ToggleAttivazioneBtn userId={id} isActive={profile.is_active ?? true} />
           <ResetPasswordBtn userId={id} />
           <EliminaUtenteBtn userId={id} userName={profile.full_name} />
@@ -189,7 +199,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           {/* Avatar */}
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0"
-            style={{ backgroundColor: profile.is_active ? '#003DA5' : '#9ca3af' }}
+            style={{ backgroundColor: profile.is_active ? '#1565C0' : '#9ca3af' }}
           >
             {profile.full_name?.charAt(0)?.toUpperCase() ?? '?'}
           </div>
@@ -234,7 +244,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       {/* Corsi iscritti */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <GraduationCap size={18} style={{ color: '#003DA5' }} />
+          <GraduationCap size={18} style={{ color: '#1565C0' }} />
           <h2 className="text-lg font-semibold text-gray-900">Corsi iscritti</h2>
           <span className="text-sm text-gray-400">({enrollments.length})</span>
           {profile.role === 'studente' && (
@@ -352,6 +362,14 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                       >
                         <ClipboardList size={11} /> Presenze
                       </Link>
+                      {profile.role === 'studente' && (
+                        <Link
+                          href={`/super-admin/utenti/${id}/attestato/${course.id}`}
+                          className="flex items-center gap-1 text-xs text-gray-400 hover:text-indigo-600 transition"
+                        >
+                          <FileText size={11} /> Attestato
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

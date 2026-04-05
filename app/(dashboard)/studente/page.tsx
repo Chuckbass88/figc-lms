@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import StatsCard from '@/components/dashboard/StatsCard'
-import { BookOpen, CheckCircle, TrendingUp, FileText, Calendar, MapPin, ClipboardCheck, Clock, Megaphone, XCircle } from 'lucide-react'
+import { BookOpen, CheckCircle, TrendingUp, FileText, Calendar, MapPin, ClipboardCheck, Clock, Megaphone } from 'lucide-react'
 
 export default async function StudenteDashboard() {
   const supabase = await createClient()
@@ -100,7 +100,7 @@ export default async function StudenteDashboard() {
   // Ultimi tentativi quiz dello studente
   const { data: recentQuizAttempts } = await supabase
     .from('quiz_attempts')
-    .select('id, score, total, passed, submitted_at, quiz_id, course_quizzes(id, title, course_id, courses(name))')
+    .select('id, submitted_at, quiz_id, course_quizzes(id, title, course_id, courses(name))')
     .eq('student_id', user.id)
     .order('submitted_at', { ascending: false })
     .limit(4)
@@ -126,19 +126,33 @@ export default async function StudenteDashboard() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatsCard title="Corsi Iscritto" value={activeCount} icon={<BookOpen size={20} />} variant="blue" />
-        <StatsCard title="Corsi Completati" value={completedCount} icon={<CheckCircle size={20} />} variant="green" />
+        <StatsCard
+          title="Corsi Iscritto"
+          value={activeCount}
+          icon={<BookOpen size={20} />}
+          variant="blue"
+          subtitle={completedCount > 0 ? `${completedCount} completati` : 'in corso adesso'}
+        />
+        <StatsCard
+          title="Corsi Completati"
+          value={completedCount}
+          icon={<CheckCircle size={20} />}
+          variant="green"
+          subtitle={completedCount > 0 ? 'puoi scaricare gli attestati' : 'nessuno ancora completato'}
+        />
         <StatsCard
           title="Presenze Medie"
           value={avgAttendance !== null ? `${avgAttendance}%` : '—'}
           icon={<TrendingUp size={20} />}
-          variant="amber"
+          variant={avgAttendance === null ? 'blue' : avgAttendance >= 75 ? 'green' : avgAttendance >= 50 ? 'amber' : 'red'}
+          subtitle={avgAttendance === null ? 'nessuna sessione ancora' : avgAttendance >= 75 ? 'idoneità raggiunta' : 'sotto la soglia del 75%'}
         />
         <StatsCard
           title="Task da consegnare"
           value={pendingTaskCount}
           icon={<ClipboardCheck size={20} />}
           variant={pendingTaskCount > 0 ? 'red' : 'green'}
+          subtitle={pendingTaskCount > 0 ? 'consegne in sospeso' : 'tutto consegnato'}
         />
       </div>
 
@@ -254,27 +268,22 @@ export default async function StudenteDashboard() {
             {(recentQuizAttempts ?? []).map(a => {
               type QuizInfo = { id: string; title: string; course_id: string; courses: { name: string } | null }
               const quiz = a.course_quizzes as unknown as QuizInfo | null
-              const scorePct = Math.round((a.score / a.total) * 100)
               return (
                 <Link
                   key={a.id}
                   href={`/studente/corsi/${quiz?.course_id}/quiz/${a.quiz_id}`}
                   className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50 transition group"
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${a.passed ? 'bg-green-100' : 'bg-red-100'}`}>
-                    {a.passed
-                      ? <CheckCircle size={15} className="text-green-600" />
-                      : <XCircle size={15} className="text-red-500" />
-                    }
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-gray-100">
+                    <CheckCircle size={15} className="text-gray-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition truncate">{quiz?.title}</p>
                     <p className="text-xs text-gray-400 truncate mt-0.5">{quiz?.courses?.name}</p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className={`text-sm font-bold ${a.passed ? 'text-green-700' : 'text-red-600'}`}>{scorePct}%</p>
-                    <p className="text-xs text-gray-400">{a.score}/{a.total}</p>
-                  </div>
+                  <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full flex-shrink-0">
+                    Consegnato
+                  </span>
                 </Link>
               )
             })}
@@ -348,8 +357,8 @@ export default async function StudenteDashboard() {
                       <span className={`text-xs font-semibold ${pct >= 75 ? 'text-green-700' : pct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
                         {pct}%
                       </span>
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${pct >= 75 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                        {pct >= 75 ? 'Idoneo' : 'A rischio'}
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${pct >= 75 ? 'bg-green-100 text-green-700' : pct >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}`}>
+                        {pct >= 75 ? 'Idoneo' : pct >= 50 ? 'A rischio' : 'Non idoneo'}
                       </span>
                     </div>
                   ) : (

@@ -97,7 +97,7 @@ export default function NotificaCorsoDocente({ courses }: { courses: Course[] })
         onClick={send}
         disabled={sending || !title.trim() || !message.trim() || !courseId}
         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition"
-        style={{ backgroundColor: '#003DA5' }}
+        style={{ backgroundColor: '#1565C0' }}
       >
         {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
         {sending ? 'Invio in corso...' : 'Invia notifica'}

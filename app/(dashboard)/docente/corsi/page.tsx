@@ -229,7 +229,7 @@ export default async function DocenteCorsi() {
                 <Link
                   href={`/docente/corsi/${course.id}/presenze`}
                   className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-white hover:opacity-90 transition"
-                  style={{ backgroundColor: '#003DA5' }}
+                  style={{ backgroundColor: '#1565C0' }}
                 >
                   <ClipboardList size={12} /> Presenze
                 </Link>

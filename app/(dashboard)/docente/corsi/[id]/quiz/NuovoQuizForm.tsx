@@ -28,6 +28,7 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
   const [description, setDescription] = useState('')
   const [groupId, setGroupId] = useState('')
   const [passingScore, setPassingScore] = useState(60)
+  const [timerMinutes, setTimerMinutes] = useState(30)
   const [questions, setQuestions] = useState<Question[]>([defaultQuestion()])
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -78,12 +79,13 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
     await fetch('/api/quiz/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ courseId, groupId: groupId || null, title, description, passingScore, questions: cleanedQuestions }),
+      body: JSON.stringify({ courseId, groupId: groupId || null, title, description, passingScore, timerMinutes, questions: cleanedQuestions }),
     })
     setLoading(false)
     setOpen(false)
     setTitle(''); setDescription(''); setGroupId(''); setPassingScore(60)
     setQuestions([defaultQuestion()])
+    setTimerMinutes(30)
     router.refresh()
   }
 
@@ -92,7 +94,7 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-white font-semibold hover:opacity-90 transition"
-        style={{ backgroundColor: '#003DA5' }}
+        style={{ backgroundColor: '#1565C0' }}
       >
         <Plus size={12} /> Nuovo quiz
       </button>
@@ -137,6 +139,16 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
             value={passingScore}
             onChange={e => setPassingScore(Number(e.target.value))}
             min={0} max={100}
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Tempo limite (minuti)</label>
+          <input
+            type="number"
+            value={timerMinutes}
+            onChange={e => setTimerMinutes(Math.max(1, Number(e.target.value)))}
+            min={1} max={180}
             className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -221,7 +233,7 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
           onClick={pubblica}
           disabled={!isValid() || loading}
           className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-white text-xs font-semibold hover:opacity-90 transition disabled:opacity-50"
-          style={{ backgroundColor: '#003DA5' }}
+          style={{ backgroundColor: '#1565C0' }}
         >
           {loading && <Loader2 size={11} className="animate-spin" />}
           <Check size={11} /> Pubblica quiz

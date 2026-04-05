@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ArrowLeft, MapPin, Calendar, Users, UserCheck, Layers, Pencil, GraduationCap, ClipboardList, BookMarked, CalendarDays, CalendarCheck, Megaphone, TrendingUp, ClipboardCheck } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
+import ArchivioCorsoSection from '@/components/archivio/ArchivioCorsoSection'
 import NotificaCorso from './NotificaCorso'
 import CambiaStatoBtn from './CambiaStatoBtn'
 import LinkInvitoBtn from './LinkInvitoBtn'
@@ -118,7 +119,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
         >
           <ArrowLeft size={15} /> Torna ai corsi
         </Link>
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3">
           <div>
             <div className="flex items-center gap-3 mb-1 flex-wrap">
               <h2 className="text-2xl font-bold text-gray-900">{course.name}</h2>
@@ -138,7 +139,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
               <CambiaStatoBtn courseId={id} currentStatus={course.status} />
             </div>
           </div>
-          <div className="flex gap-2 flex-shrink-0 flex-wrap">
+          <div className="flex gap-2 flex-wrap">
             <LinkInvitoBtn courseId={id} courseName={course.name} inviteToken={course.invite_token ?? null} />
             <NotificaCorso courseId={id} courseName={course.name} />
             <Link
@@ -160,6 +161,12 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
               <ClipboardList size={14} /> Task
             </Link>
             <Link
+              href={`/docente/corsi/${id}/annunci`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
+            >
+              <Megaphone size={14} /> Annunci
+            </Link>
+            <Link
               href={`/super-admin/corsi/${id}/modifica`}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
             >
@@ -174,7 +181,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
             <Link
               href={`/super-admin/corsi/${id}/gestione`}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#003DA5' }}
+              style={{ backgroundColor: '#1565C0' }}
             >
               <Users size={14} /> Partecipanti
             </Link>
@@ -262,7 +269,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
           <div className="divide-y divide-gray-50">
             {(docenti as { id: string; full_name: string; email: string }[]).map(d => (
               <Link key={d.id} href={`/super-admin/utenti/${d.id}`} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 transition group">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#003DA5' }}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
                   {d.full_name.charAt(0)}
                 </div>
                 <div className="min-w-0">
@@ -360,11 +367,14 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
         <MaterialiClient courseId={id} initialMaterials={materials ?? []} canUpload={true} />
       </div>
 
+      {/* Archivio Documenti del corso */}
+      <ArchivioCorsoSection courseId={id} />
+
       {/* Gruppi */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
           <Layers size={15} className="text-indigo-600" />
-          <h3 className="font-semibold text-gray-900 text-sm">Sottogruppi</h3>
+          <h3 className="font-semibold text-gray-900 text-sm">Microgruppi</h3>
           <span className="ml-auto text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
             {groups?.length ?? 0}
           </span>

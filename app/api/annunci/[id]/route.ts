@@ -28,6 +28,18 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     if (!isInstructor) return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
   }
 
+  // Rimuovi allegato dallo storage se presente
+  const { data: existing } = await supabase
+    .from('course_announcements')
+    .select('attachment_url')
+    .eq('id', id)
+    .single()
+
+  if (existing?.attachment_url) {
+    const path = existing.attachment_url.split('/course-materials/')[1]
+    if (path) await supabase.storage.from('course-materials').remove([path])
+  }
+
   const { error } = await supabase.from('course_announcements').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

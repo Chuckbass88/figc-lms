@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Users, GraduationCap, UserCheck, Search, ChevronDown, Power, PowerOff, UserPlus, X, Loader2, Eye, Download } from 'lucide-react'
+import { Users, GraduationCap, UserCheck, Search, ChevronDown, Power, PowerOff, UserPlus, X, Loader2, Eye, Download, CheckSquare, Square } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import ImportaCSV from '@/components/utenti/ImportaCSV'
+import InvitaDocenteBtn from './InvitaDocenteBtn'
 
 type UserRole = 'super_admin' | 'docente' | 'studente'
 
@@ -42,6 +43,56 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
   const [newUser, setNewUser] = useState({ full_name: '', email: '', password: '', role: 'studente' as UserRole })
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
+
+  // Selezione multipla + iscrizione bulk
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [courses, setCourses] = useState<{ id: string; name: string }[]>([])
+  const [showCourseDropdown, setShowCourseDropdown] = useState(false)
+  const [enrolling, setEnrolling] = useState(false)
+  const [enrollResult, setEnrollResult] = useState<string | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (selectedIds.size > 0 && courses.length === 0) {
+      supabase.from('courses').select('id, name').eq('status', 'active').order('name')
+        .then(({ data }) => setCourses(data ?? []))
+    }
+  }, [selectedIds.size])
+
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const s = new Set(prev)
+      s.has(id) ? s.delete(id) : s.add(id)
+      return s
+    })
+  }
+
+  function toggleSelectAll() {
+    const studentiIds = filtered.filter(u => u.role === 'studente').map(u => u.id)
+    const allSelected = studentiIds.every(id => selectedIds.has(id))
+    if (allSelected) {
+      setSelectedIds(prev => { const s = new Set(prev); studentiIds.forEach(id => s.delete(id)); return s })
+    } else {
+      setSelectedIds(prev => new Set([...prev, ...studentiIds]))
+    }
+  }
+
+  async function enrollSelected(courseId: string, courseName: string) {
+    setEnrolling(true)
+    setShowCourseDropdown(false)
+    const res = await fetch('/api/admin/iscrivi-corso-bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId, studentIds: [...selectedIds] }),
+    })
+    const json = await res.json()
+    setEnrolling(false)
+    if (res.ok) {
+      setEnrollResult(`${json.enrolled} corsisti iscritti a "${courseName}"`)
+      setSelectedIds(new Set())
+      setTimeout(() => setEnrollResult(null), 4000)
+    }
+  }
 
   function exportCSV() {
     const ROLE_EXPORT: Record<UserRole, string> = { super_admin: 'Super Admin', docente: 'Docente', studente: 'Corsista' }
@@ -141,10 +192,11 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
             <Download size={14} /> Esporta CSV
           </button>
           <ImportaCSV onImported={newUsers => setUsers(prev => [...newUsers, ...prev])} />
+          <InvitaDocenteBtn />
           <button
             onClick={() => { setShowForm(v => !v); setCreateError('') }}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             <UserPlus size={15} />
             Nuovo utente
@@ -178,7 +230,7 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
                 type="email"
                 value={newUser.email}
                 onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))}
-                placeholder="mario@figclms.it"
+                placeholder="mario@coachlab.it"
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -217,7 +269,7 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
               onClick={createUser}
               disabled={creating || !newUser.full_name.trim() || !newUser.email.trim() || !newUser.password.trim()}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition disabled:opacity-60"
-              style={{ backgroundColor: '#003DA5' }}
+              style={{ backgroundColor: '#1565C0' }}
             >
               {creating && <Loader2 size={13} className="animate-spin" />}
               Crea utente
@@ -243,6 +295,51 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
           </div>
         ))}
       </div>
+
+      {/* Barra selezione multipla */}
+      {selectedIds.size > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-semibold text-blue-800">{selectedIds.size} corsisti selezionati</span>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowCourseDropdown(v => !v)}
+              disabled={enrolling}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-white text-sm font-medium transition hover:opacity-90 disabled:opacity-60"
+              style={{ backgroundColor: '#1565C0' }}
+            >
+              {enrolling ? <Loader2 size={13} className="animate-spin" /> : <GraduationCap size={13} />}
+              Iscrivi al corso...
+              <ChevronDown size={12} />
+            </button>
+            {showCourseDropdown && (
+              <div className="absolute z-30 top-full left-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-xl py-1 min-w-[240px] max-h-60 overflow-y-auto">
+                {courses.length === 0 && <p className="px-4 py-3 text-sm text-gray-400">Caricamento...</p>}
+                {courses.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => enrollSelected(c.id, c.name)}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition"
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="ml-auto text-xs text-blue-600 hover:text-blue-800 transition"
+          >
+            Deseleziona tutto
+          </button>
+        </div>
+      )}
+
+      {enrollResult && (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-3 text-sm font-medium text-green-800">
+          ✓ {enrollResult}
+        </div>
+      )}
 
       {/* Tabella */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -291,6 +388,13 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
+                <th className="px-4 py-3 w-10">
+                  <button onClick={toggleSelectAll} className="text-gray-400 hover:text-blue-600 transition">
+                    {filtered.filter(u => u.role === 'studente').every(u => selectedIds.has(u.id)) && filtered.some(u => u.role === 'studente')
+                      ? <CheckSquare size={16} className="text-blue-600" />
+                      : <Square size={16} />}
+                  </button>
+                </th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nome</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Ruolo</th>
@@ -305,11 +409,20 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
                 const isLoadingThis = loading === user.id || loading === `active-${user.id}`
 
                 return (
-                  <tr key={user.id} className={`transition ${!user.is_active ? 'bg-gray-50 opacity-60' : 'hover:bg-gray-50'}`}>
+                  <tr key={user.id} className={`transition ${!user.is_active ? 'bg-gray-50 opacity-60' : selectedIds.has(user.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                    <td className="px-4 py-3 w-10">
+                      {user.role === 'studente' ? (
+                        <button onClick={() => toggleSelect(user.id)} className="text-gray-400 hover:text-blue-600 transition">
+                          {selectedIds.has(user.id)
+                            ? <CheckSquare size={16} className="text-blue-600" />
+                            : <Square size={16} />}
+                        </button>
+                      ) : null}
+                    </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${!user.is_active ? 'bg-gray-400' : ''}`}
-                          style={user.is_active ? { backgroundColor: '#003DA5' } : {}}>
+                          style={user.is_active ? { backgroundColor: '#1565C0' } : {}}>
                           {user.full_name.charAt(0)}
                         </div>
                         <div>
@@ -395,7 +508,7 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-gray-400 text-sm">
+                  <td colSpan={7} className="px-5 py-8 text-center text-gray-400 text-sm">
                     Nessun utente trovato.
                   </td>
                 </tr>

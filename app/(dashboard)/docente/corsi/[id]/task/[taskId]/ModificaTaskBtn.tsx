@@ -90,7 +90,7 @@ export default function ModificaTaskBtn({ taskId, initialTitle, initialDescripti
           onClick={salva}
           disabled={!title.trim() || loading}
           className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-white text-xs font-semibold hover:opacity-90 transition disabled:opacity-50"
-          style={{ backgroundColor: '#003DA5' }}
+          style={{ backgroundColor: '#1565C0' }}
         >
           {loading && <Loader2 size={11} className="animate-spin" />}
           <Check size={11} /> Salva modifiche

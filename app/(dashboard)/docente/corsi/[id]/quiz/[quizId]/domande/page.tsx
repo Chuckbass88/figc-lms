@@ -8,6 +8,7 @@ type Question = {
   id: string
   text: string
   order_index: number
+  points: number
   quiz_options: { id: string; text: string; is_correct: boolean; order_index: number }[]
 }
 
@@ -33,7 +34,7 @@ export default async function GestioneDomandeQuizPage({ params }: { params: Prom
   const [{ data: course }, { data: quiz }] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_quizzes')
-      .select('id, title, quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
+      .select('id, title, quiz_questions(id, text, order_index, points, quiz_options(id, text, is_correct, order_index))')
       .eq('id', quizId)
       .eq('course_id', id)
       .single(),

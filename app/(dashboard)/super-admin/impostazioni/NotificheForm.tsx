@@ -98,7 +98,7 @@ export default function NotificheForm({ users }: { users: User[] }) {
         onClick={send}
         disabled={sending || !title.trim() || !message.trim()}
         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white text-sm font-semibold transition disabled:opacity-60 hover:opacity-90"
-        style={{ backgroundColor: '#003DA5' }}
+        style={{ backgroundColor: '#1565C0' }}
       >
         {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
         {sending ? 'Invio in corso...' : 'Invia notifica'}

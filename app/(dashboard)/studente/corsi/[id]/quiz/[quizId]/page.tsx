@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Lock, Clock } from 'lucide-react'
 import QuizRunner from './QuizRunner'
 
 export default async function StudenteQuizPage({ params }: { params: Promise<{ id: string; quizId: string }> }) {
@@ -25,12 +25,12 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_quizzes')
-      .select('id, title, description, passing_score, quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
+      .select('id, title, description, passing_score, timer_minutes, instructions, shuffle_questions, available_from, available_until, auto_close_on_timer, penalty_wrong, questions_per_student, quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
       .eq('id', quizId)
       .eq('course_id', id)
       .single(),
     supabase.from('quiz_attempts')
-      .select('id, score, total, passed, submitted_at')
+      .select('id, submitted_at, started_at')
       .eq('quiz_id', quizId)
       .eq('student_id', user.id)
       .maybeSingle(),
@@ -38,24 +38,89 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
 
   if (!course || !quiz) notFound()
 
+  type QuizMeta = {
+    timer_minutes: number
+    instructions: string | null
+    shuffle_questions: boolean
+    available_from: string | null
+    available_until: string | null
+    auto_close_on_timer: boolean
+    penalty_wrong: boolean | null
+    questions_per_student: number | null
+  }
+  const quizMeta = quiz as unknown as QuizMeta
+
+  // Check availability window
+  const now = new Date()
+  if (quizMeta.available_from && new Date(quizMeta.available_from) > now) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div>
+          <Link href={`/studente/corsi/${id}/quiz`} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3 w-fit">
+            <ArrowLeft size={15} /> Quiz del corso
+          </Link>
+          <h2 className="text-2xl font-bold text-gray-900">{quiz.title}</h2>
+        </div>
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-10 text-center space-y-3">
+          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
+            <Clock size={32} className="text-amber-600" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900">Quiz non ancora disponibile</h3>
+          <p className="text-sm text-gray-500">
+            Questo quiz sarà disponibile dal{' '}
+            {new Date(quizMeta.available_from).toLocaleDateString('it-IT', {
+              day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+            })}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (quizMeta.available_until && new Date(quizMeta.available_until) < now) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div>
+          <Link href={`/studente/corsi/${id}/quiz`} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3 w-fit">
+            <ArrowLeft size={15} /> Quiz del corso
+          </Link>
+          <h2 className="text-2xl font-bold text-gray-900">{quiz.title}</h2>
+        </div>
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center space-y-3">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
+            <Lock size={32} className="text-gray-400" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900">Quiz chiuso</h3>
+          <p className="text-sm text-gray-500">
+            La finestra di consegna per questo quiz è scaduta il{' '}
+            {new Date(quizMeta.available_until).toLocaleDateString('it-IT', {
+              day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+            })}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   type QuizOption = { id: string; text: string; is_correct: boolean; order_index: number }
   type Question = { id: string; text: string; order_index: number; quiz_options: QuizOption[] }
 
-  const questions = ((quiz.quiz_questions as unknown as Question[]) ?? [])
+  let questions = ((quiz.quiz_questions as unknown as Question[]) ?? [])
     .sort((a, b) => a.order_index - b.order_index)
     .map(q => ({ ...q, quiz_options: q.quiz_options.sort((a, b) => a.order_index - b.order_index) }))
 
-  const scorePct = attempt ? Math.round((attempt.score / attempt.total) * 100) : null
+  // Always shuffle for pool-based quizzes; otherwise respect shuffle_questions flag
+  if (quizMeta.questions_per_student || quizMeta.shuffle_questions) {
+    questions = [...questions].sort(() => Math.random() - 0.5)
+  }
 
-  // Se già completato, mostra risultato + riepilogo risposte
+  // Pool mode: pick only N questions per student
+  if (quizMeta.questions_per_student && quizMeta.questions_per_student < questions.length) {
+    questions = questions.slice(0, quizMeta.questions_per_student)
+  }
+
+  // Se già completato, mostra schermata neutra senza risultati
   if (attempt) {
-    const { data: answers } = await supabase
-      .from('quiz_answers')
-      .select('question_id, option_id')
-      .eq('attempt_id', attempt.id)
-
-    const answerMap = new Map((answers ?? []).map(a => [a.question_id, a.option_id]))
-
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
@@ -68,108 +133,42 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
           <h2 className="text-2xl font-bold text-gray-900">{quiz.title}</h2>
           {quiz.description && <p className="text-gray-500 text-sm mt-1">{quiz.description}</p>}
         </div>
-
-        {/* Score card */}
-        <div className={`rounded-2xl p-8 text-center ${attempt.passed ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${attempt.passed ? 'bg-green-100' : 'bg-red-100'}`}>
-            {attempt.passed
-              ? <CheckCircle size={32} className="text-green-600" />
-              : <XCircle size={32} className="text-red-500" />
-            }
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-10 text-center space-y-3">
+          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
+            <CheckCircle size={32} className="text-blue-600" />
           </div>
-          <p className={`text-3xl font-black mb-1 ${attempt.passed ? 'text-green-700' : 'text-red-600'}`}>
-            {scorePct}%
-          </p>
-          <p className={`text-lg font-bold mb-2 ${attempt.passed ? 'text-green-800' : 'text-red-700'}`}>
-            {attempt.passed ? 'Quiz superato!' : 'Quiz non superato'}
-          </p>
-          <p className="text-sm text-gray-600">
-            {attempt.score} risposte corrette su {attempt.total} · Soglia richiesta: {quiz.passing_score}%
-          </p>
-          <p className="text-xs text-gray-400 mt-2">
-            Completato il {new Date(attempt.submitted_at).toLocaleDateString('it-IT', {
-              day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          <h3 className="text-xl font-bold text-gray-900">Quiz già consegnato</h3>
+          <p className="text-sm text-gray-500">
+            Hai completato questo quiz il{' '}
+            {new Date(attempt.submitted_at).toLocaleDateString('it-IT', {
+              day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
             })}
           </p>
-        </div>
-
-        {/* Riepilogo risposte */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-900 text-sm">Riepilogo risposte</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Verde = risposta corretta · Rosso = risposta errata</p>
-          </div>
-          <div className="divide-y divide-gray-50">
-            {questions.map((q, qi) => {
-              const selectedOptionId = answerMap.get(q.id)
-              const selectedOption = q.quiz_options.find(o => o.id === selectedOptionId)
-              const isCorrect = selectedOption?.is_correct ?? false
-              return (
-                <div key={q.id} className="px-5 py-4">
-                  <div className="flex items-start gap-3">
-                    {isCorrect
-                      ? <CheckCircle size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
-                      : <XCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
-                    }
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{qi + 1}. {q.text}</p>
-                      <div className="mt-2 space-y-1.5">
-                        {q.quiz_options.map(opt => {
-                          const isSelected = opt.id === selectedOptionId
-                          const isCorrectOpt = opt.is_correct
-                          return (
-                            <p
-                              key={opt.id}
-                              className={`text-xs flex items-center gap-2 px-2.5 py-1.5 rounded-lg ${
-                                isSelected && isCorrectOpt ? 'bg-green-50 text-green-700 font-semibold' :
-                                isSelected && !isCorrectOpt ? 'bg-red-50 text-red-600 font-medium' :
-                                isCorrectOpt ? 'text-green-700 font-medium' :
-                                'text-gray-400'
-                              }`}
-                            >
-                              {isSelected && isCorrectOpt && <CheckCircle size={11} className="flex-shrink-0" />}
-                              {isSelected && !isCorrectOpt && <XCircle size={11} className="flex-shrink-0" />}
-                              {!isSelected && isCorrectOpt && <CheckCircle size={11} className="flex-shrink-0 text-green-600" />}
-                              {!isSelected && !isCorrectOpt && <span className="w-2.5 h-2.5 rounded-full border border-gray-300 inline-block flex-shrink-0" />}
-                              <span>{opt.text}</span>
-                              {isSelected && !isCorrectOpt && <span className="text-red-400 text-[10px]">(tua risposta)</span>}
-                            </p>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          <p className="text-xs text-gray-400">Il docente analizzerà i risultati.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <Link
-          href={`/studente/corsi/${id}/quiz`}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3 w-fit"
-        >
-          <ArrowLeft size={15} /> Quiz del corso
-        </Link>
-        <h2 className="text-2xl font-bold text-gray-900">{quiz.title}</h2>
-        {quiz.description && <p className="text-gray-500 text-sm mt-1">{quiz.description}</p>}
-        <div className="flex items-center gap-3 mt-2">
-          <span className="text-xs text-gray-500">{questions.length} domande</span>
-          <span className="text-xs text-gray-500">Punteggio minimo: {quiz.passing_score}%</span>
-        </div>
-      </div>
+    <div className="max-w-2xl mx-auto space-y-4">
+      <Link
+        href={`/studente/corsi/${id}/quiz`}
+        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition w-fit"
+      >
+        <ArrowLeft size={15} /> Quiz del corso
+      </Link>
 
       <QuizRunner
         quizId={quizId}
         courseId={id}
+        quizTitle={quiz.title}
         questions={questions}
         passingScore={quiz.passing_score}
+        timerMinutes={quizMeta.timer_minutes ?? 30}
+        instructions={quizMeta.instructions ?? null}
+        autoCloseOnTimer={quizMeta.auto_close_on_timer ?? true}
+        penaltyWrong={quizMeta.penalty_wrong ?? false}
       />
     </div>
   )

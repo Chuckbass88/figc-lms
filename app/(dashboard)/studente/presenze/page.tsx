@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { TrendingUp, Award, Calendar, Check, X, BookOpen, ChevronRight } from 'lucide-react'
+import GuideTooltip from '@/components/guida/GuideTooltip'
 
 export default async function StudentePresenzeAggregate() {
   const supabase = await createClient()
@@ -77,7 +78,14 @@ export default async function StudentePresenzeAggregate() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Le mie presenze</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-gray-900">Le mie presenze</h2>
+          <GuideTooltip
+            title="📋 Registro presenze"
+            content="Qui vedi la tua percentuale di presenza per ogni corso. La soglia di idoneità è 75%: sotto questa soglia il badge è rosso 'A rischio'. Clicca su un corso per vedere il dettaglio sessione per sessione."
+            position="bottom"
+          />
+        </div>
         <p className="text-gray-500 text-sm mt-1">Riepilogo aggregato di tutti i tuoi corsi</p>
       </div>
 
@@ -114,12 +122,11 @@ export default async function StudentePresenzeAggregate() {
             </div>
             <div className="divide-y divide-gray-50">
               {courseStats.map(c => (
-                <Link
-                  key={c.courseId}
-                  href={`/studente/corsi/${c.courseId}/presenze`}
-                  className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition group"
-                >
-                  <div className="min-w-0 flex-1">
+                <div key={c.courseId} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition group">
+                  <Link
+                    href={`/studente/corsi/${c.courseId}/presenze`}
+                    className="min-w-0 flex-1"
+                  >
                     <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition truncate">
                       {c.courseName}
                     </p>
@@ -145,7 +152,7 @@ export default async function StudentePresenzeAggregate() {
                     ) : (
                       <p className="text-xs text-gray-400 mt-1">Nessuna sessione registrata</p>
                     )}
-                  </div>
+                  </Link>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {c.pct !== null && c.totalSessions > 0 && (
@@ -162,9 +169,8 @@ export default async function StudentePresenzeAggregate() {
                         {c.pct >= 75 && (
                           <Link
                             href={`/studente/corsi/${c.courseId}/attestato`}
-                            onClick={e => e.stopPropagation()}
                             className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg text-white hover:opacity-90 transition"
-                            style={{ backgroundColor: '#003DA5' }}
+                            style={{ backgroundColor: '#1565C0' }}
                           >
                             <Award size={11} /> Attestato
                           </Link>
@@ -173,7 +179,7 @@ export default async function StudentePresenzeAggregate() {
                     )}
                     <ChevronRight size={13} className="text-gray-300 group-hover:text-blue-400 transition" />
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>

@@ -22,7 +22,7 @@ export default async function AdminQuizDetailPage({ params }: { params: Promise<
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_quizzes')
-      .select('id, title, description, passing_score, created_at, group_id, course_groups(name), quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
+      .select('id, title, description, passing_score, created_at, group_id, category, course_groups(name), quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
       .eq('id', quizId)
       .eq('course_id', id)
       .single(),
@@ -63,13 +63,18 @@ export default async function AdminQuizDetailPage({ params }: { params: Promise<
         <h2 className="text-2xl font-bold text-gray-900">{quiz.title}</h2>
         {quiz.description && <p className="text-gray-500 text-sm mt-1">{quiz.description}</p>}
         <div className="flex items-center gap-3 mt-3 flex-wrap">
+          {(quiz as unknown as { category: string | null }).category && (
+            <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-gray-100 text-gray-700">
+              {(quiz as unknown as { category: string | null }).category}
+            </span>
+          )}
           <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
             {group ? group.name : 'Tutto il corso'}
           </span>
           <span className="text-xs text-gray-500">
             <Link href={`/super-admin/corsi/${id}`} className="hover:text-blue-600 transition">{course.name}</Link>
           </span>
-          <span className="text-xs text-gray-500">Soglia: {quiz.passing_score}%</span>
+          <span className="text-xs text-gray-500">Voto min: {quiz.passing_score} pt</span>
           <span className="text-xs text-gray-500 flex items-center gap-1">
             <Users size={11} /> {completedCount}/{students.length} completati
           </span>
@@ -132,7 +137,6 @@ export default async function AdminQuizDetailPage({ params }: { params: Promise<
         <div className="divide-y divide-gray-50">
           {students.map(student => {
             const attempt = attemptMap.get(student.id)
-            const scorePct = attempt ? Math.round((attempt.score / attempt.total) * 100) : null
             return (
               <div key={student.id} className="flex items-center gap-4 px-5 py-3.5">
                 <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
@@ -157,8 +161,8 @@ export default async function AdminQuizDetailPage({ params }: { params: Promise<
                       questions={questions}
                     />
                     <span className="text-sm font-bold text-gray-700">{attempt.score}/{attempt.total}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${scorePct !== null && scorePct >= quiz.passing_score ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                      {scorePct}% — {attempt.passed ? 'Superato' : 'Non superato'}
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${attempt.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                      {attempt.score}/{attempt.total} pt — {attempt.passed ? 'Superato' : 'Non superato'}
                     </span>
                   </div>
                 ) : (

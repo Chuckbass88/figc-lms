@@ -26,14 +26,17 @@ interface CourseGroup {
 interface Props {
   courseGroups: CourseGroup[]
   totalStudents: number
+  isAdmin?: boolean
 }
 
-export default function CorsistiClient({ courseGroups, totalStudents }: Props) {
+export default function CorsistiClient({ courseGroups, totalStudents, isAdmin }: Props) {
   const [search, setSearch] = useState('')
+  const [selectedCourse, setSelectedCourse] = useState<string>('all')
 
   const query = search.toLowerCase().trim()
 
   const filteredGroups = courseGroups
+    .filter(group => selectedCourse === 'all' || group.courseId === selectedCourse)
     .map(group => ({
       ...group,
       students: query
@@ -50,19 +53,36 @@ export default function CorsistiClient({ courseGroups, totalStudents }: Props) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">I Miei Corsisti</h2>
-          <p className="text-gray-500 text-sm mt-1">{totalStudents} corsisti totali nei tuoi corsi</p>
+          <h2 className="text-2xl font-bold text-gray-900">{isAdmin ? 'Tutti i Corsisti' : 'I Miei Corsisti'}</h2>
+          <p className="text-gray-500 text-sm mt-1">
+            {totalStudents} iscrizioni {isAdmin ? 'totali' : 'nei tuoi corsi'}
+          </p>
         </div>
-        {/* Search */}
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Cerca per nome o email..."
-            className="pl-9 pr-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 w-60"
-          />
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filtro corso */}
+          {courseGroups.length > 1 && (
+            <select
+              value={selectedCourse}
+              onChange={e => setSelectedCourse(e.target.value)}
+              className="text-sm rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white max-w-48"
+            >
+              <option value="all">Tutti i corsi</option>
+              {courseGroups.map(g => (
+                <option key={g.courseId} value={g.courseId}>{g.courseName}</option>
+              ))}
+            </select>
+          )}
+          {/* Search */}
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cerca per nome o email..."
+              className="pl-9 pr-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
+            />
+          </div>
         </div>
       </div>
 
@@ -95,7 +115,7 @@ export default function CorsistiClient({ courseGroups, totalStudents }: Props) {
               >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                  style={{ backgroundColor: '#003DA5' }}
+                  style={{ backgroundColor: '#1565C0' }}
                 >
                   {s.full_name.charAt(0)}
                 </div>

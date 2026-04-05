@@ -89,7 +89,7 @@ export default function SessioniClient({ courseId, initialSessions }: Props) {
           <button
             onClick={() => { setAdding(true); setEditingId(null); setDeletingId(null) }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             <Plus size={15} /> Nuova sessione
           </button>

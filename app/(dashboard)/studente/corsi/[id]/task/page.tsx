@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -35,11 +37,11 @@ export default async function StudenteTaskPage({ params }: { params: Promise<{ i
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_tasks')
-      .select('id, title, description, due_date, group_id, course_groups(name)')
+      .select('id, title, description, due_date, group_id, student_id, course_groups(name)')
       .eq('course_id', id)
       .or(myGroup?.group_id
-        ? `group_id.is.null,group_id.eq.${myGroup.group_id}`
-        : 'group_id.is.null'
+        ? `and(group_id.is.null,student_id.is.null),and(group_id.eq.${myGroup.group_id},student_id.is.null),student_id.eq.${user.id}`
+        : `and(group_id.is.null,student_id.is.null),student_id.eq.${user.id}`
       )
       .order('created_at', { ascending: false }),
     supabase.from('task_submissions')
@@ -51,7 +53,7 @@ export default async function StudenteTaskPage({ params }: { params: Promise<{ i
 
   type Task = {
     id: string; title: string; description: string | null; due_date: string | null
-    group_id: string | null; course_groups: { name: string } | null
+    group_id: string | null; student_id: string | null; course_groups: { name: string } | null
   }
   type MySub = { task_id: string; grade: string | null; feedback: string | null; submitted_at: string }
 
@@ -67,7 +69,7 @@ export default async function StudenteTaskPage({ params }: { params: Promise<{ i
         >
           <ArrowLeft size={15} /> {course.name}
         </Link>
-        <h2 className="text-2xl font-bold text-gray-900">I miei task</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Le mie task</h2>
         <p className="text-gray-500 text-sm mt-1">{tasks?.length ?? 0} task assegnati</p>
       </div>
 
@@ -90,7 +92,12 @@ export default async function StudenteTaskPage({ params }: { params: Promise<{ i
                     <p className="text-sm text-gray-500 mt-1 line-clamp-2">{task.description}</p>
                   )}
                   <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                    {group && (
+                    {task.student_id && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">
+                        Solo per te
+                      </span>
+                    )}
+                    {!task.student_id && group && (
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-100 text-indigo-700">
                         {group.name}
                       </span>

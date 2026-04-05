@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowUpDown, ArrowUp, ArrowDown, Download, BookOpen, ChevronDown, ChevronUp, CheckCircle, XCircle } from 'lucide-react'
 
@@ -225,21 +225,21 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
         <button
           onClick={() => setTab('corsi')}
           className={`px-4 py-2 rounded-lg text-xs font-medium transition ${tab === 'corsi' ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-          style={tab === 'corsi' ? { backgroundColor: '#003DA5' } : {}}
+          style={tab === 'corsi' ? { backgroundColor: '#1565C0' } : {}}
         >
           Per Corso
         </button>
         <button
           onClick={() => setTab('corsisti')}
           className={`px-4 py-2 rounded-lg text-xs font-medium transition ${tab === 'corsisti' ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-          style={tab === 'corsisti' ? { backgroundColor: '#003DA5' } : {}}
+          style={tab === 'corsisti' ? { backgroundColor: '#1565C0' } : {}}
         >
           Per Corsista
         </button>
         <button
           onClick={() => setTab('idoneita')}
           className={`px-4 py-2 rounded-lg text-xs font-medium transition ${tab === 'idoneita' ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-          style={tab === 'idoneita' ? { backgroundColor: '#003DA5' } : {}}
+          style={tab === 'idoneita' ? { backgroundColor: '#1565C0' } : {}}
         >
           Idoneità
         </button>
@@ -267,7 +267,7 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
                   key={f.value}
                   onClick={() => setStatusFilter(f.value)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${statusFilter === f.value ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-                  style={statusFilter === f.value ? { backgroundColor: '#003DA5' } : {}}
+                  style={statusFilter === f.value ? { backgroundColor: '#1565C0' } : {}}
                 >
                   {f.label}
                 </button>
@@ -403,7 +403,7 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
                   {filteredStudents.map(s => {
                     const isExpanded = expandedStudent === s.id
                     return (
-                      <>
+                      <React.Fragment key={s.id}>
                         <tr key={s.id} className="hover:bg-gray-50 transition">
                           <td className="px-5 py-3">
                             <button
@@ -454,7 +454,7 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
                             </td>
                           </tr>
                         )}
-                      </>
+                      </React.Fragment>
                     )
                   })}
                   {filteredStudents.length === 0 && (
@@ -491,7 +491,7 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
                   key={f.value}
                   onClick={() => setIdoneitaFilter(f.value as typeof idoneitaFilter)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${idoneitaFilter === f.value ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-                  style={idoneitaFilter === f.value ? { backgroundColor: '#003DA5' } : {}}
+                  style={idoneitaFilter === f.value ? { backgroundColor: '#1565C0' } : {}}
                 >
                   {f.label}
                 </button>

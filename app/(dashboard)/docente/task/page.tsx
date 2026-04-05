@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ClipboardCheck, Clock, Users, CheckCircle, AlertTriangle } from 'lucide-react'
+import GuideTooltip from '@/components/guida/GuideTooltip'
 
 export default async function DocenteTaskGlobale() {
   const supabase = await createClient()
@@ -137,7 +138,14 @@ export default async function DocenteTaskGlobale() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">I Miei Task</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-gray-900">Le Mie Task</h2>
+          <GuideTooltip
+            title="✅ Valutare le Task"
+            content="Qui trovi tutti i compiti consegnati dagli studenti. Clicca su una task per vedere le consegne, aprire i file e assegnare un voto con commento. Il badge rosso indica quante valutazioni sono ancora in sospeso."
+            position="bottom"
+          />
+        </div>
         <p className="text-gray-500 text-sm mt-1">
           {allTasks.length} task su {courseIds.length} {courseIds.length === 1 ? 'corso' : 'corsi'}
           {totalPending > 0 && <span className="text-red-500 font-semibold"> · {totalPending} valutazioni in sospeso</span>}

@@ -11,13 +11,8 @@ export default async function DettaglioCorsista({ params }: { params: Promise<{ 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Corsi dell'istruttore
-  const { data: myCoursesData } = await supabase
-    .from('course_instructors')
-    .select('course_id, courses(id, name)')
-    .eq('instructor_id', user.id)
-
-  const courseIds = myCoursesData?.map(r => r.course_id) ?? []
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isSuperAdmin = profile?.role === 'super_admin'
 
   // Profilo dello studente
   const { data: student } = await supabase
@@ -28,17 +23,38 @@ export default async function DettaglioCorsista({ params }: { params: Promise<{ 
 
   if (!student) notFound()
 
-  // Iscrizioni attive dello studente nei corsi dell'istruttore
-  const { data: enrollments } = courseIds.length > 0
-    ? await supabase
-        .from('course_enrollments')
-        .select('course_id')
-        .eq('student_id', studentId)
-        .in('course_id', courseIds)
-        .eq('status', 'active')
-    : { data: [] }
+  let enrolledCourseIds: string[] = []
+  let myCoursesData: { course_id: string; courses: unknown }[] = []
 
-  const enrolledCourseIds = enrollments?.map(e => e.course_id) ?? []
+  if (isSuperAdmin) {
+    // Admin: vede tutti i corsi dove il corsista è iscritto
+    const { data: enrollments } = await supabase
+      .from('course_enrollments')
+      .select('course_id, courses(id, name)')
+      .eq('student_id', studentId)
+      .eq('status', 'active')
+    enrolledCourseIds = (enrollments ?? []).map(e => e.course_id)
+    myCoursesData = (enrollments ?? []) as { course_id: string; courses: unknown }[]
+  } else {
+    // Docente: solo corsi dove è istruttore
+    const { data: instructorCourses } = await supabase
+      .from('course_instructors')
+      .select('course_id, courses(id, name)')
+      .eq('instructor_id', user.id)
+    myCoursesData = (instructorCourses ?? []) as { course_id: string; courses: unknown }[]
+    const courseIds = myCoursesData.map(r => r.course_id)
+
+    const { data: enrollments } = courseIds.length > 0
+      ? await supabase
+          .from('course_enrollments')
+          .select('course_id')
+          .eq('student_id', studentId)
+          .in('course_id', courseIds)
+          .eq('status', 'active')
+      : { data: [] }
+    enrolledCourseIds = (enrollments ?? []).map(e => e.course_id)
+  }
+
   if (enrolledCourseIds.length === 0) notFound()
 
   // Task per corso + consegne dello studente
@@ -154,15 +170,15 @@ export default async function DettaglioCorsista({ params }: { params: Promise<{ 
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <Link
-          href="/docente/corsisti"
+          href={isSuperAdmin ? '/super-admin/utenti' : '/docente/corsisti'}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3 w-fit"
         >
-          <ArrowLeft size={15} /> Corsisti
+          <ArrowLeft size={15} /> {isSuperAdmin ? 'Utenti' : 'Corsisti'}
         </Link>
         <div className="flex items-center gap-4">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             {student.full_name.charAt(0)}
           </div>

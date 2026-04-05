@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link2, X, Copy, Check, QrCode, RefreshCw, Loader2 } from 'lucide-react'
 import QRCode from 'qrcode'
-import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   courseId: string
@@ -17,7 +16,6 @@ export default function LinkInvitoBtn({ courseId, courseName, inviteToken: initi
   const [copied, setCopied] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const supabase = createClient()
 
   const inviteUrl = token
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/invito/${token}`
@@ -28,16 +26,20 @@ export default function LinkInvitoBtn({ courseId, courseName, inviteToken: initi
       QRCode.toCanvas(canvasRef.current, inviteUrl, {
         width: 200,
         margin: 2,
-        color: { dark: '#001233', light: '#ffffff' },
+        color: { dark: '#1B3768', light: '#ffffff' },
       })
     }
   }, [open, inviteUrl])
 
   async function generaToken() {
     setRegenerating(true)
-    const newToken = crypto.randomUUID()
-    await supabase.from('courses').update({ invite_token: newToken }).eq('id', courseId)
-    setToken(newToken)
+    const res = await fetch('/api/admin/genera-token-invito', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId }),
+    })
+    const json = await res.json()
+    if (json.token) setToken(json.token)
     setRegenerating(false)
   }
 
@@ -112,7 +114,7 @@ export default function LinkInvitoBtn({ courseId, courseName, inviteToken: initi
                   onClick={generaToken}
                   disabled={regenerating}
                   className="flex items-center gap-2 mx-auto px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50"
-                  style={{ backgroundColor: '#003DA5' }}
+                  style={{ backgroundColor: '#1565C0' }}
                 >
                   {regenerating ? <Loader2 size={14} className="animate-spin" /> : <QrCode size={14} />}
                   Genera link invito

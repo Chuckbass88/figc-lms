@@ -65,7 +65,7 @@ export default function CorsiClient({ initialCourses, sessionCountByCourse }: { 
         <button
           onClick={() => router.push('/super-admin/corsi/nuovo')}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium shadow-sm transition hover:opacity-90"
-          style={{ backgroundColor: '#003DA5' }}
+          style={{ backgroundColor: '#1565C0' }}
         >
           <Plus size={16} />
           Nuovo corso
@@ -94,7 +94,7 @@ export default function CorsiClient({ initialCourses, sessionCountByCourse }: { 
                   ? 'text-white shadow-sm'
                   : 'text-gray-500 hover:bg-gray-100'
               }`}
-              style={statusFilter === f.value ? { backgroundColor: '#003DA5' } : {}}
+              style={statusFilter === f.value ? { backgroundColor: '#1565C0' } : {}}
             >
               {f.label}
             </button>
@@ -235,7 +235,7 @@ export default function CorsiClient({ initialCourses, sessionCountByCourse }: { 
               <button
                 onClick={() => router.push('/super-admin/corsi/nuovo')}
                 className="px-4 py-2 rounded-lg text-white text-sm font-medium"
-                style={{ backgroundColor: '#003DA5' }}
+                style={{ backgroundColor: '#1565C0' }}
               >
                 Crea il primo corso
               </button>

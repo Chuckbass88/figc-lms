@@ -22,34 +22,78 @@ const ROLE_COLORS: Record<string, string> = {
 
 // Breadcrumb dal pathname
 function getPageTitle(pathname: string): string {
+  // ── Super Admin ──────────────────────────────────────────────
   if (pathname === '/super-admin') return 'Dashboard'
+  // Corsi: sotto-sezioni specifiche (prima delle generiche)
   if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/sessioni')) return 'Gestione Sessioni'
   if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/gruppi')) return 'Gestione Gruppi'
   if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/gestione')) return 'Gestione Partecipanti'
   if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/modifica')) return 'Modifica Corso'
   if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/presenze')) return 'Registro Presenze'
+  if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/annunci')) return 'Annunci del Corso'
+  if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/quiz') && pathname.includes('/domande')) return 'Modifica Domande Quiz'
+  if (pathname.startsWith('/super-admin/corsi') && pathname.match(/\/quiz\/[^/]+/)) return 'Dettaglio Quiz'
+  if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/quiz')) return 'Quiz del Corso'
+  if (pathname.startsWith('/super-admin/corsi') && pathname.match(/\/task\/[^/]+/)) return 'Dettaglio Task'
+  if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/task')) return 'Task del Corso'
   if (pathname.startsWith('/super-admin/corsi/nuovo')) return 'Nuovo Corso'
   if (pathname.match(/\/super-admin\/corsi\/[^/]+$/)) return 'Dettaglio Corso'
   if (pathname.startsWith('/super-admin/corsi')) return 'Gestione Corsi'
+  // Utenti
+  if (pathname.startsWith('/super-admin/utenti') && pathname.includes('/attestato')) return 'Attestato di Frequenza'
   if (pathname.match(/\/super-admin\/utenti\/[^/]+/)) return 'Dettaglio Utente'
   if (pathname.startsWith('/super-admin/utenti')) return 'Gestione Utenti'
+  // Altre sezioni admin
+  if (pathname.startsWith('/super-admin/sessioni')) return 'Agenda Sessioni'
+  if (pathname.startsWith('/super-admin/task')) return 'Panoramica Task'
+  if (pathname.startsWith('/super-admin/quiz')) return 'Panoramica Quiz'
+  if (pathname.startsWith('/super-admin/domande')) return 'Archivio Domande'
+  if (pathname.startsWith('/docente/domande')) return 'Mia Libreria Domande'
+  if (pathname.startsWith('/super-admin/cerca')) return 'Cerca'
   if (pathname.startsWith('/super-admin/report')) return 'Report Presenze'
   if (pathname.startsWith('/super-admin/impostazioni')) return 'Invia Notifiche'
+
+  // ── Docente ───────────────────────────────────────────────────
   if (pathname === '/docente') return 'Dashboard'
-  if (pathname.includes('/docente/corsi') && pathname.includes('/presenze')) return 'Registro Presenze'
+  if (pathname.startsWith('/docente/corsi') && pathname.includes('/presenze')) return 'Registro Presenze'
+  if (pathname.startsWith('/docente/corsi') && pathname.includes('/annunci')) return 'Annunci del Corso'
+  if (pathname.startsWith('/docente/corsi') && pathname.includes('/quiz') && pathname.includes('/domande')) return 'Modifica Domande Quiz'
+  if (pathname.startsWith('/docente/corsi') && pathname.match(/\/quiz\/[^/]+/)) return 'Dettaglio Quiz'
+  if (pathname.startsWith('/docente/corsi') && pathname.includes('/quiz')) return 'Quiz del Corso'
+  if (pathname.startsWith('/docente/corsi') && pathname.match(/\/task\/[^/]+/)) return 'Dettaglio Task'
+  if (pathname.startsWith('/docente/corsi') && pathname.includes('/task')) return 'Task del Corso'
   if (pathname.match(/\/docente\/corsi\/[^/]+$/)) return 'Dettaglio Corso'
   if (pathname.startsWith('/docente/corsi')) return 'I Miei Corsi'
   if (pathname.match(/\/docente\/corsisti\/[^/]+/)) return 'Dettaglio Corsista'
   if (pathname.startsWith('/docente/corsisti')) return 'Corsisti'
+  if (pathname.startsWith('/docente/task')) return 'Le Mie Task'
+  if (pathname.startsWith('/docente/quiz')) return 'I Miei Quiz'
+  if (pathname.startsWith('/docente/calendario')) return 'Calendario'
+  if (pathname.startsWith('/docente/report')) return 'Report Idoneità'
   if (pathname.startsWith('/docente/notifiche')) return 'Invia Notifica'
+
+  // ── Studente ──────────────────────────────────────────────────
   if (pathname === '/studente') return 'Dashboard'
-  if (pathname.includes('/studente/corsi') && pathname.includes('/presenze')) return 'Le mie presenze'
-  if (pathname.includes('/studente/corsi') && pathname.includes('/attestato')) return 'Attestato di Frequenza'
+  if (pathname.startsWith('/studente/corsi') && pathname.includes('/presenze')) return 'Le mie presenze'
+  if (pathname.startsWith('/studente/corsi') && pathname.includes('/attestato')) return 'Attestato di Frequenza'
+  if (pathname.startsWith('/studente/corsi') && pathname.match(/\/quiz\/[^/]+/)) return 'Dettaglio Quiz'
+  if (pathname.startsWith('/studente/corsi') && pathname.includes('/quiz')) return 'Quiz del Corso'
+  if (pathname.startsWith('/studente/corsi') && pathname.match(/\/task\/[^/]+/)) return 'Dettaglio Task'
+  if (pathname.startsWith('/studente/corsi') && pathname.includes('/task')) return 'Task del Corso'
+  if (pathname.startsWith('/studente/corsi') && pathname.includes('/annunci')) return 'Annunci del Corso'
   if (pathname.match(/\/studente\/corsi\/[^/]+$/)) return 'Dettaglio Corso'
   if (pathname.startsWith('/studente/corsi')) return 'I Miei Corsi'
+  if (pathname.startsWith('/studente/task')) return 'Le Mie Task'
+  if (pathname.startsWith('/studente/quiz')) return 'I Miei Quiz'
+  if (pathname.startsWith('/studente/presenze')) return 'Le mie presenze'
   if (pathname.startsWith('/studente/calendario')) return 'Calendario'
+
+  // ── Comuni ────────────────────────────────────────────────────
   if (pathname.startsWith('/notifiche')) return 'Le mie notifiche'
   if (pathname.startsWith('/profilo')) return 'Il mio profilo'
+  if (pathname.startsWith('/invito')) return 'Invito al Corso'
+  if (pathname.match(/\/messaggi\/[^/]+/)) return 'Conversazione'
+  if (pathname.startsWith('/messaggi')) return 'Messaggi'
   return 'Dashboard'
 }
 
@@ -76,18 +120,19 @@ export default function Header({ user, notifications, onMenuClick }: { user: Pro
   const initials = user.full_name.split(' ').map((n: string) => n.charAt(0)).slice(0, 2).join('').toUpperCase()
 
   return (
-    <header className="bg-white border-b border-gray-100 px-6 h-14 flex items-center flex-shrink-0">
+    <header className="glass-header px-6 h-14 flex items-center flex-shrink-0">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-3">
           {/* Hamburger mobile */}
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition"
+            className="lg:hidden p-2 rounded-xl transition hover:bg-white/60"
+            style={{ color: '#64748B' }}
           >
             <Menu size={20} />
           </button>
           {/* Titolo pagina */}
-          <h1 className="text-base font-semibold text-gray-900 tracking-tight">{pageTitle}</h1>
+          <h1 className="text-base font-bold tracking-tight" style={{ color: '#0F172A' }}>{pageTitle}</h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -98,26 +143,27 @@ export default function Header({ user, notifications, onMenuClick }: { user: Pro
           <div className="relative" ref={ref}>
             <button
               onClick={() => setOpen(v => !v)}
-              className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-xl hover:bg-gray-100 transition"
+              className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-xl transition hover:bg-white/70"
             >
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 text-white"
-                style={{ backgroundColor: '#003DA5' }}
+                style={{ background: 'linear-gradient(135deg, #1B3768 0%, #0891B2 100%)' }}
               >
                 {initials}
               </div>
-              <span className="hidden sm:block text-sm font-medium text-gray-800 leading-none">
+              <span className="hidden sm:block text-sm font-medium leading-none" style={{ color: '#1B3768' }}>
                 {user.full_name.split(' ')[0]}
               </span>
-              <ChevronDown size={13} className={`text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+              <ChevronDown size={13} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} style={{ color: '#94A3B8' }} />
             </button>
 
             {open && (
-              <div className="absolute right-0 mt-1.5 w-52 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+              <div className="absolute right-0 mt-1.5 w-52 rounded-xl shadow-xl z-50 overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)' }}>
                 {/* Info utente */}
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{user.full_name}</p>
-                  <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+                <div className="px-4 py-3 border-b border-white/60">
+                  <p className="text-sm font-semibold truncate" style={{ color: '#0F172A' }}>{user.full_name}</p>
+                  <p className="text-xs truncate mt-0.5" style={{ color: '#94A3B8' }}>{user.email}</p>
                   <span className={`inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_COLORS[user.role]}`}>
                     {ROLE_LABELS[user.role]}
                   </span>
@@ -126,9 +172,10 @@ export default function Header({ user, notifications, onMenuClick }: { user: Pro
                   <Link
                     href="/profilo"
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition"
+                    className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm transition hover:bg-[rgba(8,145,178,0.06)]"
+                    style={{ color: '#475569' }}
                   >
-                    <UserCircle size={15} className="text-gray-400" />
+                    <UserCircle size={15} style={{ color: '#94A3B8' }} />
                     Il mio profilo
                   </Link>
                   <button

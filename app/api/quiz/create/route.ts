@@ -1,15 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { sendEmail, emailNuovoQuiz } from '@/lib/email'
 
 interface QuizOption { text: string; isCorrect: boolean }
-interface QuizQuestion { text: string; options: QuizOption[] }
+interface QuizQuestion { text: string; points: number; options: QuizOption[] }
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const { courseId, groupId, title, description, passingScore, questions } = await request.json()
+  const {
+    courseId, groupId, title, description, passingScore, timerMinutes, questions,
+    category, instructions, shuffleQuestions, availableFrom, availableUntil, autoCloseOnTimer,
+    penaltyWrong, questionsPerStudent,
+  } = await request.json()
   if (!courseId || !title?.trim() || !questions?.length) {
     return NextResponse.json({ error: 'Dati mancanti' }, { status: 400 })
   }
@@ -33,7 +38,16 @@ export async function POST(request: Request) {
       group_id: groupId || null,
       title: title.trim(),
       description: description?.trim() || null,
-      passing_score: passingScore ?? 60,
+      passing_score: passingScore ?? 18,
+      timer_minutes: timerMinutes ?? 30,
+      category: category || null,
+      instructions: instructions?.trim() || null,
+      shuffle_questions: shuffleQuestions ?? false,
+      available_from: availableFrom || null,
+      available_until: availableUntil || null,
+      auto_close_on_timer: autoCloseOnTimer ?? true,
+      penalty_wrong: penaltyWrong ?? false,
+      questions_per_student: questionsPerStudent ?? null,
       created_by: user.id,
     })
     .select()
@@ -46,7 +60,7 @@ export async function POST(request: Request) {
     const q = questions[i]
     const { data: question, error: qErr } = await supabase
       .from('quiz_questions')
-      .insert({ quiz_id: quiz.id, text: q.text.trim(), order_index: i })
+      .insert({ quiz_id: quiz.id, text: q.text.trim(), order_index: i, points: q.points ?? 1 })
       .select()
       .single()
 
@@ -89,6 +103,21 @@ export async function POST(request: Request) {
         read: false,
       }))
     )
+
+    // Email
+    const { data: profiles } = await supabase
+      .from('profiles').select('full_name, email').in('id', studentIds)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    for (const p of profiles ?? []) {
+      const tmpl = emailNuovoQuiz({
+        recipientName: p.full_name,
+        quizTitle: title.trim(),
+        courseName: course?.name ?? '',
+        passScore: passingScore ?? 60,
+        appUrl: `${appUrl}/studente/corsi/${courseId}/quiz/${quiz.id}`,
+      })
+      await sendEmail({ ...tmpl, to: p.email })
+    }
   }
 
   return NextResponse.json({ ok: true, id: quiz.id })

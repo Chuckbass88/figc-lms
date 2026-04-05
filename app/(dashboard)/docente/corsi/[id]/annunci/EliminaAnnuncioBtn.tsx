@@ -1,27 +1,27 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Trash2, Loader2, X, Check } from 'lucide-react'
 
 export default function EliminaAnnuncioBtn({ annuncioId }: { annuncioId: string }) {
   const [confirm, setConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [error, setError] = useState(false)
 
   async function elimina() {
     setLoading(true)
-    await fetch(`/api/annunci/${annuncioId}`, { method: 'DELETE' })
+    const res = await fetch(`/api/annunci/${annuncioId}`, { method: 'DELETE' })
     setLoading(false)
-    router.refresh()
+    if (!res.ok) { setError(true); setConfirm(false); return }
+    window.location.reload()
   }
 
   if (!confirm) {
     return (
       <button
-        onClick={() => setConfirm(true)}
-        className="text-gray-300 hover:text-red-400 transition p-1 rounded"
-        title="Elimina annuncio"
+        onClick={() => { setError(false); setConfirm(true) }}
+        className={`transition p-1 rounded ${error ? 'text-red-400' : 'text-gray-300 hover:text-red-400'}`}
+        title={error ? 'Errore eliminazione' : 'Elimina annuncio'}
       >
         <Trash2 size={13} />
       </button>

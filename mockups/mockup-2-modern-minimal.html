@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoachLab — Modern Minimal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: {
+            brand:  { DEFAULT: '#1B3768', light: '#243d7a', accent: '#29ABE2' },
+            teal:   { DEFAULT: '#0891B2', light: '#22D3EE' },
+            green:  { DEFAULT: '#22C55E', light: '#4ADE80' },
+          },
+          backdropBlur: { xs: '4px' },
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #F0F9FF;
+      color: #164E63;
+      min-height: 100vh;
+    }
+
+    /* Glass card */
+    .glass {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.9);
+    }
+    .glass-sm {
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    /* Gradient bg */
+    .bg-gradient-page {
+      background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 40%, #ECFEFF 70%, #F0FDF4 100%);
+    }
+
+    /* Stat card hover */
+    .stat-card { transition: all 0.25s ease; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(8,145,178,0.15); }
+
+    /* Nav item */
+    .nav-item { transition: all 0.2s ease; border-radius: 12px; }
+    .nav-item.active { background: rgba(8,145,178,0.12); }
+    .nav-item:hover:not(.active) { background: rgba(8,145,178,0.06); }
+
+    /* Tag pill */
+    .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+
+    /* Session card */
+    .session-card { transition: all 0.2s ease; }
+    .session-card:hover { background: rgba(255,255,255,0.95); transform: translateX(2px); }
+
+    /* Chart bar animation */
+    .chart-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+    .chart-bar-fill { border-radius: 6px 6px 0 0; width: 100%; background: linear-gradient(180deg, #0891B2 0%, #22D3EE 100%); }
+
+    /* Sidebar mobile */
+    #sidebar { transition: transform 0.3s cubic-bezier(.4,0,.2,1); }
+    @media (max-width: 1024px) {
+      #sidebar { position: fixed; z-index: 50; transform: translateX(-100%); height: 100vh; }
+      #sidebar.open { transform: translateX(0); }
+    }
+
+    /* Progress ring */
+    .ring-progress { transform: rotate(-90deg); }
+
+    /* Avatar stack */
+    .avatar-stack { display: flex; }
+    .avatar-stack > * { margin-left: -8px; border: 2px solid rgba(255,255,255,0.9); }
+    .avatar-stack > *:first-child { margin-left: 0; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #BAE6FD; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-gradient-page">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside id="sidebar" class="w-64 glass flex flex-col flex-shrink-0 h-full shadow-xl">
+
+    <!-- Logo -->
+    <div class="px-6 py-5 border-b border-white/60">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#1B3768] to-[#29ABE2] flex items-center justify-center shadow-lg">
+          <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-white">
+            <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/>
+            <path d="M7 12 C7 9 9 7 12 7 C15 7 17 9 17 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="12" cy="16" r="2" fill="white"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-[#1B3768] font-bold text-base">CoachLab</div>
+          <div class="text-[#64748B] text-xs">Dashboard</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+
+      <p class="text-[#94A3B8] text-xs font-semibold uppercase tracking-widest px-3 mb-3">Menu</p>
+
+      <a href="#" class="nav-item active flex items-center gap-3 px-3 py-2.5 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-[#0891B2] flex items-center justify-center shadow-sm">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+        </div>
+        <span class="text-sm font-semibold text-[#0891B2]">Dashboard</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/></svg>
+        </div>
+        <span class="text-sm font-medium text-slate-600">Corsi</span>
+        <span class="ml-auto bg-[#0891B2]/10 text-[#0891B2] text-xs px-2 py-0.5 rounded-full font-bold">4</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"/></svg>
+        </div>
+        <span class="text-sm font-medium text-slate-600">Calendario</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg>
+        </div>
+        <span class="text-sm font-medium text-slate-600">Messaggi</span>
+        <span class="ml-auto w-2 h-2 rounded-full bg-green-400"></span>
+      </a>
+
+      <p class="text-[#94A3B8] text-xs font-semibold uppercase tracking-widest px-3 mt-5 mb-3">Gestione</p>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+        </div>
+        <span class="text-sm font-medium text-slate-600">Corsisti</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 cursor-pointer">
+        <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+        </div>
+        <span class="text-sm font-medium text-slate-600">Valutazioni</span>
+      </a>
+    </nav>
+
+    <!-- User -->
+    <div class="px-4 py-4 border-t border-white/50">
+      <div class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/60 cursor-pointer transition-all duration-200">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#1B3768] to-[#29ABE2] flex items-center justify-center flex-shrink-0 shadow-md">
+          <span class="text-white text-xs font-bold">AD</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-bold text-[#1B3768] truncate">Alessandro D.</div>
+          <div class="text-xs text-slate-400">Super Admin</div>
+        </div>
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Header -->
+    <header class="glass-sm border-b border-white/60 px-6 py-3 flex items-center gap-4 flex-shrink-0">
+      <button onclick="document.getElementById('sidebar').classList.toggle('open')" class="lg:hidden p-2 rounded-xl hover:bg-white/60 cursor-pointer transition-colors">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+
+      <div class="flex-1">
+        <h1 class="text-lg font-bold text-[#0F172A]">Dashboard</h1>
+        <p class="text-xs text-slate-400">Martedì 2 Aprile 2026</p>
+      </div>
+
+      <!-- Search -->
+      <div class="hidden md:flex items-center gap-2 bg-white/80 rounded-2xl px-4 py-2 w-60 border border-slate-100 shadow-sm">
+        <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+        <span class="text-sm text-slate-400">Cerca...</span>
+        <span class="ml-auto text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">⌘K</span>
+      </div>
+
+      <!-- Actions -->
+      <button class="hidden sm:flex items-center gap-2 bg-[#0891B2] hover:bg-[#0771A4] text-white px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-md">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        <span>Aggiungi</span>
+      </button>
+
+      <button class="relative p-2.5 rounded-2xl bg-white/80 border border-slate-100 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+        <span class="absolute top-2 right-2 w-1.5 h-1.5 bg-[#22C55E] rounded-full"></span>
+      </button>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+      <!-- Welcome -->
+      <div class="glass rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
+        <div>
+          <h2 class="text-xl font-bold text-[#0F172A]">Buongiorno, Alessandro</h2>
+          <p class="text-slate-500 text-sm mt-1">Hai <span class="text-[#0891B2] font-semibold">3 sessioni</span> oggi · <span class="text-amber-500 font-semibold">5 task</span> da valutare · <span class="text-green-500 font-semibold">2 messaggi</span> non letti</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="px-4 py-2 rounded-2xl border border-slate-200 bg-white/80 text-sm font-medium text-slate-600 hover:bg-white cursor-pointer transition-all duration-200 shadow-sm">Calendario</button>
+          <button class="px-4 py-2 rounded-2xl bg-[#1B3768] text-white text-sm font-semibold cursor-pointer hover:bg-[#243d7a] transition-all duration-200 shadow-md">Nuova sessione</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <div class="stat-card glass rounded-3xl p-5 shadow-md cursor-default">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0891B2] to-[#22D3EE] flex items-center justify-center shadow-md">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+            </div>
+            <span class="tag bg-[#0891B2]/10 text-[#0891B2]">↑ 12%</span>
+          </div>
+          <div class="text-3xl font-bold text-[#0F172A] mt-2">248</div>
+          <div class="text-sm text-slate-500 mt-0.5 font-medium">Corsisti attivi</div>
+          <!-- Mini bar -->
+          <div class="mt-4 flex items-end gap-0.5 h-8">
+            <div class="flex-1 bg-[#BAE6FD] rounded-sm" style="height:40%"></div>
+            <div class="flex-1 bg-[#7DD3FC] rounded-sm" style="height:60%"></div>
+            <div class="flex-1 bg-[#38BDF8] rounded-sm" style="height:50%"></div>
+            <div class="flex-1 bg-[#0EA5E9] rounded-sm" style="height:80%"></div>
+            <div class="flex-1 bg-[#0891B2] rounded-sm" style="height:70%"></div>
+            <div class="flex-1 bg-[#0891B2] rounded-sm" style="height:90%"></div>
+            <div class="flex-1 bg-[#22D3EE]/40 rounded-sm border border-dashed border-[#22D3EE]" style="height:100%"></div>
+          </div>
+        </div>
+
+        <div class="stat-card glass rounded-3xl p-5 shadow-md cursor-default">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1B3768] to-[#29ABE2] flex items-center justify-center shadow-md">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/></svg>
+            </div>
+            <span class="tag bg-[#1B3768]/10 text-[#1B3768]">+3 nuovi</span>
+          </div>
+          <div class="text-3xl font-bold text-[#0F172A] mt-2">12</div>
+          <div class="text-sm text-slate-500 mt-0.5 font-medium">Corsi attivi</div>
+          <div class="mt-4 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-[#1B3768] to-[#29ABE2] rounded-full" style="width:60%"></div>
+          </div>
+          <div class="flex justify-between mt-1.5">
+            <span class="text-xs text-slate-400">12/20 disponibili</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass rounded-3xl p-5 shadow-md cursor-default">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center shadow-md">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+            </div>
+            <span class="tag bg-amber-50 text-amber-600">Media</span>
+          </div>
+          <!-- Ring chart -->
+          <div class="flex items-center gap-3 mt-2">
+            <div class="relative w-14 h-14 flex-shrink-0">
+              <svg class="w-14 h-14 ring-progress" viewBox="0 0 56 56">
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#FEF3C7" stroke-width="5"/>
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#F59E0B" stroke-width="5" stroke-dasharray="138.2" stroke-dashoffset="17.97" stroke-linecap="round"/>
+              </svg>
+              <span class="absolute inset-0 flex items-center justify-center text-sm font-bold text-[#0F172A]">87%</span>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-[#0F172A]">87%</div>
+              <div class="text-sm text-slate-500 font-medium">Presenze</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card glass rounded-3xl p-5 shadow-md cursor-default">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-md">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
+            </div>
+            <span class="tag bg-green-50 text-green-600">+8 oggi</span>
+          </div>
+          <div class="text-3xl font-bold text-[#0F172A] mt-2">34</div>
+          <div class="text-sm text-slate-500 mt-0.5 font-medium">Quiz completati</div>
+          <div class="flex items-center gap-1.5 mt-4">
+            <div class="w-2 h-2 rounded-full bg-green-400"></div>
+            <span class="text-xs text-slate-500">72% superati con successo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Sessions -->
+        <div class="lg:col-span-2 glass rounded-3xl p-6 shadow-md">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-base font-bold text-[#0F172A]">Sessioni di oggi</h3>
+              <p class="text-xs text-slate-400 mt-0.5">3 sessioni programmate</p>
+            </div>
+            <a href="#" class="text-xs text-[#0891B2] font-semibold cursor-pointer hover:text-[#0771A4] transition-colors">Vedi calendario →</a>
+          </div>
+          <div class="space-y-3">
+
+            <div class="session-card flex items-center gap-4 p-4 rounded-2xl bg-[#0891B2]/5 border border-[#0891B2]/10 cursor-pointer">
+              <div class="text-center flex-shrink-0 w-12">
+                <div class="text-xs text-slate-400 font-medium">09:00</div>
+                <div class="w-px h-8 bg-[#0891B2]/30 mx-auto my-1"></div>
+                <div class="text-xs text-slate-400 font-medium">11:00</div>
+              </div>
+              <div class="w-1 h-14 rounded-full bg-[#0891B2] flex-shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-bold text-[#0F172A] truncate">Tattica Difensiva</span>
+                  <span class="tag bg-[#0891B2]/10 text-[#0891B2]">In corso</span>
+                </div>
+                <div class="text-xs text-slate-500 mt-1">Corso Avanzato · Aula B3</div>
+                <div class="avatar-stack mt-2">
+                  <div class="w-5 h-5 rounded-full bg-[#1B3768] flex items-center justify-center text-white text-xs font-bold">M</div>
+                  <div class="w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center text-white text-xs font-bold">L</div>
+                  <div class="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold">+8</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="session-card flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 cursor-pointer">
+              <div class="text-center flex-shrink-0 w-12">
+                <div class="text-xs text-slate-400 font-medium">14:00</div>
+                <div class="w-px h-8 bg-slate-200 mx-auto my-1"></div>
+                <div class="text-xs text-slate-400 font-medium">16:00</div>
+              </div>
+              <div class="w-1 h-14 rounded-full bg-emerald-400 flex-shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-bold text-[#0F172A] truncate">Tecnica Individuale</span>
+                  <span class="tag bg-slate-100 text-slate-500">14:00</span>
+                </div>
+                <div class="text-xs text-slate-500 mt-1">Corso Base · Campo 1</div>
+                <div class="avatar-stack mt-2">
+                  <div class="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">A</div>
+                  <div class="w-5 h-5 rounded-full bg-slate-400 flex items-center justify-center text-white text-xs font-bold">+12</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="session-card flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 cursor-pointer">
+              <div class="text-center flex-shrink-0 w-12">
+                <div class="text-xs text-slate-400 font-medium">17:30</div>
+                <div class="w-px h-8 bg-slate-200 mx-auto my-1"></div>
+                <div class="text-xs text-slate-400 font-medium">19:00</div>
+              </div>
+              <div class="w-1 h-14 rounded-full bg-amber-400 flex-shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-sm font-bold text-[#0F172A] truncate">Preparazione Fisica</span>
+                  <span class="tag bg-amber-50 text-amber-600">Modulo 3</span>
+                </div>
+                <div class="text-xs text-slate-500 mt-1">Tutti i corsi · Palestra</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-4">
+
+          <!-- Quick actions -->
+          <div class="glass rounded-3xl p-5 shadow-md">
+            <h3 class="text-base font-bold text-[#0F172A] mb-4">Azioni rapide</h3>
+            <div class="space-y-2">
+              <button class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#0891B2]/8 border border-transparent hover:border-[#0891B2]/15 cursor-pointer transition-all duration-200 text-left">
+                <div class="w-8 h-8 rounded-xl bg-[#0891B2]/10 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-[#0891B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                </div>
+                <span class="text-sm font-medium text-slate-700">Crea nuova sessione</span>
+                <svg class="w-4 h-4 text-slate-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+              <button class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#0891B2]/8 border border-transparent hover:border-[#0891B2]/15 cursor-pointer transition-all duration-200 text-left">
+                <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+                </div>
+                <span class="text-sm font-medium text-slate-700">Invita corsista</span>
+                <svg class="w-4 h-4 text-slate-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+              <button class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#0891B2]/8 border border-transparent hover:border-[#0891B2]/15 cursor-pointer transition-all duration-200 text-left">
+                <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75"/></svg>
+                </div>
+                <span class="text-sm font-medium text-slate-700">Registro presenze</span>
+                <svg class="w-4 h-4 text-slate-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+              <button class="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#0891B2]/8 border border-transparent hover:border-[#0891B2]/15 cursor-pointer transition-all duration-200 text-left">
+                <div class="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605"/></svg>
+                </div>
+                <span class="text-sm font-medium text-slate-700">Crea quiz</span>
+                <svg class="w-4 h-4 text-slate-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Weekly attendance chart -->
+          <div class="glass rounded-3xl p-5 shadow-md">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-[#0F172A]">Presenze settimana</h3>
+              <span class="tag bg-green-50 text-green-600">↑ 5%</span>
+            </div>
+            <div class="flex items-end gap-1.5 h-20">
+              <div class="chart-bar-wrap">
+                <div class="chart-bar-fill" style="height:55%; opacity:0.6"></div>
+                <span class="text-xs text-slate-400">L</span>
+              </div>
+              <div class="chart-bar-wrap">
+                <div class="chart-bar-fill" style="height:80%"></div>
+                <span class="text-xs text-slate-400">M</span>
+              </div>
+              <div class="chart-bar-wrap">
+                <div class="chart-bar-fill" style="height:65%; opacity:0.8"></div>
+                <span class="text-xs text-slate-400">M</span>
+              </div>
+              <div class="chart-bar-wrap">
+                <div class="chart-bar-fill" style="height:100%"></div>
+                <span class="text-xs font-bold text-[#0891B2]">G</span>
+              </div>
+              <div class="chart-bar-wrap">
+                <div style="height:100%; background: rgba(8,145,178,0.15); border: 1.5px dashed #0891B2; border-radius: 4px 4px 0 0; width: 100%;"></div>
+                <span class="text-xs text-slate-300">V</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

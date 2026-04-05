@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
+import ArchivioCorsoSection from '@/components/archivio/ArchivioCorsoSection'
+import LinkInvitoBtn from '@/app/(dashboard)/super-admin/corsi/[id]/LinkInvitoBtn'
 
 const STATUS_LABELS: Record<string, string> = { active: 'Attivo', completed: 'Completato', draft: 'Bozza' }
 const STATUS_COLORS: Record<string, string> = {
@@ -37,7 +39,7 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
     { data: materials },
     { count: announcementCount },
   ] = await Promise.all([
-    supabase.from('courses').select('id, name, description, location, start_date, end_date, status, category').eq('id', id).single(),
+    supabase.from('courses').select('id, name, description, location, start_date, end_date, status, category, invite_token').eq('id', id).single(),
     supabase.from('course_enrollments')
       .select('profiles(id, full_name, email), status')
       .eq('course_id', id)
@@ -51,7 +53,7 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
       `)
       .eq('instructor_id', user.id),
     supabase.from('course_materials')
-      .select('id, name, description, file_url, file_type, file_size, created_at')
+      .select('id, name, description, file_url, file_type, file_size, created_at, target_type, target_id')
       .eq('course_id', id)
       .order('created_at', { ascending: false }),
     supabase.from('course_announcements')
@@ -109,7 +111,7 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
           <Link
             href={`/docente/corsi/${id}/presenze`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             <ClipboardList size={14} /> Registro Presenze
           </Link>
@@ -136,6 +138,19 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
               </span>
             )}
           </Link>
+          <Link
+            href={`/docente/corsi/${id}/gruppi`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-50 text-purple-700 hover:bg-purple-100 transition"
+          >
+            <UsersRound size={14} /> Microgruppi
+          </Link>
+          <Link
+            href={`/docente/corsi/${id}/valutazioni`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 transition"
+          >
+            <Star size={14} /> Valutazioni
+          </Link>
+          <LinkInvitoBtn courseId={id} courseName={course.name} inviteToken={(course as { invite_token?: string | null }).invite_token ?? null} />
         </div>
       </div>
 
@@ -167,7 +182,7 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
             <Layers size={15} className="text-indigo-600" />
-            <h3 className="font-semibold text-gray-900 text-sm">I miei gruppi</h3>
+            <h3 className="font-semibold text-gray-900 text-sm">I miei microgruppi</h3>
             <span className="ml-auto text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
               {filteredGroups.length}
             </span>
@@ -242,8 +257,17 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
           <BookMarked size={15} className="text-amber-600" />
           <h3 className="font-semibold text-gray-900 text-sm">Materiali del corso</h3>
         </div>
-        <MaterialiClient courseId={id} initialMaterials={materials ?? []} canUpload={true} />
+        <MaterialiClient
+          courseId={id}
+          initialMaterials={materials ?? []}
+          canUpload={true}
+          groups={filteredGroups.map(g => ({ id: g.id, name: g.name }))}
+          students={studenti.map(s => ({ id: s.id, full_name: s.full_name }))}
+        />
       </div>
+
+      {/* Archivio Documenti del corso */}
+      <ArchivioCorsoSection courseId={id} />
     </div>
   )
 }

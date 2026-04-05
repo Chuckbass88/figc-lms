@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, X, Users, UserCheck, GraduationCap, ChevronDown, ChevronUp, Trash2, Loader2, Pencil, Check } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
 interface Person { id: string; full_name: string; email: string }
 interface Group {
@@ -20,11 +19,13 @@ interface Props {
   initialGroups: Group[]
   courseDocenti: Person[]
   courseStudenti: Person[]
+  backPath?: string
 }
 
-export default function GruppiClient({ course, initialGroups, courseDocenti, courseStudenti }: Props) {
+export default function GruppiClient({ course, initialGroups, courseDocenti, courseStudenti, backPath }: Props) {
   const router = useRouter()
-  const supabase = createClient()
+  const defaultBackPath = `/super-admin/corsi/${course.id}/gestione`
+  const resolvedBackPath = backPath ?? defaultBackPath
 
   const [groups, setGroups] = useState(initialGroups)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -42,17 +43,18 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
   async function createGroup() {
     if (!newName.trim()) return
     setCreating(true)
-    const { data, error } = await supabase
-      .from('course_groups')
-      .insert({ course_id: course.id, name: newName.trim(), description: newDesc.trim() || null })
-      .select('id, name, description, created_at')
-      .single()
-    if (!error && data) {
-      setGroups(prev => [...prev, { ...data, course_group_members: [], course_group_instructors: [] }])
+    const res = await fetch('/api/gruppi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId: course.id, name: newName.trim(), description: newDesc.trim() || null }),
+    })
+    const json = await res.json()
+    if (res.ok && json.group) {
+      setGroups(prev => [...prev, { ...json.group, course_group_members: [], course_group_instructors: [] }])
       setNewName('')
       setNewDesc('')
       setShowForm(false)
-      setExpanded(data.id)
+      setExpanded(json.group.id)
     }
     setCreating(false)
   }
@@ -61,11 +63,12 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
   async function saveGroupEdit(groupId: string) {
     if (!editName.trim()) return
     setSavingEdit(true)
-    const { error } = await supabase
-      .from('course_groups')
-      .update({ name: editName.trim(), description: editDesc.trim() || null })
-      .eq('id', groupId)
-    if (!error) {
+    const res = await fetch('/api/gruppi', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, name: editName.trim(), description: editDesc.trim() || null }),
+    })
+    if (res.ok) {
       setGroups(prev => prev.map(g => g.id === groupId
         ? { ...g, name: editName.trim(), description: editDesc.trim() || null }
         : g
@@ -78,7 +81,11 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
   // Elimina gruppo
   async function deleteGroup(groupId: string) {
     if (!confirm('Eliminare questo gruppo?')) return
-    await supabase.from('course_groups').delete().eq('id', groupId)
+    await fetch('/api/gruppi', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId }),
+    })
     setGroups(prev => prev.filter(g => g.id !== groupId))
     if (expanded === groupId) setExpanded(null)
   }
@@ -86,7 +93,11 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
   // Aggiungi corsista al gruppo
   async function addMember(groupId: string, student: Person) {
     setLoading(`m-${groupId}-${student.id}`)
-    await supabase.from('course_group_members').insert({ group_id: groupId, student_id: student.id })
+    await fetch('/api/gruppi/membri', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, studentId: student.id }),
+    })
     setGroups(prev => prev.map(g => g.id === groupId
       ? { ...g, course_group_members: [...g.course_group_members, { student_id: student.id, profiles: student }] }
       : g
@@ -97,7 +108,11 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
   // Rimuovi corsista dal gruppo
   async function removeMember(groupId: string, studentId: string) {
     setLoading(`m-${groupId}-${studentId}`)
-    await supabase.from('course_group_members').delete().eq('group_id', groupId).eq('student_id', studentId)
+    await fetch('/api/gruppi/membri', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, studentId }),
+    })
     setGroups(prev => prev.map(g => g.id === groupId
       ? { ...g, course_group_members: g.course_group_members.filter(m => m.student_id !== studentId) }
       : g
@@ -108,7 +123,11 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
   // Aggiungi docente al gruppo
   async function addInstructor(groupId: string, docente: Person) {
     setLoading(`i-${groupId}-${docente.id}`)
-    await supabase.from('course_group_instructors').insert({ group_id: groupId, instructor_id: docente.id })
+    await fetch('/api/gruppi/istruttori', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, instructorId: docente.id }),
+    })
     setGroups(prev => prev.map(g => g.id === groupId
       ? { ...g, course_group_instructors: [...g.course_group_instructors, { instructor_id: docente.id, profiles: docente }] }
       : g
@@ -119,7 +138,11 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
   // Rimuovi docente dal gruppo
   async function removeInstructor(groupId: string, instructorId: string) {
     setLoading(`i-${groupId}-${instructorId}`)
-    await supabase.from('course_group_instructors').delete().eq('group_id', groupId).eq('instructor_id', instructorId)
+    await fetch('/api/gruppi/istruttori', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, instructorId }),
+    })
     setGroups(prev => prev.map(g => g.id === groupId
       ? { ...g, course_group_instructors: g.course_group_instructors.filter(i => i.instructor_id !== instructorId) }
       : g
@@ -132,23 +155,23 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
       {/* Header */}
       <div>
         <button
-          onClick={() => router.push(`/super-admin/corsi/${course.id}/gestione`)}
+          onClick={() => router.push(resolvedBackPath)}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3"
         >
           <ArrowLeft size={15} /> Torna alla gestione partecipanti
         </button>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Sottogruppi</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Microgruppi</h2>
             <p className="text-gray-500 text-sm mt-1">{course.name} &middot; {groups.length} {groups.length === 1 ? 'gruppo' : 'gruppi'}</p>
           </div>
           <button
             onClick={() => setShowForm(v => !v)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             <Plus size={15} />
-            Nuovo gruppo
+            Crea nuovo microgruppo
           </button>
         </div>
       </div>
@@ -182,7 +205,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
               onClick={createGroup}
               disabled={creating || !newName.trim()}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition disabled:opacity-60"
-              style={{ backgroundColor: '#003DA5' }}
+              style={{ backgroundColor: '#1565C0' }}
             >
               {creating && <Loader2 size={13} className="animate-spin" />}
               Crea gruppo
@@ -231,7 +254,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
                       onClick={() => saveGroupEdit(group.id)}
                       disabled={savingEdit || !editName.trim()}
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-semibold disabled:opacity-60 transition"
-                      style={{ backgroundColor: '#003DA5' }}
+                      style={{ backgroundColor: '#1565C0' }}
                     >
                       {savingEdit ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                       Salva
@@ -243,7 +266,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
                   className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
                   onClick={() => setExpanded(isOpen ? null : group.id)}
                 >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ backgroundColor: '#003DA5' }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
                     <Users size={15} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -366,7 +389,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
             <button
               onClick={() => setShowForm(true)}
               className="px-4 py-2 rounded-lg text-white text-sm font-medium"
-              style={{ backgroundColor: '#003DA5' }}
+              style={{ backgroundColor: '#1565C0' }}
             >
               Crea il primo gruppo
             </button>

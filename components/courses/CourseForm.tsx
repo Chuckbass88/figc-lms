@@ -10,8 +10,13 @@ const CATEGORY_OPTIONS = [
   { value: '', label: 'Nessuna categoria' },
   { value: 'UEFA Pro', label: 'UEFA Pro' },
   { value: 'UEFA A', label: 'UEFA A' },
-  { value: 'UEFA B', label: 'UEFA B' },
+  { value: 'Licenza D', label: 'Licenza D' },
   { value: 'UEFA C', label: 'UEFA C' },
+  { value: 'UEFA GK A', label: 'UEFA GK A' },
+  { value: 'UEFA GK B', label: 'UEFA GK B' },
+  { value: 'UEFA GK C', label: 'UEFA GK C' },
+  { value: 'UEFA Fitness A', label: 'UEFA Fitness A' },
+  { value: 'UEFA Fitness B', label: 'UEFA Fitness B' },
   { value: 'Allenatore Giovani', label: 'Allenatore Giovani' },
   { value: 'Allenatore Base', label: 'Allenatore Base' },
 ]
@@ -219,7 +224,7 @@ export default function CourseForm({ course }: { course?: Course }) {
               type="submit"
               disabled={loading}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition disabled:opacity-60"
-              style={{ backgroundColor: '#003DA5' }}
+              style={{ backgroundColor: '#1565C0' }}
             >
               {loading && <Loader2 size={14} className="animate-spin" />}
               {isEdit ? 'Salva modifiche' : 'Crea corso'}

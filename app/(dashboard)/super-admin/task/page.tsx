@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ClipboardCheck, Clock, Users, CheckCircle, ArrowRight } from 'lucide-react'
+import { ClipboardCheck, Clock, Users, CheckCircle, ChevronRight } from 'lucide-react'
 
 export default async function AdminTaskPage() {
   const supabase = await createClient()
@@ -15,9 +15,11 @@ export default async function AdminTaskPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('courses')
-      .select('id, name')
+      .select('id, name, status')
       .order('name'),
   ])
+
+  const activeCourseIds = new Set((courses ?? []).filter(c => c.status === 'active').map(c => c.id))
 
   const taskIds = (tasks ?? []).map(t => t.id)
 
@@ -95,7 +97,7 @@ export default async function AdminTaskPage() {
       </div>
 
       {/* Tasks by course */}
-      {[...tasksByCourse.entries()].map(([courseId, courseTasks]) => {
+      {[...tasksByCourse.entries()].filter(([courseId]) => activeCourseIds.has(courseId)).map(([courseId, courseTasks]) => {
         const courseName = courseNameMap.get(courseId) ?? 'Corso sconosciuto'
         const studentCount = enrollByCourse.get(courseId) ?? 0
         return (
@@ -176,10 +178,11 @@ export default async function AdminTaskPage() {
                       )}
                       <Link
                         href={`/super-admin/corsi/${courseId}/task/${task.id}`}
-                        className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition"
-                        title="Apri dettaglio task"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+                        style={{ backgroundColor: '#1565C0' }}
                       >
-                        <ArrowRight size={14} />
+                        Apri task
+                        <ChevronRight size={13} />
                       </Link>
                     </div>
                   </div>

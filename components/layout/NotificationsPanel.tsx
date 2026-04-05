@@ -83,7 +83,7 @@ export default function NotificationsPanel({
         {unread.length > 0 && (
           <span
             className="absolute top-1 right-1 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold"
-            style={{ backgroundColor: '#C9A84C' }}
+            style={{ backgroundColor: '#29ABE2' }}
           >
             {unread.length > 9 ? '9+' : unread.length}
           </span>

@@ -68,7 +68,7 @@ export default async function SuperAdminSessioniPage() {
         className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition group"
       >
         <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center flex-shrink-0 ${isToday ? 'text-white' : 'bg-gray-100'}`}
-          style={isToday ? { backgroundColor: '#003DA5' } : {}}>
+          style={isToday ? { backgroundColor: '#1565C0' } : {}}>
           <span className={`text-sm font-black leading-none ${isToday ? 'text-white' : 'text-gray-700'}`}>
             {date.getDate()}
           </span>

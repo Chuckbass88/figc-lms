@@ -61,7 +61,7 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
           required
           placeholder="nome@esempio.it"
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:border-transparent text-gray-900 placeholder-gray-400 transition text-sm"
-          style={{ '--tw-ring-color': '#003DA5' } as React.CSSProperties}
+          style={{ '--tw-ring-color': '#1565C0' } as React.CSSProperties}
         />
       </div>
 
@@ -75,7 +75,7 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
           required
           placeholder="••••••••"
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:border-transparent text-gray-900 transition text-sm"
-          style={{ '--tw-ring-color': '#003DA5' } as React.CSSProperties}
+          style={{ '--tw-ring-color': '#1565C0' } as React.CSSProperties}
         />
       </div>
 
@@ -89,7 +89,7 @@ export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
         type="submit"
         disabled={loading}
         className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-2 hover:opacity-90"
-        style={{ backgroundColor: '#003DA5' }}
+        style={{ backgroundColor: '#1565C0' }}
       >
         {loading && <Loader2 size={15} className="animate-spin" />}
         {loading ? 'Accesso in corso...' : 'Accedi'}

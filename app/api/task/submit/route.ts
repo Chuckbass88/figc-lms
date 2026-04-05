@@ -1,9 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const admin = createAdminClient()
   if (!user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const formData = await request.formData()
@@ -21,19 +24,19 @@ export async function POST(request: Request) {
     const ext = file.name.split('.').pop()
     const path = `${taskId}/${user.id}/${Date.now()}.${ext}`
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await admin.storage
       .from('task-submissions')
       .upload(path, file, { contentType: file.type, upsert: true })
 
     if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
 
-    const { data: urlData } = supabase.storage.from('task-submissions').getPublicUrl(path)
+    const { data: urlData } = admin.storage.from('task-submissions').getPublicUrl(path)
     fileUrl = urlData.publicUrl
     fileName = file.name
     fileSize = file.size
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from('task_submissions')
     .upsert({
       task_id: taskId,
@@ -48,5 +51,8 @@ export async function POST(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  revalidatePath('/studente/corsi/[id]/task', 'page')
+
   return NextResponse.json({ submission: data })
 }

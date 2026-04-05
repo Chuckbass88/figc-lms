@@ -12,10 +12,12 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData()
-  const file = formData.get('file') as File
-  const courseId = formData.get('course_id') as string
-  const name = formData.get('name') as string
+  const file        = formData.get('file') as File
+  const courseId    = formData.get('course_id') as string
+  const name        = formData.get('name') as string
   const description = formData.get('description') as string
+  const targetType  = (formData.get('target_type') as string) || 'all'
+  const targetId    = formData.get('target_id') as string | null
 
   if (!file || !courseId || !name) {
     return NextResponse.json({ error: 'Dati mancanti' }, { status: 400 })
@@ -37,15 +39,17 @@ export async function POST(request: Request) {
   const { data: material, error: dbError } = await supabase
     .from('course_materials')
     .insert({
-      course_id: courseId,
-      name: name.trim(),
+      course_id:   courseId,
+      name:        name.trim(),
       description: description?.trim() || null,
-      file_url: urlData.publicUrl,
-      file_type: ext?.toUpperCase() ?? 'FILE',
-      file_size: file.size,
+      file_url:    urlData.publicUrl,
+      file_type:   ext?.toUpperCase() ?? 'FILE',
+      file_size:   file.size,
       uploaded_by: user.id,
+      target_type: targetType,
+      target_id:   targetType !== 'all' && targetId ? targetId : null,
     })
-    .select('id, name, description, file_url, file_type, file_size, created_at')
+    .select('id, name, description, file_url, file_type, file_size, created_at, target_type, target_id')
     .single()
 
   if (dbError) {

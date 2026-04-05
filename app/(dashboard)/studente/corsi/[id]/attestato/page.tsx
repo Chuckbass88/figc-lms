@@ -71,19 +71,11 @@ export default async function Attestato({ params }: { params: Promise<{ id: stri
         id="attestato"
         className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none"
       >
-        {/* Header FIGC */}
-        <div className="px-10 pt-10 pb-6 text-center border-b border-gray-100" style={{ background: 'linear-gradient(135deg, #001233 0%, #003DA5 100%)' }}>
+        {/* Header CoachLab */}
+        <div className="px-10 pt-10 pb-6 text-center border-b border-gray-100" style={{ background: 'linear-gradient(135deg, #1B3768 0%, #1565C0 100%)' }}>
           <div className="flex items-center justify-center gap-4 mb-4">
-            <div
-              className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
-              style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #E8C96A 100%)' }}
-            >
-              <span className="font-black text-base tracking-tight" style={{ color: '#001233' }}>FIGC</span>
-            </div>
-            <div className="text-left">
-              <p className="text-white font-bold text-lg leading-tight">Federazione Italiana Giuoco Calcio</p>
-              <p className="text-blue-200 text-sm">Settore Tecnico — Formazione Allenatori</p>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-coachlab.png" alt="CoachLab" className="h-10 w-auto object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
           </div>
           <h1 className="text-2xl font-black text-white tracking-wide mt-2">ATTESTATO DI FREQUENZA</h1>
         </div>
@@ -162,7 +154,7 @@ export default async function Attestato({ params }: { params: Promise<{ id: stri
           {/* Footer */}
           <div className="border-t border-gray-100 pt-5 flex items-end justify-between text-xs text-gray-400">
             <p>Rilasciato il {today}</p>
-            <p>FIGC LMS — Formazione Allenatori</p>
+            <p>CoachLab — Formazione Allenatori</p>
           </div>
         </div>
       </div>

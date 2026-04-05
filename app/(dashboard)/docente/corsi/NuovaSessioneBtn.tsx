@@ -100,7 +100,7 @@ export default function NuovaSessioneBtn({ courseId, courseName }: Props) {
                 onClick={crea}
                 disabled={!title.trim() || !date || loading}
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
-                style={{ backgroundColor: '#003DA5' }}
+                style={{ backgroundColor: '#1565C0' }}
               >
                 {loading && <Loader2 size={13} className="animate-spin" />}
                 Crea sessione

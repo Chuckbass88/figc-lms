@@ -48,9 +48,21 @@ export default async function AdminTaskDetailPage({ params }: { params: Promise<
     grade: string | null; feedback: string | null
   }
 
-  const students = (enrollments as unknown as Enrollment[] ?? [])
+  let students = (enrollments as unknown as Enrollment[] ?? [])
     .map(e => e.profiles)
     .filter(Boolean) as { id: string; full_name: string; email: string }[]
+
+  // Filtra per destinatario specifico
+  if (task.student_id) {
+    students = students.filter(s => s.id === task.student_id)
+  } else if (task.group_id) {
+    const { data: groupMembers } = await supabase
+      .from('course_group_members')
+      .select('student_id')
+      .eq('group_id', task.group_id)
+    const memberIds = new Set((groupMembers ?? []).map((m: { student_id: string }) => m.student_id))
+    students = students.filter(s => memberIds.has(s.id))
+  }
 
   const submissionMap = new Map((submissions as Submission[] ?? []).map(s => [s.student_id, s]))
 
@@ -76,8 +88,8 @@ export default async function AdminTaskDetailPage({ params }: { params: Promise<
         )}
         <div className="flex items-center gap-3 mt-3 flex-wrap justify-between">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
-              {group ? group.name : 'Tutto il corso'}
+            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${task.student_id ? 'bg-green-100 text-green-700' : group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
+              {task.student_id ? `Corsista: ${students[0]?.full_name ?? '—'}` : group ? group.name : 'Tutto il corso'}
             </span>
             <span className="text-xs text-gray-500">
               <Link href={`/super-admin/corsi/${id}`} className="hover:text-blue-600 transition">{course.name}</Link>

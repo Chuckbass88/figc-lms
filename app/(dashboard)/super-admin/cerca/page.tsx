@@ -76,7 +76,7 @@ export default async function CercaPage({
           <button
             type="submit"
             className="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-lg text-white text-sm font-semibold transition hover:opacity-90"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             Cerca
           </button>
@@ -107,7 +107,7 @@ export default async function CercaPage({
                   >
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                      style={{ backgroundColor: '#003DA5' }}
+                      style={{ backgroundColor: '#1565C0' }}
                     >
                       {u.full_name.charAt(0)}
                     </div>

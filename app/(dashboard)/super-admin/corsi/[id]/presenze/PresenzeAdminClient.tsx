@@ -108,7 +108,7 @@ export default function PresenzeAdminClient({ courseId, courseName, initialSessi
                     <td className="px-5 py-3 sticky left-0 bg-white z-10">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                          style={{ backgroundColor: '#003DA5' }}>
+                          style={{ backgroundColor: '#1565C0' }}>
                           {student.full_name.charAt(0)}
                         </div>
                         <Link href={`/super-admin/utenti/${student.id}`} className="font-medium text-gray-900 whitespace-nowrap hover:text-blue-700 transition">{student.full_name}</Link>
@@ -185,7 +185,7 @@ export default function PresenzeAdminClient({ courseId, courseName, initialSessi
                 return (
                   <div key={s.id} className="px-5 py-3 flex items-center gap-4">
                     <div className="w-7 h-7 rounded-md flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                      style={{ backgroundColor: '#003DA5' }}>
+                      style={{ backgroundColor: '#1565C0' }}>
                       {s.full_name.charAt(0)}
                     </div>
                     <Link href={`/super-admin/utenti/${s.id}`} className="flex-1 text-sm font-medium text-gray-900 truncate hover:text-blue-700 transition">{s.full_name}</Link>

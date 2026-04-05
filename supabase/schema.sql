@@ -179,3 +179,405 @@ CREATE POLICY "ce_admin_write" ON course_enrollments
 DROP POLICY IF EXISTS "notifications_own" ON notifications;
 CREATE POLICY "notifications_own" ON notifications
   FOR ALL USING (user_id = auth.uid());
+
+-- ============================================================
+-- MESSAGGISTICA INTERNA
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS conversations (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS conversation_participants (
+  conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  user_id         UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  last_read_at    TIMESTAMPTZ,
+  PRIMARY KEY (conversation_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id       UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  content         TEXT NOT NULL,
+  created_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS messages_conversation_created ON messages(conversation_id, created_at);
+
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversation_participants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+-- conversations: visibile solo ai partecipanti
+DROP POLICY IF EXISTS "conv_participant_select" ON conversations;
+CREATE POLICY "conv_participant_select" ON conversations
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM conversation_participants
+      WHERE conversation_id = conversations.id AND user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "conv_insert_auth" ON conversations;
+CREATE POLICY "conv_insert_auth" ON conversations
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- conversation_participants: visibile ai partecipanti della stessa conv
+DROP POLICY IF EXISTS "cp_select" ON conversation_participants;
+CREATE POLICY "cp_select" ON conversation_participants
+  FOR SELECT USING (
+    user_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM conversation_participants cp2
+      WHERE cp2.conversation_id = conversation_participants.conversation_id
+        AND cp2.user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "cp_insert_auth" ON conversation_participants;
+CREATE POLICY "cp_insert_auth" ON conversation_participants
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "cp_update_own" ON conversation_participants;
+CREATE POLICY "cp_update_own" ON conversation_participants
+  FOR UPDATE USING (user_id = auth.uid());
+
+-- messages: leggibili e scrivibili solo dai partecipanti
+DROP POLICY IF EXISTS "msg_select" ON messages;
+CREATE POLICY "msg_select" ON messages
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM conversation_participants
+      WHERE conversation_id = messages.conversation_id AND user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "msg_insert" ON messages;
+CREATE POLICY "msg_insert" ON messages
+  FOR INSERT WITH CHECK (
+    sender_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM conversation_participants
+      WHERE conversation_id = messages.conversation_id AND user_id = auth.uid()
+    )
+  );
+
+-- Abilita Supabase Realtime sulla tabella messages
+ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+
+-- ============================================================
+-- MIGRAZIONE 14 — Timer quiz e started_at
+-- ============================================================
+
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS timer_minutes INTEGER DEFAULT 30;
+ALTER TABLE quiz_attempts   ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ;
+
+-- ============================================================
+-- MIGRAZIONE 15 — Libreria domande personale docente
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS docente_question_library (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  text TEXT NOT NULL,
+  category TEXT,
+  difficulty TEXT DEFAULT 'medio',
+  is_shared BOOLEAN DEFAULT FALSE,
+  created_by UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  imported_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS docente_question_library_options (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  question_id UUID NOT NULL REFERENCES docente_question_library(id) ON DELETE CASCADE,
+  text TEXT NOT NULL,
+  is_correct BOOLEAN NOT NULL DEFAULT FALSE,
+  order_index INTEGER NOT NULL DEFAULT 0
+);
+
+ALTER TABLE docente_question_library ENABLE ROW LEVEL SECURITY;
+ALTER TABLE docente_question_library_options ENABLE ROW LEVEL SECURITY;
+
+-- Il docente vede le sue + quelle condivise dagli altri docenti + tutte se super_admin
+DROP POLICY IF EXISTS "dql_select" ON docente_question_library;
+CREATE POLICY "dql_select" ON docente_question_library
+  FOR SELECT USING (
+    created_by = auth.uid()
+    OR is_shared = TRUE
+    OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "dql_insert" ON docente_question_library;
+CREATE POLICY "dql_insert" ON docente_question_library
+  FOR INSERT WITH CHECK (
+    created_by = auth.uid()
+    AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('docente', 'super_admin'))
+  );
+
+DROP POLICY IF EXISTS "dql_update" ON docente_question_library;
+CREATE POLICY "dql_update" ON docente_question_library
+  FOR UPDATE USING (
+    created_by = auth.uid()
+    OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "dql_delete" ON docente_question_library;
+CREATE POLICY "dql_delete" ON docente_question_library
+  FOR DELETE USING (
+    created_by = auth.uid()
+    OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "dqlo_select" ON docente_question_library_options;
+CREATE POLICY "dqlo_select" ON docente_question_library_options
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM docente_question_library dql
+      WHERE dql.id = question_id
+        AND (dql.created_by = auth.uid() OR dql.is_shared = TRUE
+             OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin'))
+    )
+  );
+
+DROP POLICY IF EXISTS "dqlo_insert" ON docente_question_library_options;
+CREATE POLICY "dqlo_insert" ON docente_question_library_options
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM docente_question_library WHERE id = question_id AND created_by = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "dqlo_delete" ON docente_question_library_options;
+CREATE POLICY "dqlo_delete" ON docente_question_library_options
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM docente_question_library WHERE id = question_id AND created_by = auth.uid()
+    )
+  );
+
+-- ============================================================
+-- MIGRAZIONE 13 — Archivio domande (question_library)
+-- ============================================================
+
+-- Tabella principale domande della libreria
+CREATE TABLE IF NOT EXISTS question_library (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  text TEXT NOT NULL,
+  category TEXT,
+  difficulty TEXT DEFAULT 'medio',
+  imported_at TIMESTAMPTZ DEFAULT NOW(),
+  created_by UUID REFERENCES profiles(id) ON DELETE SET NULL
+);
+
+-- Opzioni delle domande della libreria
+CREATE TABLE IF NOT EXISTS question_library_options (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  question_id UUID NOT NULL REFERENCES question_library(id) ON DELETE CASCADE,
+  text TEXT NOT NULL,
+  is_correct BOOLEAN NOT NULL DEFAULT FALSE,
+  order_index INTEGER NOT NULL DEFAULT 0
+);
+
+-- RLS: solo super_admin può leggere/scrivere la libreria
+ALTER TABLE question_library ENABLE ROW LEVEL SECURITY;
+ALTER TABLE question_library_options ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "ql_select" ON question_library;
+CREATE POLICY "ql_select" ON question_library
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+    OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'docente')
+  );
+
+DROP POLICY IF EXISTS "ql_insert" ON question_library;
+CREATE POLICY "ql_insert" ON question_library
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "ql_delete" ON question_library;
+CREATE POLICY "ql_delete" ON question_library
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "qlo_select" ON question_library_options;
+CREATE POLICY "qlo_select" ON question_library_options
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('super_admin', 'docente'))
+  );
+
+DROP POLICY IF EXISTS "qlo_insert" ON question_library_options;
+CREATE POLICY "qlo_insert" ON question_library_options
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "qlo_delete" ON question_library_options;
+CREATE POLICY "qlo_delete" ON question_library_options
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );
+
+-- ============================================================
+-- Migration 16: campi quiz avanzati (categoria, istruzioni, shuffle, finestre disponibilità)
+-- ============================================================
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS instructions TEXT;
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS shuffle_questions BOOLEAN DEFAULT FALSE;
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS available_from TIMESTAMPTZ;
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS available_until TIMESTAMPTZ;
+
+-- ============================================================
+-- Migration 17: Punti per domanda + Quiz pre-archiviati (paniere)
+-- ============================================================
+ALTER TABLE quiz_questions ADD COLUMN IF NOT EXISTS points INTEGER DEFAULT 1;
+
+CREATE TABLE IF NOT EXISTS quiz_templates (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title       TEXT NOT NULL,
+  description TEXT,
+  category    TEXT,
+  created_by  UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS quiz_template_questions (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  template_id UUID REFERENCES quiz_templates(id) ON DELETE CASCADE NOT NULL,
+  text        TEXT NOT NULL,
+  order_index INTEGER DEFAULT 0,
+  points      INTEGER DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS quiz_template_options (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  question_id UUID REFERENCES quiz_template_questions(id) ON DELETE CASCADE NOT NULL,
+  text        TEXT NOT NULL,
+  is_correct  BOOLEAN DEFAULT FALSE,
+  order_index INTEGER DEFAULT 0
+);
+
+ALTER TABLE quiz_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quiz_template_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE quiz_template_options ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "qt_select" ON quiz_templates;
+CREATE POLICY "qt_select" ON quiz_templates FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "qt_insert" ON quiz_templates;
+CREATE POLICY "qt_insert" ON quiz_templates FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('super_admin', 'docente'))
+);
+
+DROP POLICY IF EXISTS "qt_update" ON quiz_templates;
+CREATE POLICY "qt_update" ON quiz_templates FOR UPDATE TO authenticated USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('super_admin', 'docente'))
+);
+
+DROP POLICY IF EXISTS "qt_delete" ON quiz_templates;
+CREATE POLICY "qt_delete" ON quiz_templates FOR DELETE USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('super_admin', 'docente'))
+);
+
+DROP POLICY IF EXISTS "qtq_select" ON quiz_template_questions;
+CREATE POLICY "qtq_select" ON quiz_template_questions FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "qtq_insert" ON quiz_template_questions;
+CREATE POLICY "qtq_insert" ON quiz_template_questions FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "qtq_delete" ON quiz_template_questions;
+CREATE POLICY "qtq_delete" ON quiz_template_questions FOR DELETE USING (true);
+
+DROP POLICY IF EXISTS "qtqo_select" ON quiz_template_options;
+CREATE POLICY "qtqo_select" ON quiz_template_options FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "qtqo_insert" ON quiz_template_options;
+CREATE POLICY "qtqo_insert" ON quiz_template_options FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "qtqo_delete" ON quiz_template_options;
+CREATE POLICY "qtqo_delete" ON quiz_template_options FOR DELETE USING (true);
+
+-- ============================================================
+-- Migration 18: Auto-chiusura quiz allo scadere del timer
+-- ============================================================
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS auto_close_on_timer BOOLEAN DEFAULT TRUE;
+
+-- ============================================================
+-- Migration 19: course_tag sui template + docenti possono inserire in libreria
+-- ============================================================
+ALTER TABLE quiz_templates ADD COLUMN IF NOT EXISTS course_tag TEXT;
+
+-- Aggiorna RLS question_library: anche i docenti possono inserire domande
+DROP POLICY IF EXISTS "ql_insert" ON question_library;
+CREATE POLICY "ql_insert" ON question_library
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('super_admin', 'docente'))
+  );
+
+-- ============================================================
+-- Migration 20: Categorie domande (sistema + personali)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS question_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  scope TEXT NOT NULL DEFAULT 'system', -- 'system' | 'personal'
+  created_by UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE question_categories ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "qcat_select" ON question_categories;
+CREATE POLICY "qcat_select" ON question_categories FOR SELECT TO authenticated USING (
+  scope = 'system' OR created_by = auth.uid()
+);
+
+DROP POLICY IF EXISTS "qcat_insert" ON question_categories;
+CREATE POLICY "qcat_insert" ON question_categories FOR INSERT WITH CHECK (
+  (scope = 'system' AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin'))
+  OR
+  (scope = 'personal' AND created_by = auth.uid() AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('super_admin', 'docente')))
+);
+
+DROP POLICY IF EXISTS "qcat_delete" ON question_categories;
+CREATE POLICY "qcat_delete" ON question_categories FOR DELETE USING (
+  (scope = 'system' AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin'))
+  OR
+  (scope = 'personal' AND created_by = auth.uid())
+);
+
+-- Seed categorie di default
+INSERT INTO question_categories (name, scope) VALUES
+  ('Tecnica', 'system'),
+  ('Tattica', 'system'),
+  ('PAGS', 'system'),
+  ('AdP', 'system'),
+  ('Regolamento', 'system'),
+  ('Preparazione Atletica', 'system'),
+  ('Psicologia', 'system'),
+  ('Generali', 'system')
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- Migration 21 — penalty_wrong + questions_per_student
+-- ============================================================
+
+ALTER TABLE quiz_templates ADD COLUMN IF NOT EXISTS penalty_wrong BOOLEAN DEFAULT FALSE;
+ALTER TABLE quiz_templates ADD COLUMN IF NOT EXISTS questions_per_student INTEGER;
+
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS penalty_wrong BOOLEAN DEFAULT FALSE;
+ALTER TABLE course_quizzes ADD COLUMN IF NOT EXISTS questions_per_student INTEGER;
+
+-- ============================================================
+-- Migration 22 — RLS UPDATE policy per question_library
+-- ============================================================
+-- Fix bug: mancava la policy UPDATE → categorie e difficoltà non venivano
+-- salvate nel DB (solo nel local state). Dopo ogni refresh tornavano a null.
+
+DROP POLICY IF EXISTS "ql_update" ON question_library;
+CREATE POLICY "ql_update" ON question_library
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin')
+  );

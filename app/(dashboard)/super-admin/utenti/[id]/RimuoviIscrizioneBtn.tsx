@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Loader2, UserMinus, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -16,19 +15,24 @@ export default function RimuoviIscrizioneBtn({
 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
 
   async function rimuovi() {
     setLoading(true)
-    await supabase
+    setError(null)
+    const { error: dbError } = await supabase
       .from('course_enrollments')
       .update({ status: 'dropped' })
       .eq('student_id', studentId)
       .eq('course_id', courseId)
     setLoading(false)
+    if (dbError) {
+      setError('Errore durante la rimozione. Riprova.')
+      return
+    }
     setOpen(false)
-    router.refresh()
+    window.location.reload()
   }
 
   return (
@@ -50,10 +54,11 @@ export default function RimuoviIscrizioneBtn({
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-gray-600 mb-5">
+            <p className="text-sm text-gray-600 mb-3">
               Vuoi rimuovere l&apos;iscrizione al corso <span className="font-semibold text-gray-900">{courseName}</span>?
               Lo stato verrà impostato su &quot;Ritirato&quot;.
             </p>
+            {error && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">{error}</p>}
             <div className="flex gap-2">
               <button
                 onClick={() => setOpen(false)}

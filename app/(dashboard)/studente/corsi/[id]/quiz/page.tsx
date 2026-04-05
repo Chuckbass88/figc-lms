@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, ClipboardCheck, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { ArrowLeft, ClipboardCheck, CheckCircle, Clock } from 'lucide-react'
 
 export default async function StudenteQuizListPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -54,7 +54,7 @@ export default async function StudenteQuizListPage({ params }: { params: Promise
   const { data: myAttempts } = quizIds.length > 0
     ? await supabase
         .from('quiz_attempts')
-        .select('quiz_id, score, total, passed, submitted_at')
+        .select('quiz_id, submitted_at')
         .eq('student_id', user.id)
         .in('quiz_id', quizIds)
     : { data: [] }
@@ -84,7 +84,6 @@ export default async function StudenteQuizListPage({ params }: { params: Promise
       <div className="space-y-3">
         {visibleQuizzes.map(quiz => {
           const attempt = attemptMap.get(quiz.id)
-          const scorePct = attempt ? Math.round((attempt.score / attempt.total) * 100) : null
           return (
             <Link
               key={quiz.id}
@@ -97,17 +96,13 @@ export default async function StudenteQuizListPage({ params }: { params: Promise
                   {quiz.description && (
                     <p className="text-xs text-gray-500 mt-0.5 truncate">{quiz.description}</p>
                   )}
-                  <p className="text-xs text-gray-400 mt-1">Soglia superamento: {quiz.passing_score}%</p>
+                  <p className="text-xs text-gray-400 mt-1">Voto minimo: {quiz.passing_score} pt</p>
                 </div>
                 <div className="flex-shrink-0">
                   {attempt ? (
-                    <div className="text-right">
-                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${attempt.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                        {attempt.passed ? <CheckCircle size={11} /> : <XCircle size={11} />}
-                        {attempt.passed ? 'Superato' : 'Non superato'}
-                      </span>
-                      <p className="text-xs text-gray-400 mt-1">{scorePct}% · {attempt.score}/{attempt.total}</p>
-                    </div>
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                      <CheckCircle size={11} /> Consegnato
+                    </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
                       <Clock size={11} /> Da svolgere

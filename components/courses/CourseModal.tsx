@@ -183,7 +183,7 @@ export default function CourseModal({ course, onClose, onSaved }: CourseModalPro
               type="submit"
               disabled={loading}
               className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#003DA5' }}
+              style={{ backgroundColor: '#1565C0' }}
             >
               {loading && <Loader2 size={14} className="animate-spin" />}
               {isEdit ? 'Salva modifiche' : 'Crea corso'}

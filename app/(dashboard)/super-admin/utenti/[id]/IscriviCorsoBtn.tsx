@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { PlusCircle, Loader2, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -14,22 +13,27 @@ export default function IscriviCorsoBtn({ studentId, availableCourses }: { stude
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [selectedId, setSelectedId] = useState('')
-  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
 
   async function iscrivi() {
     if (!selectedId) return
     setLoading(true)
-    await supabase.from('course_enrollments').insert({
+    setError(null)
+    const { error: dbError } = await supabase.from('course_enrollments').insert({
       course_id: selectedId,
       student_id: studentId,
       status: 'active',
       enrolled_at: new Date().toISOString(),
     })
     setLoading(false)
+    if (dbError) {
+      setError('Errore durante l\'iscrizione. Riprova.')
+      return
+    }
     setOpen(false)
     setSelectedId('')
-    router.refresh()
+    window.location.reload()
   }
 
   if (availableCourses.length === 0) return null
@@ -39,7 +43,7 @@ export default function IscriviCorsoBtn({ studentId, availableCourses }: { stude
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90"
-        style={{ backgroundColor: '#003DA5' }}
+        style={{ backgroundColor: '#1565C0' }}
       >
         <PlusCircle size={14} /> Iscrivi a corso
       </button>
@@ -54,6 +58,7 @@ export default function IscriviCorsoBtn({ studentId, availableCourses }: { stude
               </button>
             </div>
             <p className="text-sm text-gray-500 mb-4">Seleziona un corso attivo a cui iscrivere il corsista.</p>
+            {error && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">{error}</p>}
             <select
               value={selectedId}
               onChange={e => setSelectedId(e.target.value)}
@@ -75,7 +80,7 @@ export default function IscriviCorsoBtn({ studentId, availableCourses }: { stude
                 onClick={iscrivi}
                 disabled={!selectedId || loading}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
-                style={{ backgroundColor: '#003DA5' }}
+                style={{ backgroundColor: '#1565C0' }}
               >
                 {loading && <Loader2 size={14} className="animate-spin" />}
                 Iscrivi

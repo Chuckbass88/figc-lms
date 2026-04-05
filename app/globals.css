@@ -1,20 +1,41 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-figc-blue: #003DA5;
-  --color-figc-dark: #001F6B;
-  --color-figc-navy: #0A1628;
-  --color-figc-light: #E8F0FF;
-  --color-figc-gold: #C9A84C;
-  --color-background: #F3F5F9;
-  --color-foreground: #111827;
-  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --color-cl-navy: #1B3768;
+  --color-cl-blue: #1565C0;
+  --color-cl-teal: #0891B2;
+  --color-cl-teal-light: #22D3EE;
+  --color-cl-sky-light: #E0F2FE;
+  --color-background: #EDF1F8;
+  --color-foreground: #0F172A;
+  --font-sans: var(--font-jakarta), system-ui, -apple-system, sans-serif;
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
+}
+
+/* Gradient di sfondo pagina */
+.bg-page-gradient {
+  background: linear-gradient(155deg, #C8D5E8 0%, #D4DFEF 40%, #CDDAEC 70%, #D0DCE8 100%);
+}
+
+/* Glass sidebar */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+/* Glass header */
+.glass-header {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 /* Scrollbar sottile */

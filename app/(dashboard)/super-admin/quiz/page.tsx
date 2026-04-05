@@ -1,23 +1,64 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ClipboardCheck, Users, CheckCircle, XCircle, ArrowRight } from 'lucide-react'
+import { ClipboardCheck, Users, CheckCircle, XCircle, ChevronRight, Archive, Trash2 } from 'lucide-react'
+import CreaQuizModal, { CourseForQuiz } from '@/components/quiz/CreaQuizModal'
+import CreaTemplateModal from '@/components/quiz/CreaTemplateModal'
+import AttivaTemplateModal from '@/components/quiz/AttivaTemplateModal'
 
-export default async function AdminQuizPage() {
+export const dynamic = 'force-dynamic'
+
+const CATEGORIE = ['Esame Finale', 'Verifica Intermedia', 'Esercitazione', 'Simulazione']
+
+const categoryColors: Record<string, string> = {
+  'Esame Finale':        'bg-red-100 text-red-700',
+  'Verifica Intermedia': 'bg-amber-100 text-amber-700',
+  'Esercitazione':       'bg-green-100 text-green-700',
+  'Simulazione':         'bg-purple-100 text-purple-700',
+}
+
+export default async function AdminQuizPage({
+  searchParams,
+  basePath = '/super-admin/quiz',
+}: {
+  searchParams: Promise<{ categoria?: string }>
+  basePath?: string
+}) {
+  const { categoria } = await searchParams
   const supabase = await createClient()
 
   const [
     { data: quizzes },
     { data: courses },
+    { data: templates },
   ] = await Promise.all([
     supabase
       .from('course_quizzes')
-      .select('id, title, description, passing_score, created_at, course_id, group_id, course_groups(name)')
+      .select('id, title, description, passing_score, created_at, course_id, group_id, category, course_groups(name)')
       .order('created_at', { ascending: false }),
-    supabase.from('courses').select('id, name').order('name'),
+    supabase.from('courses').select('id, name, status').order('name'),
+    supabase
+      .from('quiz_templates')
+      .select('id, title, description, category, course_tag, quiz_template_questions(id)')
+      .order('created_at', { ascending: false }),
   ])
 
-  const quizIds = (quizzes ?? []).map(q => q.id)
   const courseIds = [...new Set((quizzes ?? []).map(q => q.course_id))]
+
+  // Fetch groups for CreaQuizModal
+  const allCourseIds = (courses ?? []).filter(c => c.status === 'active').map(c => c.id)
+  const { data: allGroupsData } = allCourseIds.length > 0
+    ? await supabase.from('course_groups').select('id, name, course_id').in('course_id', allCourseIds)
+    : { data: [] }
+
+  const coursesForModal: CourseForQuiz[] = (courses ?? [])
+    .filter(c => c.status === 'active')
+    .map(c => ({
+      id: c.id,
+      name: c.name,
+      groups: (allGroupsData ?? []).filter(g => g.course_id === c.id).map(g => ({ id: g.id, name: g.name })),
+    }))
+
+  const quizIds = (quizzes ?? []).map(q => q.id)
 
   const [{ data: attempts }, { data: enrollments }] = await Promise.all([
     quizIds.length > 0
@@ -28,6 +69,7 @@ export default async function AdminQuizPage() {
       : Promise.resolve({ data: [] }),
   ])
 
+  const activeCourseIds = new Set((courses ?? []).filter(c => c.status === 'active').map(c => c.id))
   const courseNameMap = new Map((courses ?? []).map(c => [c.id, c.name]))
   const enrollByCourse = new Map<string, number>()
   for (const e of enrollments ?? []) {
@@ -46,33 +88,46 @@ export default async function AdminQuizPage() {
   type QuizRow = {
     id: string; title: string; description: string | null
     passing_score: number; created_at: string; course_id: string
-    group_id: string | null; course_groups: { name: string } | null
+    group_id: string | null; category: string | null; course_groups: { name: string } | null
+  }
+  type TemplateRow = { id: string; title: string; description: string | null; category: string | null; course_tag: string | null; quiz_template_questions: { id: string }[] }
+  const templateList = (templates as unknown as TemplateRow[] ?? []).map(t => ({ ...t, _count: t.quiz_template_questions?.length ?? 0 }))
+
+  let allQuizzes = quizzes as unknown as QuizRow[] ?? []
+  const totalQuizzesAll = allQuizzes.length
+
+  if (categoria && CATEGORIE.includes(categoria)) {
+    allQuizzes = allQuizzes.filter(q => q.category === categoria)
   }
 
   const quizzesByCourse = new Map<string, QuizRow[]>()
-  for (const q of quizzes as unknown as QuizRow[] ?? []) {
+  for (const q of allQuizzes) {
     if (!quizzesByCourse.has(q.course_id)) quizzesByCourse.set(q.course_id, [])
     quizzesByCourse.get(q.course_id)!.push(q)
   }
 
-  const totalQuizzes = quizzes?.length ?? 0
   const totalAttempts = attempts?.length ?? 0
   const totalPassed = (attempts as AttemptRow[] ?? []).filter(a => a.passed).length
   const passRate = totalAttempts > 0 ? Math.round((totalPassed / totalAttempts) * 100) : null
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Panoramica Quiz</h2>
-        <p className="text-gray-500 text-sm mt-1">
-          {totalQuizzes} quiz · {totalAttempts} tentativi · {passRate !== null ? `${passRate}% superati` : 'nessun tentativo'}
-        </p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Panoramica Quiz</h2>
+          <p className="text-gray-500 text-sm mt-1">
+            {totalQuizzesAll} quiz · {totalAttempts} tentativi · {passRate !== null ? `${passRate}% superati` : 'nessun tentativo'}
+          </p>
+        </div>
+        {coursesForModal.length > 0 && (
+          <CreaQuizModal courses={coursesForModal} label="Crea quiz" />
+        )}
       </div>
 
       {/* KPI */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 text-center">
-          <p className="text-3xl font-bold text-gray-900">{totalQuizzes}</p>
+          <p className="text-3xl font-bold text-gray-900">{totalQuizzesAll}</p>
           <p className="text-sm text-gray-500 font-medium mt-1">Quiz totali</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 text-center">
@@ -87,8 +142,67 @@ export default async function AdminQuizPage() {
         </div>
       </div>
 
+      {/* Filtri per categoria */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Link
+          href={basePath}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${!categoria ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+        >
+          Tutti
+        </Link>
+        {CATEGORIE.map(cat => (
+          <Link
+            key={cat}
+            href={`${basePath}?categoria=${encodeURIComponent(cat)}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${categoria === cat ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          >
+            {cat}
+          </Link>
+        ))}
+      </div>
+
+      {/* Paniere — Quiz pre-archiviati */}
+      <div className="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-indigo-100 flex items-center gap-3 bg-indigo-50">
+          <Archive size={15} className="text-indigo-600" />
+          <h3 className="font-semibold text-gray-900 text-sm flex-1">Quiz pre-archiviati</h3>
+          <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">{templateList.length}</span>
+          <CreaTemplateModal />
+        </div>
+        {templateList.length === 0 ? (
+          <p className="px-5 py-6 text-sm text-gray-400 text-center">
+            Nessun quiz pre-archiviato. Crea un quiz base da riutilizzare nei corsi.
+          </p>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {templateList.map(tpl => (
+              <div key={tpl.id} className="px-5 py-3.5 flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-gray-900">{tpl.title}</p>
+                    {tpl.course_tag && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">{tpl.course_tag}</span>
+                    )}
+                    {tpl.category && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${categoryColors[tpl.category] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {tpl.category}
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400">{tpl._count} domande</span>
+                  </div>
+                  {tpl.description && <p className="text-xs text-gray-400 mt-0.5 truncate">{tpl.description}</p>}
+                </div>
+                {coursesForModal.length > 0 && (
+                  <AttivaTemplateModal template={tpl} courses={coursesForModal} />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Quiz per corso */}
-      {[...quizzesByCourse.entries()].map(([courseId, courseQuizzes]) => {
+      {[...quizzesByCourse.entries()].filter(([courseId]) => activeCourseIds.has(courseId)).map(([courseId, courseQuizzes]) => {
         const courseName = courseNameMap.get(courseId) ?? 'Corso sconosciuto'
         const studentCount = enrollByCourse.get(courseId) ?? 0
         return (
@@ -119,6 +233,11 @@ export default async function AdminQuizPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold text-gray-900">{quiz.title}</p>
+                        {quiz.category && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${categoryColors[quiz.category] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {quiz.category}
+                          </span>
+                        )}
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
                           {group ? group.name : 'Tutto il corso'}
                         </span>
@@ -126,8 +245,7 @@ export default async function AdminQuizPage() {
                       {quiz.description && (
                         <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{quiz.description}</p>
                       )}
-                      <p className="text-xs text-gray-400 mt-1">Soglia: {quiz.passing_score}%</p>
-                      {/* Progress bar completamento */}
+                      <p className="text-xs text-gray-400 mt-1">Voto min: {quiz.passing_score} pt</p>
                       <div className="flex items-center gap-2 mt-2">
                         <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-[120px]">
                           <div
@@ -152,10 +270,11 @@ export default async function AdminQuizPage() {
                     </div>
                     <Link
                       href={`/super-admin/corsi/${courseId}/quiz/${quiz.id}`}
-                      className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition flex-shrink-0"
-                      title="Apri dettaglio quiz"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white transition hover:opacity-90 flex-shrink-0"
+                      style={{ backgroundColor: '#1565C0' }}
                     >
-                      <ArrowRight size={14} />
+                      Apri quiz
+                      <ChevronRight size={13} />
                     </Link>
                   </div>
                 )
@@ -165,11 +284,17 @@ export default async function AdminQuizPage() {
         )
       })}
 
-      {(!quizzes || quizzes.length === 0) && (
+      {totalQuizzesAll === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <ClipboardCheck size={32} className="text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500 font-medium">Nessun quiz creato</p>
-          <p className="text-gray-400 text-sm mt-1">I docenti non hanno ancora creato quiz per i corsi.</p>
+          <p className="text-gray-400 text-sm mt-1">Crea il primo quiz usando il pulsante in alto a destra.</p>
+        </div>
+      )}
+
+      {totalQuizzesAll > 0 && allQuizzes.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-gray-500 text-sm">Nessun quiz con tipologia <strong>{categoria}</strong>.</p>
         </div>
       )}
     </div>

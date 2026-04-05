@@ -82,7 +82,7 @@ export default function NotificaCorso({ courseId, courseName }: { courseId: stri
                 onClick={send}
                 disabled={sending || !title.trim() || !message.trim()}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition"
-                style={{ backgroundColor: '#003DA5' }}
+                style={{ backgroundColor: '#1565C0' }}
               >
                 {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                 {sending ? 'Invio...' : 'Invia'}

@@ -9,10 +9,12 @@ import type { Profile, Notification } from '@/lib/types'
 export default function DashboardShell({
   user,
   notifications,
+  unreadMessagesCount = 0,
   children,
 }: {
   user: Profile
   notifications: Notification[]
+  unreadMessagesCount?: number
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -24,7 +26,7 @@ export default function DashboardShell({
   }, [pathname])
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#F3F5F9' }}>
+    <div className="flex h-screen overflow-hidden bg-page-gradient">
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div
@@ -39,7 +41,7 @@ export default function DashboardShell({
         lg:relative lg:translate-x-0 lg:z-auto lg:flex-shrink-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <Sidebar user={user} unreadCount={notifications.filter(n => !n.read).length} onClose={() => setSidebarOpen(false)} />
+        <Sidebar user={user} unreadCount={notifications.filter(n => !n.read).length} unreadMessagesCount={unreadMessagesCount} onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* Contenuto principale */}
@@ -49,7 +51,7 @@ export default function DashboardShell({
           notifications={notifications}
           onMenuClick={() => setSidebarOpen(v => !v)}
         />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-7">
+        <main className={`flex-1 min-h-0 ${pathname.startsWith("/messaggi") ? "overflow-hidden" : "overflow-y-auto p-4 sm:p-7"}`}>
           {children}
         </main>
       </div>

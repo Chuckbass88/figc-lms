@@ -178,7 +178,7 @@ export default function ImportaCSV({ onImported }: Props) {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <FileText size={18} style={{ color: '#003DA5' }} />
+                <FileText size={18} style={{ color: '#1565C0' }} />
                 <h2 className="font-semibold text-gray-900">Importa utenti da CSV</h2>
               </div>
               <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 transition p-1">
@@ -209,7 +209,7 @@ export default function ImportaCSV({ onImported }: Props) {
                     file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
                     file:text-sm file:font-medium file:text-white file:cursor-pointer
                     file:transition file:hover:opacity-90"
-                  style={{ ['--file-bg' as string]: '#003DA5' }}
+                  style={{ ['--file-bg' as string]: '#1565C0' }}
                 />
               </div>
 
@@ -300,7 +300,7 @@ export default function ImportaCSV({ onImported }: Props) {
                     onClick={handleImport}
                     disabled={importing || parsed.length === 0}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition disabled:opacity-60"
-                    style={{ backgroundColor: '#003DA5' }}
+                    style={{ backgroundColor: '#1565C0' }}
                   >
                     {importing && <Loader2 size={13} className="animate-spin" />}
                     {importing ? 'Importazione...' : `Importa ${parsed.length} ${parsed.length === 1 ? 'utente' : 'utenti'}`}

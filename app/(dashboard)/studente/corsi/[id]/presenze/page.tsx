@@ -100,7 +100,7 @@ export default async function StudentePresenze({ params }: { params: Promise<{ i
                     <Link
                       href={`/studente/corsi/${id}/attestato`}
                       className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-lg text-white hover:opacity-90 transition"
-                      style={{ backgroundColor: '#003DA5' }}
+                      style={{ backgroundColor: '#1565C0' }}
                     >
                       <Award size={12} /> Scarica attestato
                     </Link>

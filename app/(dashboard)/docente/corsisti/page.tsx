@@ -25,12 +25,24 @@ export default async function DocenteCorsisti() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: myCoursesData } = await supabase
-    .from('course_instructors')
-    .select('course_id, courses(id, name, location)')
-    .eq('instructor_id', user.id)
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isSuperAdmin = profile?.role === 'super_admin'
 
-  const courseIds = myCoursesData?.map(r => r.course_id) ?? []
+  const courseIds: string[] = []
+  let myCoursesData: { course_id: string; courses: unknown }[] = []
+
+  if (isSuperAdmin) {
+    const { data: allCourses } = await supabase.from('courses').select('id, name, location')
+    myCoursesData = (allCourses ?? []).map(c => ({ course_id: c.id, courses: c }))
+    courseIds.push(...myCoursesData.map(r => r.course_id))
+  } else {
+    const { data: instructorCourses } = await supabase
+      .from('course_instructors')
+      .select('course_id, courses(id, name, location)')
+      .eq('instructor_id', user.id)
+    myCoursesData = (instructorCourses ?? []) as { course_id: string; courses: unknown }[]
+    courseIds.push(...myCoursesData.map(r => r.course_id))
+  }
 
   const [enrollmentsResult, sessionsResult] = await Promise.all([
     courseIds.length > 0
@@ -169,6 +181,6 @@ export default async function DocenteCorsisti() {
   const totalStudents = enrollments.length
 
   return (
-    <CorsistiClient courseGroups={courseGroups} totalStudents={totalStudents} />
+    <CorsistiClient courseGroups={courseGroups} totalStudents={totalStudents} isAdmin={isSuperAdmin} />
   )
 }

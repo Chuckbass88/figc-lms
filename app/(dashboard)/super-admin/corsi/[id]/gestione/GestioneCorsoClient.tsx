@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, UserCheck, GraduationCap, Plus, X, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import ImportaCorsistiBtn from './ImportaCorsistiBtn'
 
 interface Person { id: string; full_name: string; email: string }
 
@@ -98,8 +99,16 @@ export default function GestioneCorsoClient({
         >
           <ArrowLeft size={15} /> Torna ai corsi
         </button>
-        <h2 className="text-2xl font-bold text-gray-900">Gestione partecipanti</h2>
-        <p className="text-gray-500 text-sm mt-1">{course.name}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Gestione partecipanti</h2>
+            <p className="text-gray-500 text-sm mt-1">{course.name}</p>
+          </div>
+          <ImportaCorsistiBtn
+            courseId={course.id}
+            onImported={newIds => setStudentIds(prev => new Set([...prev, ...newIds]))}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -118,7 +127,7 @@ export default function GestioneCorsoClient({
           <div className="divide-y divide-gray-50 min-h-[60px]">
             {assignedDocenti.map(d => (
               <div key={d.id} className="px-5 py-2.5 flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#003DA5' }}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
                   {d.full_name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">

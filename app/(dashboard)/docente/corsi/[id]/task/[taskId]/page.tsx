@@ -1,17 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Clock, Users, FileText, Download, MessageSquare } from 'lucide-react'
-import ValutaBtn from './ValutaBtn'
+import { ArrowLeft, Clock, Users, ClipboardList, Link2, Paperclip, FileText, Download } from 'lucide-react'
 import EliminaTaskBtn from './EliminaTaskBtn'
 import ModificaTaskBtn from './ModificaTaskBtn'
 import EsportaTaskCSV from './EsportaTaskCSV'
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+import ConsegneList from './ConsegneList'
 
 export default async function DocenteTaskDetailPage({ params }: { params: Promise<{ id: string; taskId: string }> }) {
   const { id, taskId } = await params
@@ -58,9 +52,21 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
     grade: string | null; feedback: string | null
   }
 
-  const students = (enrollments as unknown as Enrollment[] ?? [])
+  let students = (enrollments as unknown as Enrollment[] ?? [])
     .map(e => e.profiles)
     .filter(Boolean) as { id: string; full_name: string; email: string }[]
+
+  // Filtra per destinatario specifico
+  if (task.student_id) {
+    students = students.filter(s => s.id === task.student_id)
+  } else if (task.group_id) {
+    const { data: groupMembers } = await supabase
+      .from('course_group_members')
+      .select('student_id')
+      .eq('group_id', task.group_id)
+    const memberIds = new Set((groupMembers ?? []).map((m: { student_id: string }) => m.student_id))
+    students = students.filter(s => memberIds.has(s.id))
+  }
 
   const submissionMap = new Map((submissions as Submission[] ?? []).map(s => [s.student_id, s]))
 
@@ -86,8 +92,8 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
         )}
         <div className="flex items-center gap-3 mt-3 flex-wrap justify-between">
           <div className="flex items-center gap-3 flex-wrap">
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
-            {group ? group.name : 'Tutto il corso'}
+          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${task.student_id ? 'bg-green-100 text-green-700' : group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
+            {task.student_id ? `Corsista: ${students[0]?.full_name ?? '—'}` : group ? group.name : 'Tutto il corso'}
           </span>
           {task.due_date && (
             <span className={`flex items-center gap-1.5 text-xs font-medium ${isOverdue ? 'text-red-500' : 'text-gray-500'}`}>
@@ -113,6 +119,36 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
             <EliminaTaskBtn taskId={taskId} courseId={id} />
           </div>
         </div>
+      </div>
+
+      {/* Dettaglio task */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
+        <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
+          <ClipboardList size={15} className="text-amber-600" />
+          <h3 className="font-semibold text-gray-900 text-sm">Dettaglio task</h3>
+        </div>
+        {task.description ? (
+          <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{task.description}</p>
+        ) : (
+          <p className="text-sm text-gray-400 italic">Nessuna descrizione fornita.</p>
+        )}
+        {task.attachment_url && (
+          <div className="pt-2 border-t border-gray-100">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+              <Paperclip size={11} /> Allegato docente
+            </p>
+            <a
+              href={task.attachment_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-blue-700 bg-blue-50 rounded-lg px-3 py-2 hover:bg-blue-100 transition"
+            >
+              {task.attachment_type === 'link' ? <Link2 size={13} /> : <FileText size={13} />}
+              <span className="truncate max-w-[300px]">{task.attachment_name ?? task.attachment_url}</span>
+              {task.attachment_type === 'file' && <Download size={11} className="flex-shrink-0" />}
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Student list */}
@@ -143,75 +179,11 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
             />
           )}
         </div>
-        <div className="divide-y divide-gray-50">
-          {students.map(student => {
-            const sub = submissionMap.get(student.id)
-            return (
-              <div key={student.id} className="px-5 py-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {student.full_name.charAt(0)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{student.full_name}</p>
-                      <p className="text-xs text-gray-400 truncate">{student.email}</p>
-                    </div>
-                  </div>
-                  {sub ? (
-                    <ValutaBtn
-                      submissionId={sub.id}
-                      studentId={student.id}
-                      taskTitle={task.title}
-                      initialGrade={sub.grade}
-                      initialFeedback={sub.feedback}
-                    />
-                  ) : (
-                    <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg flex-shrink-0">
-                      Non consegnato
-                    </span>
-                  )}
-                </div>
-
-                {sub && (
-                  <div className="mt-3 ml-11 space-y-2">
-                    <p className="text-xs text-gray-400">
-                      Consegnato il {new Date(sub.submitted_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                    {sub.notes && (
-                      <div className="flex items-start gap-1.5 text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
-                        <MessageSquare size={12} className="text-gray-400 flex-shrink-0 mt-0.5" />
-                        <span>{sub.notes}</span>
-                      </div>
-                    )}
-                    {sub.file_url && (
-                      <a
-                        href={sub.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2 hover:bg-blue-100 transition w-fit"
-                      >
-                        <FileText size={12} />
-                        <span className="truncate max-w-[200px]">{sub.file_name ?? 'File allegato'}</span>
-                        {sub.file_size && <span className="text-blue-400 flex-shrink-0">· {formatSize(sub.file_size)}</span>}
-                        <Download size={11} className="flex-shrink-0" />
-                      </a>
-                    )}
-                    {sub.grade && (
-                      <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">
-                        <span className="font-semibold">Voto:</span> {sub.grade}
-                        {sub.feedback && <span className="ml-2 text-gray-500">· {sub.feedback}</span>}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-          {students.length === 0 && (
-            <p className="px-5 py-8 text-sm text-gray-400 text-center">Nessun corsista iscritto al corso.</p>
-          )}
-        </div>
+        <ConsegneList
+          students={students}
+          submissionMap={Object.fromEntries(submissionMap)}
+          taskTitle={task.title}
+        />
       </div>
     </div>
   )

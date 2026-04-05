@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Megaphone } from 'lucide-react'
+import { ArrowLeft, Megaphone, Paperclip, Download } from 'lucide-react'
 
 export default async function StudenteAnnunciPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -24,18 +24,29 @@ export default async function StudenteAnnunciPage({ params }: { params: Promise<
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_announcements')
-      .select('id, title, content, created_at, profiles(full_name)')
+      .select('id, title, content, created_at, attachment_url, attachment_name, attachment_size, attachment_type, profiles(full_name)')
       .eq('course_id', id)
       .order('created_at', { ascending: false }),
   ])
 
   if (!course) notFound()
 
+  function formatSize(bytes: number | null) {
+    if (!bytes) return ''
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(0)} KB`
+    return `${(bytes / 1048576).toFixed(1)} MB`
+  }
+
   type Annuncio = {
     id: string
     title: string
     content: string
     created_at: string
+    attachment_url: string | null
+    attachment_name: string | null
+    attachment_size: number | null
+    attachment_type: string | null
     profiles: { full_name: string } | null
   }
 
@@ -71,6 +82,21 @@ export default async function StudenteAnnunciPage({ params }: { params: Promise<
               {a.profiles && ` · ${a.profiles.full_name}`}
             </p>
             <p className="mt-3 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{a.content}</p>
+            {a.attachment_url && (
+              <a
+                href={a.attachment_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-blue-50 hover:border-blue-200 transition text-xs text-gray-700 hover:text-blue-700 group"
+              >
+                <Paperclip size={11} className="text-gray-400 group-hover:text-blue-500" />
+                <span className="font-medium truncate max-w-[240px]">{a.attachment_name}</span>
+                {a.attachment_size && (
+                  <span className="text-gray-400 flex-shrink-0">{formatSize(a.attachment_size)}</span>
+                )}
+                <Download size={11} className="text-gray-400 group-hover:text-blue-500 ml-0.5 flex-shrink-0" />
+              </a>
+            )}
           </div>
         ))}
         {(!annunci || annunci.length === 0) && (

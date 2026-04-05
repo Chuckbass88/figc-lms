@@ -1,7 +1,9 @@
+export const dynamic = 'force-dynamic'
+
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, ClipboardList, Clock, Users, CheckCircle } from 'lucide-react'
+import { ArrowLeft, ClipboardList, Clock, Users, CheckCircle, ChevronRight } from 'lucide-react'
 import NuovoTaskForm from './NuovoTaskForm'
 
 export default async function DocenteTaskPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,12 +37,16 @@ export default async function DocenteTaskPage({ params }: { params: Promise<{ id
       .eq('course_id', id)
       .order('created_at', { ascending: false }),
     supabase.from('course_groups').select('id, name').eq('course_id', id),
-    supabase.from('course_enrollments').select('student_id').eq('course_id', id).eq('status', 'active'),
+    supabase.from('course_enrollments').select('student_id, profiles(id, full_name)').eq('course_id', id).eq('status', 'active'),
   ])
 
   if (!course) notFound()
 
+  type EnrollWithProfile = { student_id: string; profiles: { id: string; full_name: string } | null }
   const studentCount = enrollments?.length ?? 0
+  const students = (enrollments as unknown as EnrollWithProfile[] ?? [])
+    .map(e => e.profiles)
+    .filter(Boolean) as { id: string; full_name: string }[]
   const today = new Date().toISOString().split('T')[0]
 
   return (
@@ -57,10 +63,9 @@ export default async function DocenteTaskPage({ params }: { params: Promise<{ id
             <h2 className="text-2xl font-bold text-gray-900">Task del corso</h2>
             <p className="text-gray-500 text-sm mt-1">{tasks?.length ?? 0} task · {studentCount} corsisti</p>
           </div>
+          <NuovoTaskForm courseId={id} groups={groups ?? []} students={students} />
         </div>
       </div>
-
-      <NuovoTaskForm courseId={id} groups={groups ?? []} />
 
       <div className="space-y-3">
         {tasks?.map(task => {
@@ -72,14 +77,10 @@ export default async function DocenteTaskPage({ params }: { params: Promise<{ id
           const group = groups?.find(g => g.id === task.group_id)
 
           return (
-            <Link
-              key={task.id}
-              href={`/docente/corsi/${id}/task/${task.id}`}
-              className="block bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:border-blue-300 transition group"
-            >
-              <div className="flex items-start justify-between gap-3">
+            <div key={task.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+              <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 group-hover:text-blue-700 transition">{task.title}</p>
+                  <p className="font-semibold text-gray-900">{task.title}</p>
                   {task.description && (
                     <p className="text-sm text-gray-500 mt-1 line-clamp-2">{task.description}</p>
                   )}
@@ -94,23 +95,29 @@ export default async function DocenteTaskPage({ params }: { params: Promise<{ id
                         {isOverdue && ' — Scaduto'}
                       </span>
                     )}
+                    {valutatoCount > 0 && (
+                      <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                        <CheckCircle size={11} /> {valutatoCount} valutati
+                      </span>
+                    )}
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                  <div className="flex items-center gap-1.5">
-                    <Users size={12} className="text-gray-400" />
-                    <span className={`text-sm font-bold ${subCount > 0 ? 'text-blue-700' : 'text-gray-400'}`}>
-                      {subCount}/{studentCount}
-                    </span>
-                  </div>
-                  {valutatoCount > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-green-600 font-medium">
-                      <CheckCircle size={11} /> {valutatoCount} valutati
-                    </div>
-                  )}
                 </div>
               </div>
-            </Link>
+              <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
+                <span className="text-xs text-gray-400 flex items-center gap-1.5">
+                  <Users size={12} />
+                  {subCount} di {studentCount} consegnati
+                </span>
+                <Link
+                  href={`/docente/corsi/${id}/task/${task.id}`}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+                  style={{ backgroundColor: '#1565C0' }}
+                >
+                  Apri task
+                  <ChevronRight size={14} />
+                </Link>
+              </div>
+            </div>
           )
         })}
 

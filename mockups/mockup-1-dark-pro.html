@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoachLab — Dark Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: {
+            navy:    { DEFAULT: '#1B3768', light: '#243d7a', dark: '#132a52' },
+            brand:   { DEFAULT: '#22C55E', dim: '#16a34a' },
+            surface: { 1: '#0F172A', 2: '#1E293B', 3: '#263144', card: '#1a2540' },
+            ink:     { DEFAULT: '#F8FAFC', muted: '#94A3B8', subtle: '#64748B' },
+          },
+          boxShadow: {
+            glow: '0 0 24px 0 rgba(34,197,94,0.15)',
+            card: '0 4px 24px 0 rgba(0,0,0,0.4)',
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #F8FAFC; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0F172A; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+
+    /* Stat card glow on hover */
+    .stat-card:hover { box-shadow: 0 0 30px rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.3); }
+
+    /* Sidebar active */
+    .nav-item.active { background: rgba(34,197,94,0.1); border-left: 3px solid #22C55E; }
+    .nav-item { border-left: 3px solid transparent; }
+    .nav-item:hover { background: rgba(255,255,255,0.05); }
+
+    /* Progress bar */
+    .progress-bar { background: linear-gradient(90deg, #22C55E, #16a34a); }
+
+    /* Chart bar */
+    .chart-bar { background: linear-gradient(180deg, #22C55E 0%, #16a34a 100%); border-radius: 4px 4px 0 0; }
+
+    /* Pulse dot */
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+
+    /* Session card hover */
+    .session-card:hover { background: #1e2d47; border-color: rgba(34,197,94,0.2); }
+
+    /* Mobile sidebar overlay */
+    #sidebar { transition: transform 0.3s ease; }
+    @media (max-width: 1024px) {
+      #sidebar { position: fixed; z-index: 50; transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== LAYOUT ==================== -->
+<div class="flex h-screen overflow-hidden">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside id="sidebar" class="w-64 bg-[#0F172A] border-r border-[#1E293B] flex flex-col flex-shrink-0 h-full">
+
+    <!-- Logo -->
+    <div class="px-6 py-5 border-b border-[#1E293B] flex items-center gap-3">
+      <!-- CoachLab Logo SVG -->
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1B3768] to-[#22C55E] flex items-center justify-center flex-shrink-0">
+        <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/>
+          <path d="M7 12 C7 9 9 7 12 7 C15 7 17 9 17 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="12" cy="16" r="2" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="text-white font-bold text-base leading-tight">CoachLab</div>
+        <div class="text-[#64748B] text-xs">Pro Dashboard</div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+
+      <div class="text-[#475569] text-xs font-semibold uppercase tracking-wider px-3 mb-2">Main</div>
+
+      <a href="#" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-[#22C55E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="1.5"/></svg>
+        <span class="text-sm font-medium text-white">Dashboard</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/></svg>
+        <span class="text-sm font-medium text-[#94A3B8]">Corsi</span>
+        <span class="ml-auto bg-[#22C55E]/20 text-[#22C55E] text-xs px-2 py-0.5 rounded-full font-semibold">4</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"/></svg>
+        <span class="text-sm font-medium text-[#94A3B8]">Calendario</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg>
+        <span class="text-sm font-medium text-[#94A3B8]">Messaggi</span>
+        <span class="ml-auto w-2 h-2 rounded-full bg-[#22C55E] pulse"></span>
+      </a>
+
+      <div class="text-[#475569] text-xs font-semibold uppercase tracking-wider px-3 mt-4 mb-2">Gestione</div>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+        <span class="text-sm font-medium text-[#94A3B8]">Corsisti</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+        <span class="text-sm font-medium text-[#94A3B8]">Valutazioni</span>
+      </a>
+
+      <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+        <span class="text-sm font-medium text-[#94A3B8]">Task e Quiz</span>
+      </a>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="px-4 py-4 border-t border-[#1E293B]">
+      <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-[#1E293B] cursor-pointer transition-all duration-200">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#1B3768] to-[#22C55E] flex items-center justify-center flex-shrink-0">
+          <span class="text-white text-xs font-bold">AD</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-semibold text-white truncate">Alessandro D.</div>
+          <div class="text-xs text-[#64748B]">Super Admin</div>
+        </div>
+        <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="bg-[#0F172A]/80 backdrop-blur-sm border-b border-[#1E293B] px-6 py-3 flex items-center gap-4 flex-shrink-0">
+
+      <!-- Mobile menu button -->
+      <button onclick="document.getElementById('sidebar').classList.toggle('open')" class="lg:hidden p-2 rounded-lg hover:bg-[#1E293B] cursor-pointer transition-colors">
+        <svg class="w-5 h-5 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+
+      <!-- Page title -->
+      <div class="flex-1">
+        <h1 class="text-lg font-bold text-white">Dashboard</h1>
+        <p class="text-xs text-[#64748B]">Martedì 2 Aprile 2026</p>
+      </div>
+
+      <!-- Search -->
+      <div class="hidden md:flex items-center gap-2 bg-[#1E293B] rounded-xl px-3 py-2 w-56 border border-[#263144]">
+        <svg class="w-4 h-4 text-[#64748B] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+        <span class="text-sm text-[#475569]">Cerca...</span>
+        <span class="ml-auto text-xs text-[#475569] bg-[#0F172A] px-1.5 py-0.5 rounded-md">⌘K</span>
+      </div>
+
+      <!-- Notifications -->
+      <button class="relative p-2 rounded-xl bg-[#1E293B] border border-[#263144] hover:border-[#22C55E]/30 cursor-pointer transition-all duration-200">
+        <svg class="w-5 h-5 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#22C55E] rounded-full pulse"></span>
+      </button>
+    </header>
+
+    <!-- Content Area -->
+    <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+      <!-- Welcome + Quick Actions -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Buongiorno, Alessandro <span class="wave inline-block">👋</span></h2>
+          <p class="text-[#64748B] text-sm mt-1">Hai <span class="text-[#22C55E] font-semibold">3 sessioni</span> programmate oggi e <span class="text-amber-400 font-semibold">5 task</span> in attesa di valutazione.</p>
+        </div>
+        <button class="flex items-center gap-2 bg-[#22C55E] hover:bg-[#16a34a] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer shadow-glow w-fit">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Nuova sessione
+        </button>
+      </div>
+
+      <!-- ===== STAT CARDS ===== -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <!-- Corsisti attivi -->
+        <div class="stat-card bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5 transition-all duration-300 cursor-default">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-[#22C55E]/15 flex items-center justify-center">
+              <svg class="w-5 h-5 text-[#22C55E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+            </div>
+            <span class="flex items-center gap-1 text-xs font-semibold text-[#22C55E] bg-[#22C55E]/10 px-2 py-1 rounded-full">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+              +12%
+            </span>
+          </div>
+          <div class="text-3xl font-bold text-white mb-1">248</div>
+          <div class="text-sm text-[#64748B]">Corsisti attivi</div>
+          <div class="mt-3 h-1 bg-[#1E293B] rounded-full overflow-hidden">
+            <div class="progress-bar h-full rounded-full" style="width:78%"></div>
+          </div>
+        </div>
+
+        <!-- Corsi -->
+        <div class="stat-card bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5 transition-all duration-300 cursor-default">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/></svg>
+            </div>
+            <span class="flex items-center gap-1 text-xs font-semibold text-blue-400 bg-blue-400/10 px-2 py-1 rounded-full">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+              +3
+            </span>
+          </div>
+          <div class="text-3xl font-bold text-white mb-1">12</div>
+          <div class="text-sm text-[#64748B]">Corsi attivi</div>
+          <div class="mt-3 h-1 bg-[#1E293B] rounded-full overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400" style="width:60%"></div>
+          </div>
+        </div>
+
+        <!-- Presenze -->
+        <div class="stat-card bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5 transition-all duration-300 cursor-default">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
+              <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-amber-400 bg-amber-400/10 px-2 py-1 rounded-full">Media</span>
+          </div>
+          <div class="text-3xl font-bold text-white mb-1">87%</div>
+          <div class="text-sm text-[#64748B]">Tasso presenze</div>
+          <div class="mt-3 h-1 bg-[#1E293B] rounded-full overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400" style="width:87%"></div>
+          </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="stat-card bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5 transition-all duration-300 cursor-default">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center">
+              <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
+            </div>
+            <span class="flex items-center gap-1 text-xs font-semibold text-violet-400 bg-violet-400/10 px-2 py-1 rounded-full">Nuovi</span>
+          </div>
+          <div class="text-3xl font-bold text-white mb-1">34</div>
+          <div class="text-sm text-[#64748B]">Quiz completati</div>
+          <div class="mt-3 h-1 bg-[#1E293B] rounded-full overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-violet-500 to-violet-400" style="width:45%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MAIN GRID ===== -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Sessioni di oggi -->
+        <div class="lg:col-span-2 bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-base font-bold text-white">Sessioni di oggi</h3>
+              <p class="text-xs text-[#64748B] mt-0.5">Martedì 2 Aprile 2026</p>
+            </div>
+            <a href="#" class="text-xs text-[#22C55E] hover:text-[#16a34a] font-semibold cursor-pointer transition-colors">Vedi tutte →</a>
+          </div>
+          <div class="space-y-3">
+
+            <div class="session-card flex items-center gap-4 p-4 rounded-xl border border-[#1E293B] transition-all duration-200 cursor-pointer">
+              <div class="w-1 h-12 rounded-full bg-[#22C55E] flex-shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-white truncate">Tattica Difensiva — Livello Avanzato</div>
+                <div class="flex items-center gap-3 mt-1">
+                  <span class="text-xs text-[#64748B]">09:00 – 11:00</span>
+                  <span class="w-1 h-1 rounded-full bg-[#64748B]"></span>
+                  <span class="text-xs text-[#64748B]">Aula B3</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex -space-x-2">
+                  <div class="w-6 h-6 rounded-full bg-[#1B3768] border-2 border-[#0F172A] flex items-center justify-center text-white text-xs font-bold">M</div>
+                  <div class="w-6 h-6 rounded-full bg-violet-700 border-2 border-[#0F172A] flex items-center justify-center text-white text-xs font-bold">L</div>
+                  <div class="w-6 h-6 rounded-full bg-amber-600 border-2 border-[#0F172A] flex items-center justify-center text-white text-xs font-bold">+8</div>
+                </div>
+                <span class="text-xs bg-[#22C55E]/15 text-[#22C55E] px-2 py-1 rounded-lg font-semibold">In corso</span>
+              </div>
+            </div>
+
+            <div class="session-card flex items-center gap-4 p-4 rounded-xl border border-[#1E293B] transition-all duration-200 cursor-pointer">
+              <div class="w-1 h-12 rounded-full bg-blue-400 flex-shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-white truncate">Tecnica Individuale — Corso Base</div>
+                <div class="flex items-center gap-3 mt-1">
+                  <span class="text-xs text-[#64748B]">14:00 – 16:00</span>
+                  <span class="w-1 h-1 rounded-full bg-[#64748B]"></span>
+                  <span class="text-xs text-[#64748B]">Campo 1</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex -space-x-2">
+                  <div class="w-6 h-6 rounded-full bg-[#1B3768] border-2 border-[#0F172A] flex items-center justify-center text-white text-xs font-bold">A</div>
+                  <div class="w-6 h-6 rounded-full bg-emerald-700 border-2 border-[#0F172A] flex items-center justify-center text-white text-xs font-bold">+12</div>
+                </div>
+                <span class="text-xs bg-blue-400/15 text-blue-400 px-2 py-1 rounded-lg font-semibold">14:00</span>
+              </div>
+            </div>
+
+            <div class="session-card flex items-center gap-4 p-4 rounded-xl border border-[#1E293B] transition-all duration-200 cursor-pointer">
+              <div class="w-1 h-12 rounded-full bg-amber-400 flex-shrink-0"></div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-white truncate">Preparazione Fisica — Modulo 3</div>
+                <div class="flex items-center gap-3 mt-1">
+                  <span class="text-xs text-[#64748B]">17:30 – 19:00</span>
+                  <span class="w-1 h-1 rounded-full bg-[#64748B]"></span>
+                  <span class="text-xs text-[#64748B]">Palestra</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs bg-amber-400/15 text-amber-400 px-2 py-1 rounded-lg font-semibold">17:30</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions + Activity -->
+        <div class="space-y-4">
+
+          <!-- Quick Actions -->
+          <div class="bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5">
+            <h3 class="text-base font-bold text-white mb-4">Azioni rapide</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="flex flex-col items-center gap-2 p-3 rounded-xl bg-[#1E293B] hover:bg-[#263144] border border-[#263144] hover:border-[#22C55E]/30 cursor-pointer transition-all duration-200">
+                <svg class="w-5 h-5 text-[#22C55E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                <span class="text-xs font-medium text-[#94A3B8] text-center leading-tight">Nuova sessione</span>
+              </button>
+              <button class="flex flex-col items-center gap-2 p-3 rounded-xl bg-[#1E293B] hover:bg-[#263144] border border-[#263144] hover:border-[#22C55E]/30 cursor-pointer transition-all duration-200">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+                <span class="text-xs font-medium text-[#94A3B8] text-center leading-tight">Invita corsista</span>
+              </button>
+              <button class="flex flex-col items-center gap-2 p-3 rounded-xl bg-[#1E293B] hover:bg-[#263144] border border-[#263144] hover:border-[#22C55E]/30 cursor-pointer transition-all duration-200">
+                <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75"/></svg>
+                <span class="text-xs font-medium text-[#94A3B8] text-center leading-tight">Registro presenze</span>
+              </button>
+              <button class="flex flex-col items-center gap-2 p-3 rounded-xl bg-[#1E293B] hover:bg-[#263144] border border-[#263144] hover:border-[#22C55E]/30 cursor-pointer transition-all duration-200">
+                <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605"/></svg>
+                <span class="text-xs font-medium text-[#94A3B8] text-center leading-tight">Crea quiz</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Weekly Chart -->
+          <div class="bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-white">Presenze settimana</h3>
+              <span class="text-xs text-[#22C55E] font-semibold">↑ 5%</span>
+            </div>
+            <div class="flex items-end gap-2 h-20">
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="chart-bar w-full" style="height:55%"></div>
+                <span class="text-xs text-[#64748B]">L</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="chart-bar w-full" style="height:80%"></div>
+                <span class="text-xs text-[#64748B]">M</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="chart-bar w-full" style="height:65%"></div>
+                <span class="text-xs text-[#64748B]">M</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="chart-bar w-full opacity-40 bg-[#1E293B]" style="height:0%; background: #1E293B; border-radius: 4px 4px 0 0;"></div>
+                <span class="text-xs text-[#64748B]">G</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="chart-bar w-full opacity-40 bg-[#1E293B]" style="height:0%; background: #1E293B; border-radius: 4px 4px 0 0;"></div>
+                <span class="text-xs text-[#64748B]">V</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="bg-[#0F172A] border border-[#1E293B] rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-base font-bold text-white">Attività recente</h3>
+          <a href="#" class="text-xs text-[#22C55E] font-semibold cursor-pointer hover:text-[#16a34a] transition-colors">Vedi tutto →</a>
+        </div>
+        <div class="space-y-3">
+          <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-[#1E293B]/50 cursor-pointer transition-colors">
+            <div class="w-8 h-8 rounded-full bg-[#22C55E]/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-[#22C55E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-[#94A3B8]"><span class="text-white">Marco Bianchi</span> ha completato il quiz <span class="text-white">"Tattica avanzata"</span></p>
+              <p class="text-xs text-[#475569] mt-0.5">Punteggio: 92/100 · 10 min fa</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-[#1E293B]/50 cursor-pointer transition-colors">
+            <div class="w-8 h-8 rounded-full bg-blue-400/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-[#94A3B8]"><span class="text-white">Laura Verdi</span> ha caricato la consegna del task <span class="text-white">"Analisi video"</span></p>
+              <p class="text-xs text-[#475569] mt-0.5">Corso Base · 35 min fa</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-[#1E293B]/50 cursor-pointer transition-colors">
+            <div class="w-8 h-8 rounded-full bg-amber-400/15 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-[#94A3B8]">Nuovo messaggio da <span class="text-white">Coach Rossi</span> nel gruppo Corso Avanzato</p>
+              <p class="text-xs text-[#475569] mt-0.5">1 ora fa</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Overlay for mobile sidebar -->
+<div id="overlay" class="hidden fixed inset-0 bg-black/50 z-40 lg:hidden" onclick="document.getElementById('sidebar').classList.remove('open'); this.classList.add('hidden');"></div>
+<script>
+  document.getElementById('sidebar').addEventListener('transitionend', function() {
+    const overlay = document.getElementById('overlay');
+    if(this.classList.contains('open')) overlay.classList.remove('hidden');
+    else overlay.classList.add('hidden');
+  });
+</script>
+
+</body>
+</html>

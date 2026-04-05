@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Check, X, CheckCircle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, CheckCircle, Library, Search, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface QuizOption {
@@ -15,12 +15,28 @@ interface Question {
   id: string
   text: string
   order_index: number
+  points: number
   quiz_options: QuizOption[]
 }
 
 interface EditableOption {
   text: string
   is_correct: boolean
+}
+
+interface LibOption {
+  id: string
+  text: string
+  is_correct: boolean
+  order_index: number
+}
+
+interface LibQuestion {
+  id: string
+  text: string
+  category: string | null
+  difficulty: string | null
+  question_library_options: LibOption[]
 }
 
 interface Props {
@@ -36,9 +52,19 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
+  // Library modal state — source: 'general' | 'personal'
+  const [showLibrary, setShowLibrary] = useState(false)
+  const [librarySource, setLibrarySource] = useState<'general' | 'personal'>('general')
+  const [libraryQuestions, setLibraryQuestions] = useState<LibQuestion[]>([])
+  const [loadingLibrary, setLoadingLibrary] = useState(false)
+  const [selectedLibIds, setSelectedLibIds] = useState<Set<string>>(new Set())
+  const [searchLib, setSearchLib] = useState('')
+  const [addingFromLib, setAddingFromLib] = useState(false)
+
   // Edit state
   const [editText, setEditText] = useState('')
   const [editOptions, setEditOptions] = useState<EditableOption[]>([])
+  const [editPoints, setEditPoints] = useState(1)
 
   // Add state
   const [newText, setNewText] = useState('')
@@ -46,6 +72,7 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
     { text: '', is_correct: true },
     { text: '', is_correct: false },
   ])
+  const [newPoints, setNewPoints] = useState(1)
 
   function setCorrect(options: EditableOption[], index: number): EditableOption[] {
     return options.map((o, i) => ({ ...o, is_correct: i === index }))
@@ -67,6 +94,7 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
     setEditingId(q.id)
     setEditText(q.text)
     setEditOptions(q.quiz_options.map(o => ({ text: o.text, is_correct: o.is_correct })))
+    setEditPoints(q.points ?? 1)
     setDeletingId(null)
     setAdding(false)
   }
@@ -75,12 +103,14 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
     setEditingId(null)
     setEditText('')
     setEditOptions([])
+    setEditPoints(1)
   }
 
   function cancelAdd() {
     setAdding(false)
     setNewText('')
     setNewOptions([{ text: '', is_correct: true }, { text: '', is_correct: false }])
+    setNewPoints(1)
   }
 
   function isValidOptions(opts: EditableOption[]) {
@@ -91,7 +121,7 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
     if (!editText.trim() || !isValidOptions(editOptions)) return
     setLoading(true)
 
-    await supabase.from('quiz_questions').update({ text: editText.trim() }).eq('id', questionId)
+    await supabase.from('quiz_questions').update({ text: editText.trim(), points: editPoints }).eq('id', questionId)
     await supabase.from('quiz_options').delete().eq('question_id', questionId)
     await supabase.from('quiz_options').insert(
       editOptions.map((o, i) => ({
@@ -104,7 +134,7 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
 
     setQuestions(prev => prev.map(q =>
       q.id === questionId
-        ? { ...q, text: editText.trim(), quiz_options: editOptions.map((o, i) => ({ id: `local-${i}`, text: o.text.trim(), is_correct: o.is_correct, order_index: i })) }
+        ? { ...q, text: editText.trim(), points: editPoints, quiz_options: editOptions.map((o, i) => ({ id: `local-${i}`, text: o.text.trim(), is_correct: o.is_correct, order_index: i })) }
         : q
     ))
     setEditingId(null)
@@ -126,7 +156,7 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
     const nextOrder = questions.length > 0 ? Math.max(...questions.map(q => q.order_index)) + 1 : 0
     const { data: question } = await supabase
       .from('quiz_questions')
-      .insert({ quiz_id: quizId, text: newText.trim(), order_index: nextOrder })
+      .insert({ quiz_id: quizId, text: newText.trim(), order_index: nextOrder, points: newPoints })
       .select()
       .single()
 
@@ -147,20 +177,115 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
     setLoading(false)
   }
 
+  async function openLibrary(source: 'general' | 'personal') {
+    setShowLibrary(true)
+    setLibrarySource(source)
+    setSelectedLibIds(new Set())
+    setSearchLib('')
+    setLoadingLibrary(true)
+
+    if (source === 'general') {
+      const { data } = await supabase
+        .from('question_library')
+        .select('id, text, category, difficulty, question_library_options(id, text, is_correct, order_index)')
+        .order('imported_at', { ascending: false })
+      setLibraryQuestions((data as unknown as LibQuestion[]) ?? [])
+    } else {
+      const { data } = await supabase
+        .from('docente_question_library')
+        .select('id, text, category, docente_question_library_options(id, text, is_correct, order_index)')
+        .order('imported_at', { ascending: false })
+      // Normalizza il nome delle opzioni per riusare lo stesso tipo
+      const normalized = ((data ?? []) as unknown as Array<{
+        id: string; text: string; category: string | null
+        docente_question_library_options: Array<{ id: string; text: string; is_correct: boolean; order_index: number }>
+      }>).map(q => ({
+        id: q.id,
+        text: q.text,
+        category: q.category,
+        difficulty: null,
+        question_library_options: q.docente_question_library_options,
+      }))
+      setLibraryQuestions(normalized)
+    }
+    setLoadingLibrary(false)
+  }
+
+  function toggleLibSelection(id: string) {
+    setSelectedLibIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  async function handleAddFromLibrary() {
+    if (selectedLibIds.size === 0) return
+    setAddingFromLib(true)
+
+    const selected = libraryQuestions.filter(q => selectedLibIds.has(q.id))
+    let nextOrder = questions.length > 0 ? Math.max(...questions.map(q => q.order_index)) + 1 : 0
+
+    const newQuestions: Question[] = []
+    for (const libQ of selected) {
+      const pts = libQ.difficulty === 'difficile' ? 2 : 1
+      const { data: question } = await supabase
+        .from('quiz_questions')
+        .insert({ quiz_id: quizId, text: libQ.text, order_index: nextOrder++, points: pts })
+        .select()
+        .single()
+
+      if (question) {
+        const opts = [...libQ.question_library_options].sort((a, b) => a.order_index - b.order_index)
+        const { data: insertedOpts } = await supabase.from('quiz_options').insert(
+          opts.map((o, i) => ({
+            question_id: question.id,
+            text: o.text,
+            is_correct: o.is_correct,
+            order_index: i,
+          }))
+        ).select()
+        newQuestions.push({ ...question, points: question.points ?? 1, quiz_options: insertedOpts ?? [] })
+      }
+    }
+
+    setQuestions(prev => [...prev, ...newQuestions])
+    setShowLibrary(false)
+    setAddingFromLib(false)
+  }
+
+  const filteredLibQuestions = searchLib.trim()
+    ? libraryQuestions.filter(q => q.text.toLowerCase().includes(searchLib.toLowerCase()))
+    : libraryQuestions
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-sm text-gray-500">
           {questions.length} {questions.length === 1 ? 'domanda' : 'domande'}
         </p>
         {!adding && (
-          <button
-            onClick={() => { setAdding(true); setEditingId(null); setDeletingId(null) }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition"
-            style={{ backgroundColor: '#003DA5' }}
-          >
-            <Plus size={15} /> Nuova domanda
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => openLibrary('personal')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 border border-gray-200 transition"
+            >
+              <Library size={15} /> Mia libreria
+            </button>
+            <button
+              onClick={() => openLibrary('general')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 border border-gray-200 transition"
+            >
+              <Library size={15} /> Archivio generale
+            </button>
+            <button
+              onClick={() => { setAdding(true); setEditingId(null); setDeletingId(null) }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition"
+              style={{ backgroundColor: '#1565C0' }}
+            >
+              <Plus size={15} /> Nuova domanda
+            </button>
+          </div>
         )}
       </div>
 
@@ -179,6 +304,16 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
                     rows={2}
                     className="w-full border border-blue-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 mb-1 block">Difficoltà</label>
+                  <button
+                    type="button"
+                    onClick={() => setEditPoints(p => p === 1 ? 2 : 1)}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-medium border transition ${editPoints === 2 ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                  >
+                    {editPoints === 2 ? '⚡ Difficile (2 punti)' : '· Standard (1 punto)'}
+                  </button>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-600 mb-2 block">
@@ -247,7 +382,14 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
                     {qi + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{q.text}</p>
+                    <div className="flex items-start gap-2">
+                      <p className="text-sm font-semibold text-gray-900 flex-1">{q.text}</p>
+                      {(q.points ?? 1) === 2 && (
+                        <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700 flex-shrink-0">
+                          2 pt
+                        </span>
+                      )}
+                    </div>
                     <div className="mt-2 space-y-1">
                       {q.quiz_options.map(opt => (
                         <p key={opt.id} className={`text-xs flex items-center gap-1.5 ${opt.is_correct ? 'text-green-700 font-semibold' : 'text-gray-500'}`}>
@@ -311,6 +453,114 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
       </div>
 
       {/* Form nuova domanda */}
+      {/* Modale libreria domande */}
+      {showLibrary && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
+              <Library size={18} className="text-blue-600" />
+              <h3 className="text-base font-semibold text-gray-900 flex-1">
+                {librarySource === 'personal' ? 'La mia libreria' : 'Archivio generale'}
+              </h3>
+              <button onClick={() => setShowLibrary(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-5 py-3 border-b border-gray-100">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Cerca domanda..."
+                  value={searchLib}
+                  onChange={e => setSearchLib(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
+              {loadingLibrary ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={24} className="animate-spin text-blue-500" />
+                </div>
+              ) : filteredLibQuestions.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-12">
+                  {libraryQuestions.length === 0 ? 'Archivio vuoto. Importa prima un file Excel.' : 'Nessuna domanda trovata.'}
+                </p>
+              ) : (
+                filteredLibQuestions.map(q => {
+                  const selected = selectedLibIds.has(q.id)
+                  const opts = [...q.question_library_options].sort((a, b) => a.order_index - b.order_index)
+                  return (
+                    <div
+                      key={q.id}
+                      onClick={() => toggleLibSelection(q.id)}
+                      className={`rounded-xl border p-4 cursor-pointer transition ${selected ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-blue-200'}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          readOnly
+                          checked={selected}
+                          className="mt-0.5 flex-shrink-0 accent-blue-600"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                            {q.category && (
+                              <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-indigo-100 text-indigo-700">
+                                {q.category}
+                              </span>
+                            )}
+                            {q.difficulty === 'difficile' && (
+                              <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-700">
+                                ⚡ 2 pt
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm font-medium text-gray-900">{q.text}</p>
+                          <div className="mt-1.5 space-y-0.5">
+                            {opts.map(opt => (
+                              <p key={opt.id} className={`text-xs flex items-center gap-1.5 ${opt.is_correct ? 'text-green-700 font-semibold' : 'text-gray-400'}`}>
+                                {opt.is_correct
+                                  ? <CheckCircle size={10} className="flex-shrink-0" />
+                                  : <span className="w-2 h-2 rounded-full border border-gray-300 inline-block flex-shrink-0" />
+                                }
+                                {opt.text}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+            <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between gap-3">
+              <p className="text-sm text-gray-500">
+                {selectedLibIds.size > 0 ? `${selectedLibIds.size} selezionate` : 'Seleziona le domande da aggiungere'}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowLibrary(false)}
+                  className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={handleAddFromLibrary}
+                  disabled={selectedLibIds.size === 0 || addingFromLib}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 transition disabled:opacity-50"
+                >
+                  {addingFromLib ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                  Aggiungi al quiz
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {adding && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-4">
           <p className="text-sm font-semibold text-blue-800">Nuova domanda</p>
@@ -324,6 +574,16 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
               placeholder="Scrivi la domanda..."
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-600 mb-1 block">Difficoltà</label>
+            <button
+              type="button"
+              onClick={() => setNewPoints(p => p === 1 ? 2 : 1)}
+              className={`text-xs px-3 py-1.5 rounded-lg font-medium border transition ${newPoints === 2 ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}
+            >
+              {newPoints === 2 ? '⚡ Difficile (2 punti)' : '· Standard (1 punto)'}
+            </button>
           </div>
           <div>
             <label className="text-xs font-semibold text-gray-600 mb-2 block">

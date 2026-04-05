@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { User, Mail, Shield, Pencil, Check, X, Lock, Eye, EyeOff, Loader2, BookOpen, Users, GraduationCap, TrendingUp, Award } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -32,6 +33,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
 
 export default function ProfiloClient({ profile, stats }: { profile: Profile; stats: RoleStats | null }) {
   const supabase = createClient()
+  const router = useRouter()
 
   // Nome
   const [editingName, setEditingName] = useState(false)
@@ -59,6 +61,8 @@ export default function ProfiloClient({ profile, stats }: { profile: Profile; st
       setEditingName(false)
       setNameMsg({ ok: true, text: 'Nome aggiornato.' })
       setTimeout(() => setNameMsg(null), 3000)
+      // Aggiorna header e sidebar (server components del layout)
+      router.refresh()
     }
     setSavingName(false)
   }
@@ -96,7 +100,7 @@ export default function ProfiloClient({ profile, stats }: { profile: Profile; st
         <div className="flex items-center gap-5 mb-6">
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-            style={{ backgroundColor: '#003DA5' }}
+            style={{ backgroundColor: '#1565C0' }}
           >
             {initials}
           </div>
@@ -305,7 +309,7 @@ export default function ProfiloClient({ profile, stats }: { profile: Profile; st
               onClick={savePassword}
               disabled={savingPw}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white text-sm font-semibold transition disabled:opacity-60 hover:opacity-90"
-              style={{ backgroundColor: '#003DA5' }}
+              style={{ backgroundColor: '#1565C0' }}
             >
               {savingPw && <Loader2 size={14} className="animate-spin" />}
               Aggiorna password

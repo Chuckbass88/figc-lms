@@ -34,7 +34,7 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_quizzes')
-      .select('id, title, description, passing_score, created_at, group_id, course_groups(name), quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
+      .select('id, title, description, passing_score, timer_minutes, created_at, group_id, category, instructions, shuffle_questions, available_from, available_until, auto_close_on_timer, course_groups(name), quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
       .eq('id', quizId)
       .eq('course_id', id)
       .single(),
@@ -78,7 +78,7 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
           <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
             {group ? group.name : 'Tutto il corso'}
           </span>
-          <span className="text-xs text-gray-500">Soglia: {quiz.passing_score}%</span>
+          <span className="text-xs text-gray-500">Voto min: {quiz.passing_score} pt</span>
           <span className="text-xs text-gray-500 flex items-center gap-1">
             <Users size={11} /> {completedCount}/{students.length} completati
           </span>
@@ -99,6 +99,13 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
               initialTitle={quiz.title}
               initialDescription={quiz.description ?? null}
               initialPassingScore={quiz.passing_score}
+              initialTimerMinutes={(quiz as unknown as { timer_minutes: number }).timer_minutes ?? 30}
+              initialCategory={(quiz as unknown as { category: string | null }).category}
+              initialInstructions={(quiz as unknown as { instructions: string | null }).instructions}
+              initialShuffleQuestions={(quiz as unknown as { shuffle_questions: boolean }).shuffle_questions ?? false}
+              initialAvailableFrom={(quiz as unknown as { available_from: string | null }).available_from}
+              initialAvailableUntil={(quiz as unknown as { available_until: string | null }).available_until}
+              initialAutoCloseOnTimer={(quiz as unknown as { auto_close_on_timer: boolean }).auto_close_on_timer ?? true}
             />
             <EliminaQuizBtn quizId={quizId} courseId={id} />
           </div>
@@ -148,7 +155,6 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
         <div className="divide-y divide-gray-50">
           {students.map(student => {
             const attempt = attemptMap.get(student.id)
-            const scorePct = attempt ? Math.round((attempt.score / attempt.total) * 100) : null
             return (
               <div key={student.id} className="flex items-center gap-4 px-5 py-3.5">
                 <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
@@ -173,8 +179,8 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
                       questions={questions}
                     />
                     <span className="text-sm font-bold text-gray-700">{attempt.score}/{attempt.total}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${scorePct !== null && scorePct >= quiz.passing_score ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                      {scorePct}% — {attempt.passed ? 'Superato' : 'Non superato'}
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${attempt.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                      {attempt.score}/{attempt.total} pt — {attempt.passed ? 'Superato' : 'Non superato'}
                     </span>
                   </div>
                 ) : (

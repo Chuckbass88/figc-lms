@@ -32,7 +32,7 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_tasks')
-      .select('id, title, description, due_date, course_groups(name)')
+      .select('id, title, description, due_date, student_id, course_groups(name)')
       .eq('id', taskId)
       .eq('course_id', id)
       .single(),
@@ -44,6 +44,9 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
   ])
 
   if (!course || !task) notFound()
+
+  // Se il task è assegnato a un singolo corsista, verifica che sia l'utente corrente
+  if (task.student_id && task.student_id !== user.id) notFound()
 
   const today = new Date().toISOString().split('T')[0]
   const isOverdue = task.due_date && task.due_date < today
@@ -62,7 +65,7 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
           href={`/studente/corsi/${id}/task`}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3 w-fit"
         >
-          <ArrowLeft size={15} /> I miei task
+          <ArrowLeft size={15} /> Le mie task
         </Link>
         <h2 className="text-2xl font-bold text-gray-900">{task.title}</h2>
         {task.description && (

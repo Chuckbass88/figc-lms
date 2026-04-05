@@ -4,34 +4,27 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { disattivato, redirect } = await searchParams
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'linear-gradient(135deg, #001233 0%, #003DA5 60%, #0055D4 100%)' }}>
+    <div className="min-h-screen flex" style={{ background: 'linear-gradient(155deg, #C8D5E8 0%, #D4DFEF 40%, #CDDAEC 70%, #D0DCE8 100%)' }}>
 
       {/* Pannello sinistro — branding */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 p-12">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
-            style={{ background: 'linear-gradient(135deg, #C9A84C, #E8C96A)' }}>
-            <span className="font-black text-xs tracking-tight" style={{ color: '#001233' }}>FIGC</span>
-          </div>
-          <div>
-            <p className="text-white font-bold text-sm">FIGC LMS</p>
-            <p className="text-blue-300 text-xs">Formazione Allenatori</p>
-          </div>
-        </div>
 
-        <div>
-          <h2 className="text-4xl font-bold text-white leading-tight mb-4">
-            Portale di Formazione<br />
-            <span style={{ color: '#C9A84C' }}>Federazione Italiana</span><br />
-            Giuoco Calcio
+        {/* Logo grande centrato */}
+        <div className="flex flex-col items-center justify-center flex-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-coachlab.png" alt="CoachLab" className="w-72 h-auto object-contain mb-10" />
+          <h2 className="text-4xl font-bold leading-tight mb-4 text-center" style={{ color: '#0F172A' }}>
+            La piattaforma per<br />
+            <span style={{ color: '#0891B2' }}>formare i migliori</span><br />
+            allenatori
           </h2>
-          <p className="text-blue-200 text-base leading-relaxed max-w-sm">
-            Gestione corsi, allenatori e corsisti in un&apos;unica piattaforma dedicata alla formazione del calcio italiano.
+          <p className="text-base leading-relaxed max-w-sm text-center" style={{ color: '#475569' }}>
+            Gestione corsi, sessioni, corsisti e valutazioni in un&apos;unica piattaforma professionale.
           </p>
         </div>
 
-        <p className="text-blue-400 text-xs">
-          © {new Date().getFullYear()} Federazione Italiana Giuoco Calcio
+        <p className="text-xs text-center" style={{ color: '#94A3B8' }}>
+          © {new Date().getFullYear()} CoachLab — Tutti i diritti riservati
         </p>
       </div>
 
@@ -41,18 +34,17 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
           {/* Logo mobile */}
           <div className="lg:hidden text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl shadow-lg mb-3"
-              style={{ background: 'linear-gradient(135deg, #C9A84C, #E8C96A)' }}>
-              <span className="font-black text-base tracking-tight" style={{ color: '#001233' }}>FIGC</span>
+            <div className="inline-block bg-white rounded-2xl px-6 py-3 shadow-lg mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-coachlab.png" alt="CoachLab" className="h-8 w-auto object-contain" />
             </div>
-            <h1 className="text-xl font-bold text-white">FIGC LMS</h1>
           </div>
 
           {/* Card form */}
-          <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <div className="rounded-2xl shadow-2xl p-8" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)' }}>
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Accedi</h2>
-              <p className="text-sm text-gray-500 mt-1">Inserisci le tue credenziali per continuare</p>
+              <h2 className="text-xl font-bold" style={{ color: '#0F172A' }}>Accedi</h2>
+              <p className="text-sm mt-1" style={{ color: '#64748B' }}>Inserisci le tue credenziali per continuare</p>
             </div>
 
             {disattivato === '1' && (
@@ -64,9 +56,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <LoginForm redirectTo={redirect} />
           </div>
 
-          <p className="text-center text-xs text-blue-300 mt-5">
-            © {new Date().getFullYear()} FIGC — Tutti i diritti riservati
+          <p className="text-center text-xs mt-5" style={{ color: '#94A3B8' }}>
+            © {new Date().getFullYear()} CoachLab — Tutti i diritti riservati
           </p>
+          <div className="flex justify-center gap-4 mt-2">
+            <a href="/privacy" className="text-xs transition hover:text-[#0891B2]" style={{ color: '#94A3B8' }}>Privacy Policy</a>
+            <span style={{ color: '#CBD5E1' }}>·</span>
+            <a href="/termini" className="text-xs transition hover:text-[#0891B2]" style={{ color: '#94A3B8' }}>Termini</a>
+            <span style={{ color: '#CBD5E1' }}>·</span>
+            <a href="/cookie" className="text-xs transition hover:text-[#0891B2]" style={{ color: '#94A3B8' }}>Cookie</a>
+          </div>
         </div>
       </div>
     </div>

@@ -2,7 +2,14 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ArrowLeft, ClipboardCheck, Users, CheckCircle, XCircle } from 'lucide-react'
-import NuovoQuizForm from './NuovoQuizForm'
+import CreaQuizModal from '@/components/quiz/CreaQuizModal'
+
+const categoryColors: Record<string, string> = {
+  'Esame Finale':        'bg-red-100 text-red-700',
+  'Verifica Intermedia': 'bg-amber-100 text-amber-700',
+  'Esercitazione':       'bg-green-100 text-green-700',
+  'Simulazione':         'bg-purple-100 text-purple-700',
+}
 
 export default async function DocenteQuizListPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -31,7 +38,7 @@ export default async function DocenteQuizListPage({ params }: { params: Promise<
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_quizzes')
-      .select('id, title, description, passing_score, created_at, group_id, course_groups(name)')
+      .select('id, title, description, passing_score, created_at, group_id, category, course_groups(name)')
       .eq('course_id', id)
       .order('created_at', { ascending: false }),
     supabase.from('course_groups').select('id, name').eq('course_id', id),
@@ -40,7 +47,6 @@ export default async function DocenteQuizListPage({ params }: { params: Promise<
 
   if (!course) notFound()
 
-  // Fetch attempts count and pass rate per quiz
   const quizIds = (quizzes ?? []).map(q => q.id)
   const { data: attempts } = quizIds.length > 0
     ? await supabase.from('quiz_attempts').select('quiz_id, passed').in('quiz_id', quizIds)
@@ -56,8 +62,15 @@ export default async function DocenteQuizListPage({ params }: { params: Promise<
   type Quiz = {
     id: string; title: string; description: string | null
     passing_score: number; created_at: string; group_id: string | null
-    course_groups: { name: string } | null
+    category: string | null; course_groups: { name: string } | null
   }
+
+  // CreaQuizModal needs CourseForQuiz format for this single course
+  const courseForModal = [{
+    id: course.id,
+    name: course.name,
+    groups: (groups ?? []).map(g => ({ id: g.id, name: g.name })),
+  }]
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -78,7 +91,7 @@ export default async function DocenteQuizListPage({ params }: { params: Promise<
               </span>
             )}
           </div>
-          <NuovoQuizForm courseId={id} groups={groups ?? []} />
+          <CreaQuizModal courses={courseForModal} defaultCourseId={id} label="Crea quiz" />
         </div>
       </div>
 
@@ -96,6 +109,11 @@ export default async function DocenteQuizListPage({ params }: { params: Promise<
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <h3 className="font-semibold text-gray-900 group-hover:text-blue-700 transition">{quiz.title}</h3>
+                    {quiz.category && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${categoryColors[quiz.category] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {quiz.category}
+                      </span>
+                    )}
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${group ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
                       {group ? group.name : 'Tutto il corso'}
                     </span>
@@ -104,7 +122,7 @@ export default async function DocenteQuizListPage({ params }: { params: Promise<
                     <p className="text-xs text-gray-500 mb-2 truncate">{quiz.description}</p>
                   )}
                   <div className="flex items-center gap-4 text-xs text-gray-400">
-                    <span>Soglia: {quiz.passing_score}%</span>
+                    <span>Voto min: {quiz.passing_score} pt</span>
                     <span className="flex items-center gap-1">
                       <Users size={11} /> {stats.total}/{enrolledCount ?? '—'} completati
                     </span>

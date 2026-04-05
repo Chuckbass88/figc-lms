@@ -8,6 +8,13 @@ export default async function DocenteDashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  const { data: myProfile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+  const firstName = myProfile?.full_name?.split(' ')[0] ?? 'Docente'
+
+  const now = new Date()
+  const greeting = now.getHours() < 12 ? 'Buongiorno' : now.getHours() < 18 ? 'Buon pomeriggio' : 'Buonasera'
+  const todayLabel = now.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
+
   const { data: myCoursesData } = await supabase
     .from('course_instructors')
     .select('course_id, courses(id, name, location, status, start_date, end_date)')
@@ -178,20 +185,70 @@ export default async function DocenteDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">La Mia Area Docente</h2>
-        <p className="text-gray-500 text-sm mt-1">Gestisci i tuoi corsi e i corsisti</p>
+
+      {/* ── Saluto + Azioni rapide ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">{greeting}, {firstName} 👋</h2>
+          <p className="text-sm text-gray-400 mt-0.5 capitalize">{todayLabel}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {myCourses.filter(c => c.status === 'active').slice(0, 1).map(c => (
+            <Link key={c.id} href={`/docente/corsi/${c.id}/presenze`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition" style={{ backgroundColor: '#1565C0' }}>
+              <ClipboardList size={13} /> Presenze
+            </Link>
+          ))}
+          {pendingEvals.length > 0 && (
+            <Link href={`/docente/corsi/${pendingEvals[0].course_id}/task/${pendingEvals[0].task_id}`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 transition">
+              <ClipboardCheck size={13} /> Valuta task
+              <span className="bg-amber-300 text-amber-900 rounded-full px-1.5 py-0 text-[10px] font-bold">
+                {pendingEvals.reduce((s, e) => s + e.count, 0)}
+              </span>
+            </Link>
+          )}
+          {myCourses.filter(c => c.status === 'active').slice(0, 1).map(c => (
+            <Link key={c.id} href={`/docente/corsi/${c.id}/annunci`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition">
+              <Megaphone size={13} /> Annunci
+            </Link>
+          ))}
+          <Link href="/docente/corsi"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+            <BookOpen size={13} /> I miei corsi
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatsCard title="Corsi Assegnati" value={myCourses.length} icon={<BookOpen size={20} />} variant="blue" />
-        <StatsCard title="Corsisti Totali" value={totalStudents ?? 0} icon={<GraduationCap size={20} />} variant="green" />
-        <StatsCard title="Corsi Attivi" value={myCourses.filter(c => c.status === 'active').length} icon={<Calendar size={20} />} variant="amber" />
+        <StatsCard
+          title="Corsi Assegnati"
+          value={myCourses.length}
+          icon={<BookOpen size={20} />}
+          variant="blue"
+          subtitle={myCourses.length > 0 ? `${myCourses.filter(c => c.status === 'active').length} attivi ora` : 'nessun corso assegnato'}
+        />
+        <StatsCard
+          title="Corsisti Totali"
+          value={totalStudents ?? 0}
+          icon={<GraduationCap size={20} />}
+          variant="green"
+          subtitle={`nei tuoi ${myCourses.length} cors${myCourses.length === 1 ? 'o' : 'i'}`}
+        />
+        <StatsCard
+          title="Corsi Attivi"
+          value={myCourses.filter(c => c.status === 'active').length}
+          icon={<Calendar size={20} />}
+          variant="amber"
+          subtitle={myCourses.filter(c => c.status === 'completed').length > 0 ? `${myCourses.filter(c => c.status === 'completed').length} completati` : 'in corso adesso'}
+        />
         <StatsCard
           title="Valutazioni in sospeso"
           value={pendingEvals.reduce((s, e) => s + e.count, 0)}
           icon={<ClipboardCheck size={20} />}
           variant={pendingEvals.length > 0 ? 'red' : 'green'}
+          subtitle={pendingEvals.length > 0 ? `su ${pendingEvals.length} task diversi` : 'tutto valutato'}
         />
       </div>
 
@@ -297,7 +354,7 @@ export default async function DocenteDashboard() {
               >
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                  style={{ backgroundColor: '#003DA5' }}
+                  style={{ backgroundColor: '#1565C0' }}
                 >
                   {s.full_name.charAt(0)}
                 </div>
@@ -314,8 +371,8 @@ export default async function DocenteDashboard() {
                   <span className={`text-xs font-bold w-8 text-right ${s.pct >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
                     {s.pct}%
                   </span>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
-                    Non idoneo
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${s.pct >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}`}>
+                    {s.pct >= 50 ? 'A rischio' : 'Non idoneo'}
                   </span>
                 </div>
               </Link>
