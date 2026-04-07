@@ -78,7 +78,7 @@ export default function Sidebar({ user, unreadCount = 0, unreadMessagesCount = 0
     <aside className="glass w-64 flex flex-col h-screen flex-shrink-0 shadow-xl">
 
       {/* Logo */}
-      <div className="px-4 pt-5 pb-4 border-b border-white/60">
+      <div className="px-4 pt-5 pb-4 border-b border-white/10">
         <div className="rounded-xl overflow-hidden bg-white px-3 py-2 flex items-center justify-center shadow-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-coachlab.png" alt="CoachLab" className="w-full h-auto object-contain" style={{ display: 'block', backgroundColor: 'white' }} />
@@ -92,36 +92,36 @@ export default function Sidebar({ user, unreadCount = 0, unreadMessagesCount = 0
           const isActive = pathname === item.href || (isDeep && pathname.startsWith(item.href + '/')) || (item.href === '/messaggi' && pathname.startsWith('/messaggi/'))
           return (
             <div key={item.href}>
-              {item.divider && <div className="my-2 border-t border-slate-100" />}
+              {item.divider && <div className="my-2 border-t border-white/10" />}
               <Link
                 href={item.href}
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
-                  isActive ? '' : 'hover:bg-[rgba(27,55,104,0.08)] hover:text-[#1B3768]'
+                  isActive ? '' : 'hover:bg-white/10'
                 }`}
                 style={isActive
-                  ? { background: '#1B3768', color: 'white' }
-                  : { color: '#475569' }
+                  ? { background: 'rgba(255,255,255,0.15)', color: 'white' }
+                  : { color: 'rgba(255,255,255,0.72)' }
                 }
               >
-                <span className={`flex-shrink-0 transition-colors ${isActive ? '' : 'text-slate-400 group-hover:text-[#1B3768]'}`}
-                  style={isActive ? { color: 'white' } : {}}>
+                <span className={`flex-shrink-0 transition-colors`}
+                  style={{ color: isActive ? 'white' : 'rgba(255,255,255,0.55)' }}>
                   {item.icon}
                 </span>
                 <span className="flex-1">{item.label}</span>
                 {item.href === '/notifiche' && unreadCount > 0 && (
                   <span className="flex-shrink-0 min-w-[18px] h-[18px] rounded-full text-xs font-bold flex items-center justify-center px-1"
-                    style={isActive ? { backgroundColor: 'rgba(255,255,255,0.25)', color: 'white' } : { backgroundColor: '#1B3768', color: 'white' }}>
+                    style={{ backgroundColor: '#0891B2', color: 'white' }}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
                 {item.href === '/messaggi' && unreadMessagesCount > 0 && (
                   <span className="flex-shrink-0 min-w-[18px] h-[18px] rounded-full text-xs font-bold flex items-center justify-center px-1"
-                    style={isActive ? { backgroundColor: 'rgba(255,255,255,0.25)', color: 'white' } : { backgroundColor: '#1B3768', color: 'white' }}>
+                    style={{ backgroundColor: '#0891B2', color: 'white' }}>
                     {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
                   </span>
                 )}
-                {isActive && <ChevronRight size={13} className="flex-shrink-0" style={{ color: 'rgba(255,255,255,0.8)' }} />}
+                {isActive && <ChevronRight size={13} className="flex-shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }} />}
               </Link>
             </div>
           )
@@ -129,21 +129,21 @@ export default function Sidebar({ user, unreadCount = 0, unreadMessagesCount = 0
       </nav>
 
       {/* User section */}
-      <div className="px-4 py-4 border-t border-white/50">
-        <div className="flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 cursor-pointer hover:bg-white/60">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-md text-white"
-            style={{ background: 'linear-gradient(135deg, #1B3768 0%, #0891B2 100%)' }}>
+      <div className="px-4 py-4 border-t border-white/10">
+        <div className="flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 cursor-pointer hover:bg-white/10">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 text-white"
+            style={{ background: 'rgba(255,255,255,0.2)' }}>
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold truncate leading-tight" style={{ color: '#1B3768' }}>{user.full_name}</p>
-            <p className="text-xs truncate mt-0.5" style={{ color: '#94A3B8' }}>{ROLE_LABELS[user.role]}</p>
+            <p className="text-sm font-bold truncate leading-tight text-white">{user.full_name}</p>
+            <p className="text-xs truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.55)' }}>{ROLE_LABELS[user.role]}</p>
           </div>
           <button
             onClick={handleLogout}
             title="Esci"
-            className="p-1.5 rounded-lg transition flex-shrink-0 hover:text-[#0891B2]"
-            style={{ color: '#94A3B8' }}
+            className="p-1.5 rounded-lg transition flex-shrink-0 hover:text-white"
+            style={{ color: 'rgba(255,255,255,0.45)' }}
           >
             <LogOut size={14} />
           </button>

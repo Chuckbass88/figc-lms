@@ -17,25 +17,20 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Gradient di sfondo pagina */
+/* Sfondo pagina */
 .bg-page-gradient {
-  background: linear-gradient(155deg, #C8D5E8 0%, #D4DFEF 40%, #CDDAEC 70%, #D0DCE8 100%);
+  background: #EDF1F8;
 }
 
-/* Glass sidebar */
+/* Sidebar navy */
 .glass {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-right: 1px solid rgba(255, 255, 255, 0.9);
+  background: #1B3768;
 }
 
-/* Glass header */
+/* Header bianco */
 .glass-header {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+  background: #ffffff;
+  border-bottom: 1px solid #E2E8F0;
 }
 
 /* Scrollbar sottile */
