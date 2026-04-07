@@ -4,7 +4,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { disattivato, redirect } = await searchParams
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'linear-gradient(155deg, #C8D5E8 0%, #D4DFEF 40%, #CDDAEC 70%, #D0DCE8 100%)' }}>
+    <div className="min-h-screen flex" style={{ background: '#F8FAFC' }}>
 
       {/* Pannello sinistro — branding */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 p-12">
@@ -14,13 +14,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-coachlab.png" alt="CoachLab" className="w-72 h-auto object-contain mb-10" />
           <h2 className="text-4xl font-bold leading-tight mb-4 text-center" style={{ color: '#0F172A' }}>
-            La piattaforma per<br />
-            <span style={{ color: '#0891B2' }}>formare i migliori</span><br />
-            allenatori
+            Piattaforma per formare<br />
+            <span style={{ color: '#0891B2' }}>gli allenatori</span>
           </h2>
-          <p className="text-base leading-relaxed max-w-sm text-center" style={{ color: '#475569' }}>
-            Gestione corsi, sessioni, corsisti e valutazioni in un&apos;unica piattaforma professionale.
-          </p>
         </div>
 
         <p className="text-xs text-center" style={{ color: '#94A3B8' }}>
@@ -41,7 +37,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           </div>
 
           {/* Card form */}
-          <div className="rounded-2xl shadow-2xl p-8" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)' }}>
+          <div className="rounded-2xl p-8" style={{ background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
             <div className="mb-6">
               <h2 className="text-xl font-bold" style={{ color: '#0F172A' }}>Accedi</h2>
               <p className="text-sm mt-1" style={{ color: '#64748B' }}>Inserisci le tue credenziali per continuare</p>
