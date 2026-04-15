@@ -221,7 +221,7 @@ export default function GuideClient({ role, userName, sections, quickActions }: 
             <button
               onClick={() => {
                 localStorage.setItem('coachlab-guide-floating', '1')
-                router.back()
+                router.push('/')
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-all border border-white/30"
               title="Riduci la guida a icona flottante — puoi riaprirla quando vuoi"
