@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, ChevronDown, ChevronUp, X, Lightbulb, AlertTriangle, Camera, CheckCircle2, BookOpen, Zap } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Search, ChevronDown, ChevronUp, X, Lightbulb, AlertTriangle, Camera, CheckCircle2, BookOpen, Zap, Minimize2 } from 'lucide-react'
 import type { GuideSection } from './guideDataStudente'
 
 interface QuickAction { label: string; sectionId: string }
@@ -166,6 +167,7 @@ function CompletedBadge({ sectionId, label }: { sectionId: string; label: string
 
 // ── Componente principale ─────────────────────────────────────────────────────
 export default function GuideClient({ role, userName, sections, quickActions }: Props) {
+  const router = useRouter()
   const [search,    setSearch]    = useState('')
   const [openId,    setOpenId]    = useState<string | null>(null)
   const [activeId,  setActiveId]  = useState<string | null>(null)
@@ -211,9 +213,22 @@ export default function GuideClient({ role, userName, sections, quickActions }: 
       {/* ── Hero header ── */}
       <div className="px-6 py-8 text-white" style={{ background: `linear-gradient(135deg, #1B3768 0%, #1565C0 100%)` }}>
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center gap-2 mb-1">
-            <BookOpen size={16} className="opacity-70" />
-            <span className="text-xs font-medium opacity-70 uppercase tracking-wide">Guida {roleLabel}</span>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <BookOpen size={16} className="opacity-70" />
+              <span className="text-xs font-medium opacity-70 uppercase tracking-wide">Guida {roleLabel}</span>
+            </div>
+            <button
+              onClick={() => {
+                localStorage.setItem('coachlab-guide-floating', '1')
+                router.back()
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-all border border-white/30"
+              title="Riduci la guida a icona flottante — puoi riaprirla quando vuoi"
+            >
+              <Minimize2 size={13} />
+              Riduci a icona
+            </button>
           </div>
           <h1 className="text-2xl font-bold mb-1">Ciao {firstName}! 👋</h1>
           <p className="text-sm opacity-80 mb-5">

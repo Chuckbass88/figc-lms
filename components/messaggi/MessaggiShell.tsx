@@ -369,6 +369,17 @@ export default function MessaggiShell({
   const [showModal, setShowModal]         = useState(false)
   const [onlineUsers, setOnlineUsers]     = useState<Set<string>>(new Set())
 
+  // Quando il layout si aggiorna (es. dopo router.refresh() per nuova conversazione),
+  // aggiunge le nuove conversazioni che non erano ancora in lista locale
+  useEffect(() => {
+    setConversations(prev => {
+      const prevIds = new Set(prev.map(c => c.id))
+      const newConvs = initialConversations.filter(c => !prevIds.has(c.id))
+      if (newConvs.length === 0) return prev
+      return [...newConvs, ...prev]
+    })
+  }, [initialConversations])
+
   // Conversazione attiva estratta dal pathname
   const activeConvId = pathname.startsWith('/messaggi/')
     ? pathname.split('/messaggi/')[1]?.split('/')[0]

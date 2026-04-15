@@ -184,7 +184,7 @@ export default function CorsiClient({ initialCourses, sessionCountByCourse }: { 
                 </div>
               )}
 
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
+              <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
                 <button
                   onClick={() => router.push(`/super-admin/corsi/${course.id}`)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition"

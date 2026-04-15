@@ -82,9 +82,10 @@ export async function POST(request: Request) {
     await supabase.from('notifications').insert(
       others.map(o => ({
         user_id: o.user_id,
+        type:    'message',
         title:   `Messaggio da ${senderName}`,
-        message: msgPreview,
-        read:    false,
+        body:    msgPreview,
+        data:    { url: `/messaggi/${conversationId}` },
       }))
     )
 

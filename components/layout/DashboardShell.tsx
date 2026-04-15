@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import GuideFloatingPanel from '@/components/guida/GuideFloatingPanel'
 import type { Profile, Notification } from '@/lib/types'
 
 export default function DashboardShell({
@@ -55,6 +56,9 @@ export default function DashboardShell({
           {children}
         </main>
       </div>
+
+      {/* Pannello guida flottante — visibile quando l'utente ha minimizzato la guida */}
+      <GuideFloatingPanel role={user.role} userName={user.full_name ?? ''} />
     </div>
   )
 }
