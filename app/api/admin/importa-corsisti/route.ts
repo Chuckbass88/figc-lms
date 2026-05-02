@@ -100,6 +100,18 @@ export async function POST(request: Request) {
     .eq('course_id', courseId)
   const alreadyEnrolled = new Set(existing?.map(e => e.student_id) ?? [])
 
+  // Carica TUTTI gli utenti auth una sola volta (paginato) per evitare N+1 query
+  const allAuthUsers: { id: string; email?: string }[] = []
+  let page = 1
+  while (true) {
+    const { data: pageData } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    if (!pageData?.users?.length) break
+    allAuthUsers.push(...pageData.users)
+    if (pageData.users.length < 1000) break
+    page++
+  }
+  const authUsersByEmail = new Map(allAuthUsers.map(u => [u.email?.toLowerCase() ?? '', u]))
+
   let created = 0
   let enrolled = 0
   let skipped = 0
@@ -117,9 +129,8 @@ export async function POST(request: Request) {
 
     const fullName = [nome, cognome].filter(Boolean).join(' ') || email.split('@')[0]
 
-    // Verifica se l'utente esiste già
-    const { data: existingUsers } = await admin.auth.admin.listUsers()
-    const existingUser = existingUsers?.users.find(u => u.email?.toLowerCase() === email.toLowerCase())
+    // Verifica se l'utente esiste già (lookup in memoria — O(1))
+    const existingUser = authUsersByEmail.get(email.toLowerCase())
 
     let userId: string
 
@@ -144,6 +155,8 @@ export async function POST(request: Request) {
         role: 'studente',
         is_active: true,
       }).eq('id', userId)
+      // Aggiungi alla map locale per gestire duplicati email nello stesso CSV
+      authUsersByEmail.set(email.toLowerCase(), { id: userId, email })
       created++
       newIds.push(userId)
     }
