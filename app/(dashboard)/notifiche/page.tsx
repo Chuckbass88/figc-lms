@@ -1,9 +1,11 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import NotificheClient from './NotificheClient'
 import NotificaCorsoDocente from '@/app/(dashboard)/docente/notifiche/NotificaCorsoDocente'
+import EmailGruppoDocente from '@/app/(dashboard)/docente/notifiche/EmailGruppoDocente'
 import NotificheForm from '@/app/(dashboard)/super-admin/impostazioni/NotificheForm'
 
 export default async function NotifichePage({
@@ -16,7 +18,6 @@ export default async function NotifichePage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Fetch role
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
@@ -26,10 +27,9 @@ export default async function NotifichePage({
   const role = profile?.role as string | undefined
   const canInvia = role === 'docente' || role === 'super_admin'
 
-  // Determina tab attivo (solo docente/admin possono vedere "invia")
-  const activeTab = canInvia && tab === 'invia' ? 'invia' : 'ricevute'
+  const activeTab = canInvia && (tab === 'invia' || tab === 'email') ? tab : 'ricevute'
 
-  // Notifiche ricevute — sempre caricate
+  // Notifiche ricevute
   const { data: notifications } = await supabase
     .from('notifications')
     .select('id, title, message, read, created_at')
@@ -39,9 +39,12 @@ export default async function NotifichePage({
 
   const unreadCount = (notifications ?? []).filter(n => !n.read).length
 
-  // Dati aggiuntivi per il tab "Invia" (solo se necessario)
+  // Dati per i tab di invio
   let coursesForDocente: { id: string; name: string; status: string }[] = []
   let usersForAdmin: { id: string; full_name: string; role: string }[] = []
+  let groupsForEmail: { id: string; name: string; courseId: string }[] = []
+  let studentsForEmail: { id: string; full_name: string; email: string; courseId: string }[] = []
+  let allCourses: { id: string; name: string; status: string }[] = []
 
   if (canInvia && activeTab === 'invia') {
     if (role === 'docente') {
@@ -63,6 +66,43 @@ export default async function NotifichePage({
     }
   }
 
+  if (canInvia && activeTab === 'email') {
+    const admin = createAdminClient()
+
+    if (role === 'docente') {
+      const { data: myCoursesData } = await supabase
+        .from('course_instructors')
+        .select('course_id, courses(id, name, status)')
+        .eq('instructor_id', user.id)
+      allCourses = (myCoursesData ?? []).map((r: any) => r.courses).filter(Boolean) as { id: string; name: string; status: string }[]
+    } else {
+      const { data: coursesData } = await admin.from('courses').select('id, name, status').order('name')
+      allCourses = coursesData ?? []
+    }
+
+    const courseIds = allCourses.map(c => c.id)
+
+    if (courseIds.length > 0) {
+      const [{ data: groupsData }, { data: enrollmentsData }] = await Promise.all([
+        admin.from('course_groups').select('id, name, course_id').in('course_id', courseIds),
+        admin
+          .from('course_enrollments')
+          .select('student_id, course_id, profiles!student_id(id, full_name, email)')
+          .in('course_id', courseIds)
+          .eq('status', 'active'),
+      ])
+
+      groupsForEmail = (groupsData ?? []).map(g => ({ id: g.id, name: g.name, courseId: g.course_id }))
+      studentsForEmail = (enrollmentsData ?? [])
+        .map((e: any) => {
+          const p = e.profiles
+          if (!p) return null
+          return { id: p.id, full_name: p.full_name ?? '', email: p.email ?? '', courseId: e.course_id }
+        })
+        .filter(Boolean) as { id: string; full_name: string; email: string; courseId: string }[]
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
@@ -71,13 +111,15 @@ export default async function NotifichePage({
         <p className="text-gray-500 text-sm mt-1">
           {activeTab === 'ricevute'
             ? `${notifications?.length ?? 0} ricevute${unreadCount > 0 ? ` · ${unreadCount} non lette` : ''}`
-            : role === 'docente'
-              ? 'Invia notifiche ai corsisti dei tuoi corsi'
-              : 'Invia messaggi personalizzati agli utenti del sistema'}
+            : activeTab === 'email'
+              ? 'Invia email dirette ai corsisti per corso, microgruppo o singolo'
+              : role === 'docente'
+                ? 'Invia notifiche ai corsisti dei tuoi corsi'
+                : 'Invia messaggi personalizzati agli utenti del sistema'}
         </p>
       </div>
 
-      {/* Tab switcher — visibile solo a docente e super_admin */}
+      {/* Tab switcher */}
       {canInvia && (
         <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
           <Link
@@ -106,18 +148,29 @@ export default async function NotifichePage({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Invia notifica
+            Notifica in-app
+          </Link>
+          <Link
+            href="/notifiche?tab=email"
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              activeTab === 'email'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Email di gruppo
           </Link>
         </div>
       )}
 
-      {/* Contenuto del tab attivo */}
+      {/* Contenuto */}
       {activeTab === 'ricevute' ? (
         <NotificheClient initialNotifications={notifications ?? []} userId={user.id} />
+      ) : activeTab === 'email' ? (
+        <EmailGruppoDocente courses={allCourses} groups={groupsForEmail} students={studentsForEmail} />
       ) : role === 'docente' ? (
         <NotificaCorsoDocente courses={coursesForDocente} />
       ) : (
-        /* super_admin */
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
             <h3 className="font-semibold text-gray-900">Invia notifica</h3>

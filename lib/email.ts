@@ -190,6 +190,37 @@ export function emailNuovoAnnuncio(opts: {
   }
 }
 
+export function emailDiGruppo(opts: {
+  recipientName: string
+  senderName: string
+  subject: string
+  body: string
+  courseName: string
+  appUrl: string
+}): EmailPayload {
+  const bodyHtml = opts.body
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>')
+  return {
+    subject: opts.subject,
+    to: '',
+    html: emailWrapper(`
+      ${title(opts.subject)}
+      ${subtitle(`Ciao ${opts.recipientName}, hai ricevuto un messaggio dal tuo corso.`)}
+      <div style="background:#f8faff;border-left:4px solid #1565C0;border-radius:0 10px 10px 0;padding:16px 20px;margin-bottom:16px;">
+        <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Da: ${opts.senderName}</p>
+        <p style="margin:0;font-size:12px;color:#64748b;">${pill(opts.courseName)}</p>
+      </div>
+      <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;">
+        <p style="margin:0;font-size:14px;color:#334155;line-height:1.6;">${bodyHtml}</p>
+      </div>
+      ${btn(opts.appUrl, 'Accedi al corso →')}
+    `),
+  }
+}
+
 export function emailInvitoCorso(opts: {
   courseName: string
   inviteUrl: string
