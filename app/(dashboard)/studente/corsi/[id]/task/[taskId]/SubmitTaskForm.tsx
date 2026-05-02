@@ -14,35 +14,59 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
   const [notes, setNotes] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [saved, setSaved] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  async function submit() {
+  function submit() {
     setShowConfirm(false)
     setLoading(true)
     setError(null)
+    setUploadProgress(file ? 0 : null)
 
     const fd = new FormData()
     fd.append('task_id', taskId)
     fd.append('notes', notes)
     if (file) fd.append('file', file)
 
-    const res = await fetch('/api/task/submit', { method: 'POST', body: fd })
-    const json = await res.json()
+    const xhr = new XMLHttpRequest()
 
-    setLoading(false)
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        setUploadProgress(Math.round((e.loaded / e.total) * 100))
+      }
+    })
 
-    if (!res.ok) {
-      setError(json.error ?? 'Errore durante l\'invio. Riprova.')
-      return
-    }
+    xhr.addEventListener('load', () => {
+      setLoading(false)
+      setUploadProgress(null)
 
-    setSaved(true)
-    router.refresh()
-    setTimeout(() => router.push(`/studente/corsi/${courseId}/task`), 1500)
+      if (xhr.status >= 400) {
+        try {
+          const json = JSON.parse(xhr.responseText)
+          setError(json.error ?? 'Errore durante l\'invio. Riprova.')
+        } catch {
+          setError('Errore durante l\'invio. Riprova.')
+        }
+        return
+      }
+
+      setSaved(true)
+      router.refresh()
+      setTimeout(() => router.push(`/studente/corsi/${courseId}/task`), 1500)
+    })
+
+    xhr.addEventListener('error', () => {
+      setLoading(false)
+      setUploadProgress(null)
+      setError('Connessione interrotta. Controlla la rete e riprova.')
+    })
+
+    xhr.open('POST', '/api/task/submit')
+    xhr.send(fd)
   }
 
   if (saved) {
@@ -71,12 +95,15 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
 
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">
-            Allegato (opzionale)
+            Allegato (opzionale) <span className="text-gray-400 font-normal normal-case">— max 50MB</span>
           </label>
           {file ? (
             <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <Upload size={14} className="text-blue-600 flex-shrink-0" />
-              <span className="text-sm text-blue-800 font-medium truncate flex-1">{file.name}</span>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm text-blue-800 font-medium truncate block">{file.name}</span>
+                <span className="text-xs text-blue-500">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+              </div>
               <button
                 onClick={() => { setFile(null); if (fileRef.current) fileRef.current.value = '' }}
                 className="text-gray-400 hover:text-red-500 transition flex-shrink-0"
@@ -100,14 +127,36 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
           />
         </div>
 
+        {/* Progress bar upload */}
+        {uploadProgress !== null && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span className="flex items-center gap-1.5">
+                <Loader2 size={11} className="animate-spin" />
+                Caricamento in corso…
+              </span>
+              <span className="font-semibold text-blue-700">{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-2 rounded-full transition-all duration-200"
+                style={{
+                  width: `${uploadProgress}%`,
+                  backgroundColor: uploadProgress === 100 ? '#16a34a' : '#1565C0',
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         <button
           onClick={() => setShowConfirm(true)}
           disabled={loading || (!notes.trim() && !file)}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
           style={{ backgroundColor: '#1565C0' }}
         >
-          {loading ? (
-            <><Loader2 size={14} className="animate-spin" /> Caricamento...</>
+          {loading && uploadProgress === null ? (
+            <><Loader2 size={14} className="animate-spin" /> Invio in corso…</>
           ) : (
             <><Check size={14} /> {hasExisting ? 'Aggiorna consegna' : 'Invia consegna'}</>
           )}

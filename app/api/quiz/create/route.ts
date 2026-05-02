@@ -1,24 +1,31 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { sendEmail, emailNuovoQuiz } from '@/lib/email'
-
-interface QuizOption { text: string; isCorrect: boolean }
-interface QuizQuestion { text: string; points: number; options: QuizOption[] }
+import { CreateQuizSchema, zodError } from '@/lib/schemas'
+import { z } from 'zod'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
+  let parsed: z.infer<typeof CreateQuizSchema>
+  try {
+    parsed = CreateQuizSchema.parse(await request.json())
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: zodError(err) }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Payload non valido' }, { status: 400 })
+  }
+
   const {
     courseId, groupId, title, description, passingScore, timerMinutes, questions,
     category, instructions, shuffleQuestions, availableFrom, availableUntil, autoCloseOnTimer,
     penaltyWrong, questionsPerStudent,
-  } = await request.json()
-  if (!courseId || !title?.trim() || !questions?.length) {
-    return NextResponse.json({ error: 'Dati mancanti' }, { status: 400 })
-  }
+  } = parsed
 
+  // Verifica autorizzazione
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'super_admin') {
     const { data: isInstructor } = await supabase
