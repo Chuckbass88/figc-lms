@@ -8,16 +8,26 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { CreaMessaggioSchema, zodError } from '@/lib/schemas'
+import { z } from 'zod'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const { otherUserId, content } = await request.json()
-  if (!otherUserId || !content?.trim()) {
-    return NextResponse.json({ error: 'Dati mancanti' }, { status: 400 })
+  let parsed: z.infer<typeof CreaMessaggioSchema>
+  try {
+    parsed = CreaMessaggioSchema.parse(await request.json())
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: zodError(err) }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Payload non valido' }, { status: 400 })
   }
+
+  const { otherUserId, content } = parsed
+
   if (otherUserId === user.id) {
     return NextResponse.json({ error: 'Non puoi scrivere a te stesso' }, { status: 400 })
   }
