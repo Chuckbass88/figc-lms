@@ -70,6 +70,17 @@ export const InviaNotificaSchema = z.object({
   courseId: uuid.optional(),
 })
 
+// ---- Email di gruppo ----
+
+export const InviaEmailGruppoSchema = z.object({
+  courseId: uuid,
+  recipientType: z.enum(['all', 'group', 'student']),
+  groupId: uuid.optional(),
+  studentId: uuid.optional(),
+  subject: z.string().min(1, 'L\'oggetto è obbligatorio').max(200).transform(s => s.trim()),
+  body: z.string().min(1, 'Il corpo dell\'email è obbligatorio').max(10000).transform(s => s.trim()),
+})
+
 // ---- Utility ----
 
 /** Restituisce la prima stringa di errore Zod trovata, formattata per l'utente */
