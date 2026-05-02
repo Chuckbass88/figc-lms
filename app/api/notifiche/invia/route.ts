@@ -1,10 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+
+  const rl = checkRateLimit(`${user.id}:notifiche`, RATE_LIMITS.notifiche)
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Troppe notifiche inviate. Attendi prima di inviarne altre.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    )
+  }
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (!profile || !['super_admin', 'docente'].includes(profile.role)) {
@@ -57,9 +66,10 @@ export async function POST(request: Request) {
 
   const notifications = userIds.map(uid => ({
     user_id: uid,
-    title: title.trim(),
-    message: message.trim(),
-    read: false,
+    type:    'notification',
+    title:   title.trim(),
+    body:    message.trim(),
+    data:    {},
   }))
 
   const { error } = await supabase.from('notifications').insert(notifications)

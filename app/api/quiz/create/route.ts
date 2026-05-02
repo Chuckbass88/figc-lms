@@ -56,6 +56,7 @@ export async function POST(request: Request) {
   if (quizError || !quiz) return NextResponse.json({ error: quizError?.message }, { status: 500 })
 
   // Crea domande e opzioni
+  let questionsFailed = 0
   for (let i = 0; i < (questions as QuizQuestion[]).length; i++) {
     const q = questions[i]
     const { data: question, error: qErr } = await supabase
@@ -64,7 +65,11 @@ export async function POST(request: Request) {
       .select()
       .single()
 
-    if (qErr || !question) continue
+    if (qErr || !question) {
+      questionsFailed++
+      console.error(`[quiz/create] Domanda ${i + 1} fallita (quiz ${quiz.id}):`, qErr?.message)
+      continue
+    }
 
     await supabase.from('quiz_options').insert(
       (q.options as QuizOption[]).map((opt, j) => ({
@@ -74,6 +79,11 @@ export async function POST(request: Request) {
         order_index: j,
       }))
     )
+  }
+
+  // Se alcune domande sono fallite, segnalalo nel response (non blocchiamo ma avvisiamo)
+  if (questionsFailed > 0) {
+    console.error(`[quiz/create] Quiz ${quiz.id}: ${questionsFailed}/${(questions as QuizQuestion[]).length} domande non salvate`)
   }
 
   // Notifica corsisti
@@ -98,9 +108,10 @@ export async function POST(request: Request) {
     await supabase.from('notifications').insert(
       studentIds.map(id => ({
         user_id: id,
+        type:  'quiz',
         title: 'Nuovo quiz disponibile',
-        message: `È disponibile un nuovo quiz: "${title.trim()}" — ${course?.name ?? ''}`,
-        read: false,
+        body:  `È disponibile un nuovo quiz: "${title.trim()}" — ${course?.name ?? ''}`,
+        data:  { url: `/studente/corsi/${courseId}/quiz/${quiz.id}` },
       }))
     )
 
@@ -113,12 +124,19 @@ export async function POST(request: Request) {
         recipientName: p.full_name,
         quizTitle: title.trim(),
         courseName: course?.name ?? '',
-        passScore: passingScore ?? 60,
+        passScore: passingScore ?? 18,
         appUrl: `${appUrl}/studente/corsi/${courseId}/quiz/${quiz.id}`,
       })
       await sendEmail({ ...tmpl, to: p.email })
     }
   }
 
-  return NextResponse.json({ ok: true, id: quiz.id })
+  return NextResponse.json({
+    ok: true,
+    id: quiz.id,
+    ...(questionsFailed > 0 && {
+      warning: `${questionsFailed} domande non salvate a causa di un errore. Verifica il quiz prima di pubblicarlo.`,
+      questionsFailed,
+    }),
+  })
 }

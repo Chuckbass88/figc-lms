@@ -8,11 +8,20 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { sendPushToUsers } from '@/lib/push'
 import { sendExpoNotificationsToUsers } from '@/lib/expo-push'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+
+  const rl = checkRateLimit(`${user.id}:messaggi`, RATE_LIMITS.messaggi)
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Troppi messaggi in poco tempo. Riprova tra qualche secondo.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    )
+  }
 
   const body = await request.json()
   const { conversationId, content, type = 'text', file_url, file_name, file_size, file_mime } = body
