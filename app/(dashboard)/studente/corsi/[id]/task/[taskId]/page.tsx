@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Clock, Star, CheckCircle, FileText, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Clock, Star, CheckCircle, FileText, MessageSquare, AlertCircle } from 'lucide-react'
 import SubmitTaskForm from './SubmitTaskForm'
 
 function formatSize(bytes: number) {
@@ -133,12 +133,25 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
       )}
 
       {/* Upload form */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <p className="text-sm font-semibold text-gray-900 mb-4">
-          {sub ? 'Aggiorna la consegna' : 'Carica il tuo lavoro'}
-        </p>
-        <SubmitTaskForm taskId={taskId} courseId={id} hasExisting={!!sub} />
-      </div>
+      {isOverdue && !sub ? (
+        <div className="bg-red-50 rounded-xl border border-red-200 p-5 flex items-start gap-3">
+          <AlertCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-red-800">Task scaduta</p>
+            <p className="text-sm text-red-600 mt-0.5">
+              Il termine per la consegna era il {new Date(task.due_date!).toLocaleDateString('it-IT')}.
+              Non è più possibile inviare la consegna.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <p className="text-sm font-semibold text-gray-900 mb-4">
+            {sub ? 'Aggiorna la consegna' : 'Carica il tuo lavoro'}
+          </p>
+          <SubmitTaskForm taskId={taskId} courseId={id} hasExisting={!!sub} />
+        </div>
+      )}
     </div>
   )
 }

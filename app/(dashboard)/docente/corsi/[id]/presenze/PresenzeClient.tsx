@@ -334,12 +334,12 @@ export default function PresenzeClient({ courseId, courseName, students, initial
                   <div className="flex items-center gap-1.5 mt-2">
                     <Users size={11} className="text-gray-400" />
                     <span className="text-xs text-gray-500">
-                      {present}/{s.attendances.length} presenti
+                      {present}/{students.length} presenti
                     </span>
                     <div className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
                       <div
                         className="h-full rounded-full bg-green-500 transition-all"
-                        style={{ width: s.attendances.length > 0 ? `${(present / s.attendances.length) * 100}%` : '0%' }}
+                        style={{ width: students.length > 0 ? `${(present / students.length) * 100}%` : '0%' }}
                       />
                     </div>
                   </div>

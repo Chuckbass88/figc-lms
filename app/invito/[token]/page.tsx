@@ -71,13 +71,29 @@ export default async function InvitoPage({ params }: { params: Promise<{ token: 
 
   // Solo i corsisti possono iscriversi tramite invito
   if (profile?.role !== 'studente') {
+    const isDocente = profile?.role === 'docente'
+    const dashboardHref = isDocente
+      ? `/docente/corsi/${course.id}`
+      : `/super-admin/corsi/${course.id}`
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
           <AlertCircle size={48} className="text-amber-400 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Accesso non disponibile</h1>
-          <p className="text-gray-500 text-sm">I link di invito sono riservati ai corsisti. Il tuo account ha un ruolo diverso.</p>
-          <Link href="/" className="mt-6 inline-block text-sm text-blue-600 hover:underline">Torna alla dashboard</Link>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Link di invito per corsisti</h1>
+          <p className="text-gray-500 text-sm mb-1">
+            Questo link serve ai corsisti per iscriversi a <strong>{course.name}</strong>.
+          </p>
+          <p className="text-gray-400 text-sm mb-6">
+            Il tuo account ({profile?.role === 'docente' ? 'Docente' : 'Amministratore'}) non può iscriversi come corsista tramite questo link.
+          </p>
+          <Link
+            href={dashboardHref}
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition"
+            style={{ backgroundColor: '#1565C0' }}
+          >
+            <BookOpen size={16} /> Vai al pannello corso
+          </Link>
+          <Link href="/" className="mt-3 inline-block text-sm text-gray-400 hover:underline">Torna alla dashboard</Link>
         </div>
       </div>
     )

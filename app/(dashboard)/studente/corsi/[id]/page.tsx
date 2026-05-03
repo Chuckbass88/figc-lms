@@ -40,7 +40,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
   ] = await Promise.all([
     supabase.from('courses').select('id, name, description, location, start_date, end_date, status, category').eq('id', id).single(),
     supabase.from('course_instructors')
-      .select('profiles(id, full_name, email)')
+      .select('profiles(id, full_name)')
       .eq('course_id', id),
     supabase.from('course_groups')
       .select(`
@@ -116,7 +116,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
 
   if (!course) notFound()
 
-  const docenti = instructors?.map(r => r.profiles).filter(Boolean) as unknown as { id: string; full_name: string; email: string }[] ?? []
+  const docenti = instructors?.map(r => r.profiles).filter(Boolean) as unknown as { id: string; full_name: string }[] ?? []
 
   const myGroup = myGroupRow as {
     id: string
@@ -393,7 +393,6 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">{d.full_name}</p>
-                <p className="text-xs text-gray-400 truncate">{d.email}</p>
               </div>
             </div>
           ))}

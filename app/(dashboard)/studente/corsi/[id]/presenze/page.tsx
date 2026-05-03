@@ -40,8 +40,10 @@ export default async function StudentePresenze({ params }: { params: Promise<{ i
     myPresence: s.attendances.find(a => a.student_id === user.id),
   }))
 
-  const totalSessions = sessionList.length
-  const presentCount = myAttendances.filter(s => s.myPresence?.present).length
+  const today = new Date().toISOString().split('T')[0]
+  const pastSessions = myAttendances.filter(s => s.session_date <= today)
+  const totalSessions = pastSessions.length
+  const presentCount = pastSessions.filter(s => s.myPresence?.present).length
   const pct = totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : null
 
   return (
@@ -120,6 +122,7 @@ export default async function StudentePresenze({ params }: { params: Promise<{ i
               {myAttendances.map(s => {
                 const isPresent = s.myPresence?.present ?? false
                 const registered = !!s.myPresence
+                const isFuture = s.session_date > today
                 return (
                   <div key={s.id} className="px-5 py-3 flex items-center justify-between gap-4">
                     <div className="min-w-0">
@@ -129,7 +132,9 @@ export default async function StudentePresenze({ params }: { params: Promise<{ i
                       </p>
                     </div>
                     <div className="flex-shrink-0">
-                      {!registered ? (
+                      {isFuture ? (
+                        <span className="text-xs text-gray-400 italic">In programma</span>
+                      ) : !registered ? (
                         <span className="text-xs text-gray-400 italic">Non registrato</span>
                       ) : isPresent ? (
                         <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-full">

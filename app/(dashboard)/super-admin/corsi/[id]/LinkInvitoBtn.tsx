@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link2, X, Copy, Check, QrCode, RefreshCw, Loader2 } from 'lucide-react'
 import QRCode from 'qrcode'
 
@@ -16,6 +16,15 @@ export default function LinkInvitoBtn({ courseId, courseName, inviteToken: initi
   const [copied, setCopied] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  const chiudi = useCallback(() => setOpen(false), [])
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') chiudi() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [open, chiudi])
 
   const inviteUrl = token
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/invito/${token}`
@@ -60,11 +69,17 @@ export default function LinkInvitoBtn({ courseId, courseName, inviteToken: initi
       </button>
 
       {open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={chiudi}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-bold text-gray-900">Link di invito</h3>
-              <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 transition">
+              <button type="button" onClick={chiudi} className="text-gray-400 hover:text-gray-600 transition">
                 <X size={18} />
               </button>
             </div>
