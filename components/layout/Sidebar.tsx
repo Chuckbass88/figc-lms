@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, BookOpen, Users, Bell,
-  GraduationCap, Calendar, LogOut, ChevronRight, UserCircle, BarChart2, Search, CalendarDays, ClipboardCheck, ClipboardList, MessageSquare, FolderOpen, HelpCircle,
+  GraduationCap, Calendar, LogOut, ChevronRight, UserCircle, BarChart2, Search, CalendarDays, ClipboardCheck, ClipboardList, MessageSquare, FolderOpen, HelpCircle, CalendarRange, StickyNote,
 } from 'lucide-react'
 import type { UserRole, Profile } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
@@ -19,6 +19,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { label: 'Panoramica Task',   href: '/super-admin/task',       icon: <ClipboardCheck size={17} />, divider: true },
     { label: 'Libreria Quiz',     href: '/super-admin/libreria-quiz', icon: <ClipboardList size={17} /> },
     { label: 'Archivio Documenti',href: '/archivio',               icon: <FolderOpen size={17} /> },
+    { label: 'Note',              href: '/super-admin/note',       icon: <StickyNote size={17} /> },
     { label: 'Calendario',        href: '/super-admin/calendario', icon: <Calendar size={17} /> },
     { label: 'Utenti',            href: '/super-admin/utenti',     icon: <Users size={17} />, divider: true },
     { label: 'Cerca',             href: '/super-admin/cerca',      icon: <Search size={17} /> },
@@ -34,6 +35,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { label: 'Le Mie Task',       href: '/docente/task',           icon: <ClipboardCheck size={17} /> },
     { label: 'Libreria Quiz',     href: '/docente/libreria-quiz',  icon: <ClipboardList size={17} />, divider: true },
     { label: 'Archivio Documenti',href: '/archivio',               icon: <FolderOpen size={17} /> },
+    { label: 'Note',              href: '/docente/note',           icon: <StickyNote size={17} /> },
     { label: 'Calendario',        href: '/docente/calendario',     icon: <Calendar size={17} /> },
     { label: 'Corsisti',          href: '/docente/corsisti',       icon: <GraduationCap size={17} /> },
     { label: 'Report Idoneità',   href: '/docente/report',         icon: <BarChart2 size={17} />, divider: true },

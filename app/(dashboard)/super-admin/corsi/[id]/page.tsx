@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, Users, UserCheck, Layers, Pencil, GraduationCap, ClipboardList, BookMarked, CalendarDays, CalendarCheck, Megaphone, TrendingUp, ClipboardCheck } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, UserCheck, Layers, Pencil, GraduationCap, ClipboardList, BookMarked, CalendarDays, CalendarCheck, Megaphone, TrendingUp, ClipboardCheck, CalendarRange } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 import ArchivioCorsoSection from '@/components/archivio/ArchivioCorsoSection'
 import NotificaCorso from './NotificaCorso'
@@ -147,6 +147,12 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
             >
               <CalendarDays size={14} /> Sessioni
+            </Link>
+            <Link
+              href={`/super-admin/corsi/${id}/programma`}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 border border-blue-200 transition"
+            >
+              <CalendarRange size={14} /> Programma
             </Link>
             <Link
               href={`/docente/corsi/${id}/quiz`}

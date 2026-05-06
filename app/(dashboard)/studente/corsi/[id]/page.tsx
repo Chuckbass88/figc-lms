@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, UserCheck, BookMarked, ClipboardList, Clock, Award, ClipboardCheck, Megaphone, TrendingUp, CheckCircle, Star } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, UserCheck, BookMarked, ClipboardList, Clock, Award, ClipboardCheck, Megaphone, TrendingUp, CheckCircle, Star, CalendarRange } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 
 const STATUS_LABELS: Record<string, string> = { active: 'In Corso', completed: 'Completato', draft: 'Bozza' }
@@ -195,6 +195,12 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 transition"
           >
             <Star size={14} /> Le mie valutazioni
+          </Link>
+          <Link
+            href={`/studente/corsi/${id}/programma`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition"
+          >
+            <CalendarRange size={14} /> Programma
           </Link>
           {attendancePct !== null && (
             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${attendancePct >= 75 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>

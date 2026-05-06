@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star, CalendarRange } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 import ArchivioCorsoSection from '@/components/archivio/ArchivioCorsoSection'
 import LinkInvitoBtn from '@/app/(dashboard)/super-admin/corsi/[id]/LinkInvitoBtn'
@@ -149,6 +149,12 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 transition"
           >
             <Star size={14} /> Valutazioni
+          </Link>
+          <Link
+            href={`/docente/corsi/${id}/programma`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition"
+          >
+            <CalendarRange size={14} /> Programma
           </Link>
           <LinkInvitoBtn courseId={id} courseName={course.name} inviteToken={(course as { invite_token?: string | null }).invite_token ?? null} />
         </div>
