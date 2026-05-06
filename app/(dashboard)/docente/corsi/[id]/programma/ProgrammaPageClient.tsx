@@ -220,6 +220,7 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
 
                 {/* Editor */}
                 <ProgrammaEditor
+                  key={selected.id}
                   program={selected}
                   courseInstructors={courseInstructors}
                   courseSessions={courseSessions}

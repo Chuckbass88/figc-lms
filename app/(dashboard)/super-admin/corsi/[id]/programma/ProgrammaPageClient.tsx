@@ -205,6 +205,7 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
                 </div>
 
                 <ProgrammaEditor
+                  key={selected.id}
                   program={selected}
                   courseInstructors={courseInstructors}
                   courseSessions={courseSessions}
