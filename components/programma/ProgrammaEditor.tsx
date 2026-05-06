@@ -194,6 +194,11 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
         const day = (program.modules ?? []).flatMap(m => m.days ?? []).find(d => d.id === editingBlock.dayId)
         await apiCall('/api/programma/blocco', 'POST', { ...payload, orderIndex: (day?.blocks ?? []).length })
       }
+      // Assicura che giornata e modulo siano espansi prima di ricaricare
+      const dayId = editingBlock.dayId
+      const parentModule = (program.modules ?? []).find(m => (m.days ?? []).some(d => d.id === dayId))
+      setExpandedDays(prev => new Set([...prev, dayId]))
+      if (parentModule) setExpandedModules(prev => new Set([...prev, parentModule.id]))
       setEditingBlock(null)
       await reload()
     } finally { setLoading(false) }
