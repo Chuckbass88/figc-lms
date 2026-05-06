@@ -176,6 +176,7 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
     if (!editingBlock || !blockForm.title.trim()) return
     setLoading(true)
     try {
+      const isAllInstructors = blockForm.instructorId === '__ALL__'
       const payload = {
         dayId: editingBlock.dayId,
         programId: program.id,
@@ -183,8 +184,8 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
         description: blockForm.description.trim() || null,
         startTime: blockForm.startTime || null,
         endTime: blockForm.endTime || null,
-        instructorId: blockForm.instructorId || null,
-        instructorName: blockForm.instructorName.trim() || null,
+        instructorId: isAllInstructors ? null : (blockForm.instructorId || null),
+        instructorName: isAllInstructors ? 'Tutti i docenti del corso' : (blockForm.instructorName.trim() || null),
         isBreak: blockForm.isBreak,
       }
       if (editingBlock.block) {
