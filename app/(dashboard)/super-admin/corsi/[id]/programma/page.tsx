@@ -9,11 +9,12 @@ export default async function ProgrammaCorso({ params }: { params: Promise<{ id:
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) notFound()
 
-  const [{ data: course }, { data: programs }, { data: instructors }, { data: profile }] = await Promise.all([
+  const [{ data: course }, { data: programs }, { data: instructors }, { data: profile }, { data: sessions }] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', courseId).single(),
     supabase.from('course_programs').select('*, creator:profiles!created_by(id, full_name)').eq('course_id', courseId).order('created_at'),
     supabase.from('course_instructors').select('profiles(id, full_name)').eq('course_id', courseId),
     supabase.from('profiles').select('role').eq('id', user.id).single(),
+    supabase.from('course_sessions').select('id, title, session_date').eq('course_id', courseId).order('session_date'),
   ])
 
   if (!course) notFound()
@@ -47,6 +48,7 @@ export default async function ProgrammaCorso({ params }: { params: Promise<{ id:
       courseName={course.name}
       programs={programsWithDetails as never}
       courseInstructors={courseInstructors}
+      courseSessions={(sessions ?? []) as { id: string; title: string; session_date: string }[]}
       role={profile?.role === 'super_admin' ? 'super_admin' : 'docente'}
       currentUserId={user.id}
     />

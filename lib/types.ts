@@ -70,15 +70,24 @@ export interface ProgramModule {
   days?: ProgramDay[]
 }
 
+export interface CourseSession {
+  id: string
+  title: string
+  session_date: string
+  course_id: string
+}
+
 export interface ProgramDay {
   id: string
   module_id: string
   program_id: string
   title: string | null
   day_date: string | null
+  linked_session_id: string | null
   order_index: number
   created_at: string
   blocks?: ProgramBlock[]
+  linked_session?: CourseSession | null
 }
 
 export interface ProgramBlock {

@@ -11,6 +11,7 @@ interface Props {
   courseName: string
   programs: ProgramWithDetails[]
   courseInstructors: { id: string; full_name: string }[]
+  courseSessions: { id: string; title: string; session_date: string }[]
   role: 'super_admin' | 'docente'
   currentUserId: string
 }
@@ -21,7 +22,7 @@ const VISIBILITY_LABELS: Record<ProgramVisibility, { label: string; icon: React.
   students:    { label: 'Studenti',          icon: <Globe size={13} />,   color: 'text-green-600 bg-green-50' },
 }
 
-export default function ProgrammaPageClient({ courseId, courseName, programs: initialPrograms, courseInstructors, role, currentUserId }: Props) {
+export default function ProgrammaPageClient({ courseId, courseName, programs: initialPrograms, courseInstructors, courseSessions, role, currentUserId }: Props) {
   const [programs, setPrograms] = useState(initialPrograms)
   const [selectedId, setSelectedId] = useState<string | null>(initialPrograms[0]?.id ?? null)
   const [creatingNew, setCreatingNew] = useState(false)
@@ -91,11 +92,7 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
 
   async function refreshPrograms() {
     const res = await fetch(`/api/programma?courseId=${courseId}`)
-    if (res.ok) {
-      const list = await res.json()
-      // Ricarica con dettagli per il selezionato
-      setPrograms(list)
-    }
+    if (res.ok) setPrograms(await res.json())
   }
 
   async function reloadSelected() {
@@ -109,7 +106,6 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
       <div>
         <Link href={`/${role === 'super_admin' ? 'super-admin' : 'docente'}/corsi/${courseId}`} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition mb-3 w-fit">
           <ArrowLeft size={15} /> {courseName}
@@ -125,7 +121,6 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
         </div>
       </div>
 
-      {/* Form nuovo programma */}
       {creatingNew && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
           <p className="text-sm font-semibold text-blue-800">Nuovo programma</p>
@@ -147,7 +142,6 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
         </div>
       ) : (
         <div className="grid grid-cols-[240px_1fr] gap-6">
-          {/* Sidebar lista programmi */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 mb-3">Programmi</p>
             {programs.map(p => (
@@ -166,15 +160,12 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
             ))}
           </div>
 
-          {/* Editor programma selezionato */}
           <div className="space-y-4">
             {selected && (
               <>
-                {/* Toolbar azioni */}
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 flex flex-wrap items-center gap-2">
                   <span className="text-sm font-semibold text-gray-800 flex-1 truncate">{selected.title}</span>
 
-                  {/* Visibilità */}
                   {isOwner && (
                     <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
                       {(['private', 'instructors', 'students'] as ProgramVisibility[]).map(v => (
@@ -185,14 +176,12 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
                     </div>
                   )}
 
-                  {/* Fork — solo per docenti su programmi non propri */}
                   {!isOwner && role === 'docente' && (
                     <button onClick={() => handleFork(selected.id)} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition">
                       <GitFork size={13} /> Crea mia copia
                     </button>
                   )}
 
-                  {/* Export */}
                   <a href={`/api/programma/${selected.id}/export-pdf`} target="_blank" rel="noopener" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition">
                     <FileText size={13} /> PDF
                   </a>
@@ -200,14 +189,12 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
                     <Presentation size={13} /> PPTX
                   </a>
 
-                  {/* Link studenti */}
                   {selected.visibility === 'students' && (
                     <Link href={`/studente/corsi/${courseId}/programma`} target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition">
                       <ExternalLink size={13} /> Anteprima studente
                     </Link>
                   )}
 
-                  {/* Elimina */}
                   {isOwner && (
                     <button onClick={handleDelete} disabled={loading} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 border border-red-200 transition">
                       Elimina
@@ -215,10 +202,10 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
                   )}
                 </div>
 
-                {/* Editor */}
                 <ProgrammaEditor
                   program={selected}
                   courseInstructors={courseInstructors}
+                  courseSessions={courseSessions}
                   readOnly={!isOwner}
                   onProgramChange={reloadSelected}
                 />

@@ -11,6 +11,7 @@ interface Props {
   courseName: string
   programs: ProgramWithDetails[]
   courseInstructors: { id: string; full_name: string }[]
+  courseSessions: { id: string; title: string; session_date: string }[]
   role: 'super_admin' | 'docente'
   currentUserId: string
 }
@@ -21,7 +22,7 @@ const VISIBILITY_LABELS: Record<ProgramVisibility, { label: string; icon: React.
   students:    { label: 'Studenti',          icon: <Globe size={13} />,   color: 'text-green-600 bg-green-50' },
 }
 
-export default function ProgrammaPageClient({ courseId, courseName, programs: initialPrograms, courseInstructors, role, currentUserId }: Props) {
+export default function ProgrammaPageClient({ courseId, courseName, programs: initialPrograms, courseInstructors, courseSessions, role, currentUserId }: Props) {
   const [programs, setPrograms] = useState(initialPrograms)
   const [selectedId, setSelectedId] = useState<string | null>(initialPrograms[0]?.id ?? null)
   const [creatingNew, setCreatingNew] = useState(false)
@@ -219,6 +220,7 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
                 <ProgrammaEditor
                   program={selected}
                   courseInstructors={courseInstructors}
+                  courseSessions={courseSessions}
                   readOnly={!isOwner}
                   onProgramChange={reloadSelected}
                 />
