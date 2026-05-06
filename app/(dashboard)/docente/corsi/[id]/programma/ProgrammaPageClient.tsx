@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Eye, EyeOff, Users, GitFork, ExternalLink, FileText, Presentation, Globe } from 'lucide-react'
 import ProgrammaEditor from '@/components/programma/ProgrammaEditor'
+import PdfPreviewModal from '@/components/programma/PdfPreviewModal'
 import type { ProgramWithDetails, ProgramVisibility } from '@/lib/types'
 
 interface Props {
@@ -28,6 +29,7 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
   const [creatingNew, setCreatingNew] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [loading, setLoading] = useState(false)
+  const [previewingPdf, setPreviewingPdf] = useState(false)
 
   const selected = programs.find(p => p.id === selectedId) ?? null
   const isOwner = selected ? (role === 'super_admin' || selected.created_by === currentUserId) : false
@@ -194,9 +196,9 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
                   )}
 
                   {/* Export */}
-                  <a href={`/api/programma/${selected.id}/export-pdf`} target="_blank" rel="noopener" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition">
+                  <button onClick={() => setPreviewingPdf(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition">
                     <FileText size={13} /> PDF
-                  </a>
+                  </button>
                   <a href={`/api/programma/${selected.id}/export-pptx`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition">
                     <Presentation size={13} /> PPTX
                   </a>
@@ -228,6 +230,14 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
             )}
           </div>
         </div>
+      )}
+
+      {previewingPdf && selected && (
+        <PdfPreviewModal
+          programId={selected.id}
+          programTitle={selected.title}
+          onClose={() => setPreviewingPdf(false)}
+        />
       )}
     </div>
   )
