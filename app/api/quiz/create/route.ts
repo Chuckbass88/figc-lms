@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
   // Crea domande e opzioni
   let questionsFailed = 0
-  for (let i = 0; i < (questions as QuizQuestion[]).length; i++) {
+  for (let i = 0; i < questions.length; i++) {
     const q = questions[i]
     const { data: question, error: qErr } = await supabase
       .from('quiz_questions')
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     }
 
     await supabase.from('quiz_options').insert(
-      (q.options as QuizOption[]).map((opt, j) => ({
+      q.options.map((opt, j) => ({
         question_id: question.id,
         text: opt.text.trim(),
         is_correct: opt.isCorrect,
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
 
   // Se alcune domande sono fallite, segnalalo nel response (non blocchiamo ma avvisiamo)
   if (questionsFailed > 0) {
-    console.error(`[quiz/create] Quiz ${quiz.id}: ${questionsFailed}/${(questions as QuizQuestion[]).length} domande non salvate`)
+    console.error(`[quiz/create] Quiz ${quiz.id}: ${questionsFailed}/${questions.length} domande non salvate`)
   }
 
   // Notifica corsisti

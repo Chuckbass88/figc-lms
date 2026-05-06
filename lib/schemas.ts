@@ -85,6 +85,6 @@ export const InviaEmailGruppoSchema = z.object({
 
 /** Restituisce la prima stringa di errore Zod trovata, formattata per l'utente */
 export function zodError(err: z.ZodError): string {
-  const first = err.errors[0]
+  const first = err.issues[0]
   return first?.message ?? 'Dati non validi'
 }
