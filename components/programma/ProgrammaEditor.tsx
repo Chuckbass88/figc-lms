@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Plus, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Coffee, Clock, CalendarDays, Link2 } from 'lucide-react'
 import type { ProgramWithDetails, ProgramModule, ProgramDay, ProgramBlock, ModuleType } from '@/lib/types'
 
@@ -512,15 +512,16 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
   isEdit: boolean
   loading: boolean
 }) {
-  // Local state for time fields to avoid React controlled-input conflicts with browser time pickers
-  const [localStart, setLocalStart] = useState(form.startTime)
-  const [localEnd, setLocalEnd] = useState(form.endTime)
+  // Uncontrolled refs for time inputs — avoids React/browser conflicts with native time pickers
+  const startRef = useRef<HTMLInputElement>(null)
+  const endRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { setLocalStart(form.startTime) }, [form.startTime])
-  useEffect(() => { setLocalEnd(form.endTime) }, [form.endTime])
-
-  function commitStart(val: string) { setLocalStart(val); onChange({ ...form, startTime: val }) }
-  function commitEnd(val: string) { setLocalEnd(val); onChange({ ...form, endTime: val }) }
+  // Initialize refs once on mount (handles both new blocks and edit mode)
+  useEffect(() => {
+    if (startRef.current) startRef.current.value = form.startTime
+    if (endRef.current) endRef.current.value = form.endTime
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -562,25 +563,23 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
             />
           </div>
 
-          {/* Orari */}
+          {/* Orari — uncontrolled per evitare conflitti col picker nativo del browser */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1.5">Inizio</label>
               <input
+                ref={startRef}
                 type="time"
-                value={localStart}
-                onChange={e => setLocalStart(e.target.value)}
-                onBlur={e => commitStart(e.target.value)}
+                defaultValue={form.startTime}
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1.5">Fine</label>
               <input
+                ref={endRef}
                 type="time"
-                value={localEnd}
-                onChange={e => setLocalEnd(e.target.value)}
-                onBlur={e => commitEnd(e.target.value)}
+                defaultValue={form.endTime}
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
@@ -618,7 +617,7 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
         <div className="px-5 py-4 border-t border-gray-100 flex gap-2 flex-shrink-0 bg-gray-50">
           <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-200 border border-gray-200 transition">Annulla</button>
           <button
-            onClick={() => onSave(localStart, localEnd)}
+            onClick={() => onSave(startRef.current?.value ?? '', endRef.current?.value ?? '')}
             disabled={loading || !form.title.trim()}
             className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition"
           >
