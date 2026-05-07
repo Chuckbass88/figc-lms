@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -29,17 +29,6 @@ export default function NoteEditor({ content, readOnly = false, onChange, placeh
       onChangeRef.current?.(editor.getJSON())
     },
   })
-
-  // Sincronizza content esterno (es. cambio nota selezionata)
-  useEffect(() => {
-    if (editor && content !== undefined) {
-      const currentJson = JSON.stringify(editor.getJSON())
-      const newJson = JSON.stringify(content)
-      if (currentJson !== newJson) {
-        editor.commands.setContent(content || '')
-      }
-    }
-  }, [editor, content])
 
   useEffect(() => {
     if (editor) editor.setEditable(!readOnly)
