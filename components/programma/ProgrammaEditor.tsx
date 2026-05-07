@@ -454,6 +454,13 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
   )
 }
 
+// Formatta input orario: solo cifre/":", auto-inserisce ":" dopo le prime 2 cifre
+function processTimeInput(val: string, deleting: boolean): string {
+  const v = val.replace(/[^0-9:]/g, '')
+  if (!deleting && v.length === 2 && /^\d{2}$/.test(v)) return v + ':'
+  return v.length > 5 ? v.slice(0, 5) : v
+}
+
 // Ordina blocchi per orario crescente; quelli senza orario in fondo
 function sortByTime(blocks: ProgramBlock[]): ProgramBlock[] {
   return [...blocks].sort((a, b) => {
@@ -530,6 +537,8 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, loadi
   courseInstructors: { id: string; full_name: string }[]
   loading: boolean
 }) {
+  const isDeletingTime = useRef(false)
+
   return (
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop */}
@@ -577,7 +586,8 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, loadi
               <input
                 type="text"
                 value={form.startTime}
-                onChange={e => onChange({ ...form, startTime: e.target.value })}
+                onKeyDown={e => { isDeletingTime.current = e.key === 'Backspace' || e.key === 'Delete' }}
+                onChange={e => onChange({ ...form, startTime: processTimeInput(e.target.value, isDeletingTime.current) })}
                 placeholder="09:00"
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
@@ -587,7 +597,8 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, loadi
               <input
                 type="text"
                 value={form.endTime}
-                onChange={e => onChange({ ...form, endTime: e.target.value })}
+                onKeyDown={e => { isDeletingTime.current = e.key === 'Backspace' || e.key === 'Delete' }}
+                onChange={e => onChange({ ...form, endTime: processTimeInput(e.target.value, isDeletingTime.current) })}
                 placeholder="10:30"
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
@@ -650,28 +661,36 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
   const [title, setTitle] = useState('')
   const [instructorId, setInstructorId] = useState('')
   const [isBreak, setIsBreak] = useState(false)
+  const [breakTitleAuto, setBreakTitleAuto] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
+  const isDeletingTime = useRef(false)
 
   function submit() {
     if (!title.trim()) { titleRef.current?.focus(); return }
     onAdd({ startTime, endTime, title: title.trim(), instructorId, isBreak })
-    // incatena: porta l'orario di fine come orario di inizio del prossimo
     setStartTime(endTime)
     setEndTime('')
     setTitle('')
     setInstructorId('')
     setIsBreak(false)
+    setBreakTitleAuto(false)
     titleRef.current?.focus()
   }
 
-  function handleKey(e: React.KeyboardEvent) {
+  function handleTimeKey(e: React.KeyboardEvent) {
+    isDeletingTime.current = e.key === 'Backspace' || e.key === 'Delete'
     if (e.key === 'Enter') submit()
   }
 
   function toggleBreak() {
     const next = !isBreak
     setIsBreak(next)
-    if (next) setInstructorId('')
+    if (next) {
+      setInstructorId('')
+      if (!title.trim()) { setTitle('Pausa caffè'); setBreakTitleAuto(true) }
+    } else {
+      if (breakTitleAuto) { setTitle(''); setBreakTitleAuto(false) }
+    }
   }
 
   return (
@@ -680,8 +699,8 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
       <input
         type="text"
         value={startTime}
-        onChange={e => setStartTime(e.target.value)}
-        onKeyDown={handleKey}
+        onChange={e => setStartTime(processTimeInput(e.target.value, isDeletingTime.current))}
+        onKeyDown={handleTimeKey}
         placeholder="09:00"
         className="w-14 px-2 py-1.5 text-xs font-mono rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white text-center"
       />
@@ -689,8 +708,8 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
       <input
         type="text"
         value={endTime}
-        onChange={e => setEndTime(e.target.value)}
-        onKeyDown={handleKey}
+        onChange={e => setEndTime(processTimeInput(e.target.value, isDeletingTime.current))}
+        onKeyDown={handleTimeKey}
         placeholder="10:30"
         className="w-14 px-2 py-1.5 text-xs font-mono rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white text-center"
       />
@@ -699,8 +718,8 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
         ref={titleRef}
         type="text"
         value={title}
-        onChange={e => setTitle(e.target.value)}
-        onKeyDown={handleKey}
+        onChange={e => { setTitle(e.target.value); setBreakTitleAuto(false) }}
+        onKeyDown={e => { if (e.key === 'Enter') submit() }}
         placeholder={isBreak ? 'Es. Pausa caffè, Pranzo…' : 'Titolo fascia oraria…'}
         className={`flex-1 min-w-0 px-2 py-1.5 text-xs rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white ${isBreak ? 'border-amber-200 placeholder:text-amber-400' : 'border-gray-200'}`}
       />
