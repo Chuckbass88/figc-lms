@@ -693,85 +693,71 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
     }
   }
 
-  // Classi input "invisibili": stessa resa visiva del testo in BlockRow
-  const timeInputCls = `w-full text-center bg-transparent border-none outline-none ring-0 focus:outline-none
-    text-xs font-mono font-bold placeholder:font-normal
-    ${isBreak ? 'text-amber-700 placeholder:text-amber-300/60' : 'text-blue-700 placeholder:text-gray-300'}`
+  const inputCls = 'px-2 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400'
 
   return (
-    <div className={`flex items-stretch rounded-lg overflow-hidden border mt-1 ${
-      isBreak ? 'border-amber-100 bg-amber-50' : 'border-gray-100 bg-white'
+    <div className={`mt-2 flex items-center gap-1.5 p-2 rounded-xl border ${
+      isBreak ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200'
     }`}>
-      {/* Colonna orario — identica a BlockRow */}
-      <div className={`flex-shrink-0 w-20 flex flex-col items-center justify-center gap-0.5 px-2 py-2 ${
-        isBreak ? 'bg-amber-100/50' : 'bg-gray-50'
-      }`}>
-        <input
-          type="text" value={startTime}
-          onChange={e => setStartTime(processTimeInput(e.target.value, isDeletingTime.current))}
-          onKeyDown={handleTimeKey}
-          placeholder="09:00"
-          className={timeInputCls}
-        />
-        <input
-          type="text" value={endTime}
-          onChange={e => setEndTime(processTimeInput(e.target.value, isDeletingTime.current))}
-          onKeyDown={handleTimeKey}
-          placeholder="10:30"
-          className={timeInputCls}
-        />
-      </div>
-      {/* Separatore — identico a BlockRow */}
-      <div className={`w-px flex-shrink-0 ${isBreak ? 'bg-amber-200' : 'bg-gray-100'}`} />
-      {/* Contenuto */}
-      <div className="flex-1 flex items-center gap-2 px-3 py-2 min-w-0">
-        <div className="flex-1 min-w-0 flex items-center gap-1">
-          {isBreak && <Coffee size={10} className="flex-shrink-0 text-amber-500" />}
-          <input
-            ref={titleRef}
-            type="text" value={title}
-            onChange={e => { setTitle(e.target.value); setBreakTitleAuto(false) }}
-            onKeyDown={e => { if (e.key === 'Enter') submit() }}
-            placeholder={isBreak ? 'Pausa caffè, Pranzo…' : 'Aggiungi fascia oraria…'}
-            className={`w-full bg-transparent border-none outline-none ring-0 focus:outline-none
-              text-xs font-semibold leading-snug placeholder:font-normal
-              ${isBreak ? 'text-amber-800 placeholder:text-amber-300/60' : 'text-gray-800 placeholder:text-gray-300'}`}
-          />
-        </div>
-        {!isBreak && courseInstructors.length > 0 && (
-          <select
-            value={instructorId}
-            onChange={e => setInstructorId(e.target.value)}
-            className="flex-shrink-0 text-xs font-medium text-blue-600 bg-transparent border-none outline-none focus:outline-none cursor-pointer max-w-[120px]"
-          >
-            <option value="" className="font-normal text-gray-400">Docente…</option>
-            <option value="__ALL__">Tutti i docenti</option>
-            {courseInstructors.map(i => (
-              <option key={i.id} value={i.id}>{i.full_name}</option>
-            ))}
-          </select>
-        )}
-      </div>
-      {/* Azioni — stessa colonna di BlockRow */}
-      <div className="flex-shrink-0 flex items-center px-2 gap-1">
-        <button
-          type="button" onClick={toggleBreak}
-          title={isBreak ? 'Rimuovi pausa' : 'Segna come pausa'}
-          className={`p-1 rounded transition ${
-            isBreak ? 'text-amber-500 hover:bg-amber-100' : 'text-gray-300 hover:text-amber-400 hover:bg-gray-100'
-          }`}
+      {/* Orari */}
+      <input
+        type="text" value={startTime}
+        onChange={e => setStartTime(processTimeInput(e.target.value, isDeletingTime.current))}
+        onKeyDown={handleTimeKey}
+        placeholder="09:00"
+        className={`${inputCls} w-16 text-center font-mono`}
+      />
+      <span className="text-gray-300 text-xs flex-shrink-0">–</span>
+      <input
+        type="text" value={endTime}
+        onChange={e => setEndTime(processTimeInput(e.target.value, isDeletingTime.current))}
+        onKeyDown={handleTimeKey}
+        placeholder="10:30"
+        className={`${inputCls} w-16 text-center font-mono`}
+      />
+      {/* Titolo */}
+      <input
+        ref={titleRef}
+        type="text" value={title}
+        onChange={e => { setTitle(e.target.value); setBreakTitleAuto(false) }}
+        onKeyDown={e => { if (e.key === 'Enter') submit() }}
+        placeholder={isBreak ? 'Es. Pausa caffè, Pranzo…' : 'Titolo fascia oraria…'}
+        className={`${inputCls} flex-1 min-w-0 ${isBreak ? 'border-amber-200' : ''}`}
+      />
+      {/* Docente */}
+      {!isBreak && courseInstructors.length > 0 && (
+        <select
+          value={instructorId}
+          onChange={e => setInstructorId(e.target.value)}
+          className={`${inputCls} max-w-[130px] text-gray-600`}
         >
-          <Coffee size={11} />
-        </button>
-        <button
-          type="button" onClick={submit}
-          disabled={loading || !title.trim()}
-          title="Aggiungi (Enter)"
-          className="p-1 rounded text-gray-300 hover:text-blue-500 hover:bg-blue-50 disabled:opacity-40 transition"
-        >
-          <Plus size={14} />
-        </button>
-      </div>
+          <option value="">Docente…</option>
+          <option value="__ALL__">Tutti i docenti</option>
+          {courseInstructors.map(i => (
+            <option key={i.id} value={i.id}>{i.full_name}</option>
+          ))}
+        </select>
+      )}
+      {/* Pausa */}
+      <button
+        type="button" onClick={toggleBreak}
+        title={isBreak ? 'Rimuovi pausa' : 'Segna come pausa'}
+        className={`flex-shrink-0 p-1.5 rounded-lg border transition ${
+          isBreak
+            ? 'bg-amber-400 border-amber-400 text-white'
+            : 'bg-white border-gray-200 text-gray-400 hover:text-amber-500 hover:border-amber-300'
+        }`}
+      >
+        <Coffee size={13} />
+      </button>
+      {/* Aggiungi */}
+      <button
+        type="button" onClick={submit}
+        disabled={loading || !title.trim()}
+        className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 transition"
+      >
+        <Plus size={12} /> Aggiungi
+      </button>
     </div>
   )
 }
