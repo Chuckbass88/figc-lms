@@ -322,7 +322,7 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
                           {(day.blocks ?? []).length === 0 && !readOnly && (
                             <p className="text-xs text-gray-300 py-1.5 text-center">Nessuna fascia oraria — clicca &ldquo;+ Fascia&rdquo; per aggiungerne una</p>
                           )}
-                          {(day.blocks ?? []).map((block) => (
+                          {sortByTime(day.blocks ?? []).map((block) => (
                             <BlockRow
                               key={block.id}
                               block={block}
@@ -443,6 +443,16 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
 
     </div>
   )
+}
+
+// Ordina blocchi per orario crescente; quelli senza orario in fondo
+function sortByTime(blocks: ProgramBlock[]): ProgramBlock[] {
+  return [...blocks].sort((a, b) => {
+    if (!a.start_time && !b.start_time) return a.order_index - b.order_index
+    if (!a.start_time) return 1
+    if (!b.start_time) return -1
+    return a.start_time.localeCompare(b.start_time)
+  })
 }
 
 // ── Riga fascia oraria ─────────────────────────────────────

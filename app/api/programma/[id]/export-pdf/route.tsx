@@ -127,7 +127,14 @@ export async function GET(request: Request, { params }: Params) {
   program.modules?.sort((a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index)
   program.modules?.forEach((m: { days?: { order_index: number; blocks?: { order_index: number }[] }[] }) => {
     m.days?.sort((a, b) => a.order_index - b.order_index)
-    m.days?.forEach(d => d.blocks?.sort((a, b) => a.order_index - b.order_index))
+    m.days?.forEach(d => {
+      d.blocks?.sort((a: { start_time?: string | null; order_index: number }, b: { start_time?: string | null; order_index: number }) => {
+        if (!a.start_time && !b.start_time) return a.order_index - b.order_index
+        if (!a.start_time) return 1
+        if (!b.start_time) return -1
+        return a.start_time.localeCompare(b.start_time)
+      })
+    })
   })
 
   const modules = program.modules as (ProgramModule & { days: (ProgramDay & { blocks: ProgramBlock[] })[] })[]
