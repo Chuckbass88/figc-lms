@@ -85,20 +85,24 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
   async function handleDelete() {
     if (!selectedId || !confirm('Eliminare questo programma? L\'azione è irreversibile.')) return
     setLoading(true)
+    const toDelete = selectedId
     try {
-      await fetch(`/api/programma/${selectedId}`, { method: 'DELETE' })
-      await refreshPrograms()
-      setSelectedId(programs.filter(p => p.id !== selectedId)[0]?.id ?? null)
+      const res = await fetch(`/api/programma/${toDelete}`, { method: 'DELETE' })
+      if (!res.ok) return
+      const fresh = await fetchPrograms()
+      setPrograms(fresh)
+      setSelectedId(fresh[0]?.id ?? null)
     } finally { setLoading(false) }
   }
 
-  async function refreshPrograms() {
+  async function fetchPrograms(): Promise<ProgramWithDetails[]> {
     const res = await fetch(`/api/programma?courseId=${courseId}`)
-    if (res.ok) {
-      const list = await res.json()
-      // Ricarica con dettagli per il selezionato
-      setPrograms(list)
-    }
+    return res.ok ? res.json() : programs
+  }
+
+  async function refreshPrograms() {
+    const fresh = await fetchPrograms()
+    setPrograms(fresh)
   }
 
   async function reloadSelected() {

@@ -694,67 +694,82 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
   }
 
   return (
-    <div className={`flex items-center gap-1.5 mt-2 p-2 rounded-xl border transition-colors ${isBreak ? 'bg-amber-50 border-amber-200' : 'bg-blue-50/40 border-blue-100'}`}>
-      {/* Orari */}
-      <input
-        type="text"
-        value={startTime}
-        onChange={e => setStartTime(processTimeInput(e.target.value, isDeletingTime.current))}
-        onKeyDown={handleTimeKey}
-        placeholder="09:00"
-        className="w-14 px-2 py-1.5 text-xs font-mono rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white text-center"
-      />
-      <span className="text-gray-300 text-xs flex-shrink-0">–</span>
-      <input
-        type="text"
-        value={endTime}
-        onChange={e => setEndTime(processTimeInput(e.target.value, isDeletingTime.current))}
-        onKeyDown={handleTimeKey}
-        placeholder="10:30"
-        className="w-14 px-2 py-1.5 text-xs font-mono rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white text-center"
-      />
-      {/* Titolo */}
-      <input
-        ref={titleRef}
-        type="text"
-        value={title}
-        onChange={e => { setTitle(e.target.value); setBreakTitleAuto(false) }}
-        onKeyDown={e => { if (e.key === 'Enter') submit() }}
-        placeholder={isBreak ? 'Es. Pausa caffè, Pranzo…' : 'Titolo fascia oraria…'}
-        className={`flex-1 min-w-0 px-2 py-1.5 text-xs rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white ${isBreak ? 'border-amber-200 placeholder:text-amber-400' : 'border-gray-200'}`}
-      />
-      {/* Docente */}
-      {!isBreak && courseInstructors.length > 0 && (
-        <select
-          value={instructorId}
-          onChange={e => setInstructorId(e.target.value)}
-          className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white max-w-[130px] text-gray-600"
+    <div className={`flex items-stretch rounded-lg overflow-hidden border mt-1 ${
+      isBreak ? 'border-amber-200 bg-amber-50/40' : 'border-dashed border-gray-200 bg-white'
+    }`}>
+      {/* Colonna orario — stessa larghezza di BlockRow */}
+      <div className={`flex-shrink-0 w-20 flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 ${
+        isBreak ? 'bg-amber-100/40' : 'bg-gray-50/80'
+      }`}>
+        <input
+          type="text"
+          value={startTime}
+          onChange={e => setStartTime(processTimeInput(e.target.value, isDeletingTime.current))}
+          onKeyDown={handleTimeKey}
+          placeholder="09:00"
+          className={`w-full text-xs font-mono text-center bg-white rounded border px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400 ${
+            isBreak ? 'border-amber-200' : 'border-gray-200'
+          }`}
+        />
+        <input
+          type="text"
+          value={endTime}
+          onChange={e => setEndTime(processTimeInput(e.target.value, isDeletingTime.current))}
+          onKeyDown={handleTimeKey}
+          placeholder="10:30"
+          className={`w-full text-xs font-mono text-center bg-white rounded border px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400 ${
+            isBreak ? 'border-amber-200' : 'border-gray-200'
+          }`}
+        />
+      </div>
+      {/* Separatore verticale */}
+      <div className={`w-px flex-shrink-0 ${isBreak ? 'bg-amber-200' : 'bg-gray-100'}`} />
+      {/* Contenuto */}
+      <div className="flex-1 flex items-center gap-1.5 px-2.5 py-2 min-w-0">
+        <input
+          ref={titleRef}
+          type="text"
+          value={title}
+          onChange={e => { setTitle(e.target.value); setBreakTitleAuto(false) }}
+          onKeyDown={e => { if (e.key === 'Enter') submit() }}
+          placeholder={isBreak ? 'Pausa caffè, Pranzo, Break…' : 'Aggiungi fascia oraria…'}
+          className={`flex-1 min-w-0 text-xs bg-transparent focus:outline-none ${
+            isBreak ? 'text-amber-800 placeholder:text-amber-300' : 'text-gray-700 placeholder:text-gray-300'
+          }`}
+        />
+        {!isBreak && courseInstructors.length > 0 && (
+          <select
+            value={instructorId}
+            onChange={e => setInstructorId(e.target.value)}
+            className="text-xs border-0 bg-transparent text-gray-400 focus:outline-none max-w-[110px] cursor-pointer"
+          >
+            <option value="">Docente…</option>
+            <option value="__ALL__">Tutti</option>
+            {courseInstructors.map(i => (
+              <option key={i.id} value={i.id}>{i.full_name}</option>
+            ))}
+          </select>
+        )}
+        <button
+          type="button"
+          onClick={toggleBreak}
+          title={isBreak ? 'Rimuovi pausa' : 'Segna come pausa'}
+          className={`flex-shrink-0 p-1 rounded transition-colors ${
+            isBreak ? 'text-amber-500' : 'text-gray-300 hover:text-amber-400'
+          }`}
         >
-          <option value="">Docente…</option>
-          <option value="__ALL__">Tutti i docenti</option>
-          {courseInstructors.map(i => (
-            <option key={i.id} value={i.id}>{i.full_name}</option>
-          ))}
-        </select>
-      )}
-      {/* Toggle pausa */}
-      <button
-        type="button"
-        onClick={toggleBreak}
-        title={isBreak ? 'Rimuovi pausa' : 'Segna come pausa'}
-        className={`flex-shrink-0 p-1.5 rounded-lg border transition-colors ${isBreak ? 'bg-amber-400 border-amber-400 text-white' : 'bg-white border-gray-200 text-gray-400 hover:text-amber-500 hover:border-amber-300'}`}
-      >
-        <Coffee size={13} />
-      </button>
-      {/* Aggiungi */}
-      <button
-        type="button"
-        onClick={submit}
-        disabled={loading || !title.trim()}
-        className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 transition"
-      >
-        <Plus size={12} /> Aggiungi
-      </button>
+          <Coffee size={12} />
+        </button>
+        <button
+          type="button"
+          onClick={submit}
+          disabled={loading || !title.trim()}
+          title="Aggiungi (Enter)"
+          className="flex-shrink-0 p-1 rounded text-gray-300 hover:text-blue-500 disabled:opacity-40 transition-colors"
+        >
+          <Plus size={15} />
+        </button>
+      </div>
     </div>
   )
 }
