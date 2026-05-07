@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Plus, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Coffee, Clock, CalendarDays, Link2 } from 'lucide-react'
 import type { ProgramWithDetails, ProgramModule, ProgramDay, ProgramBlock, ModuleType } from '@/lib/types'
 
@@ -154,11 +154,6 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
   }
 
   // ── FASCE ORARIE ──
-  function openAddBlock(dayId: string) {
-    setEditingBlock({ dayId })
-    setBlockForm({ title: '', description: '', startTime: '', endTime: '', instructorId: '', instructorName: '', isBreak: false })
-  }
-
   function openEditBlock(dayId: string, block: ProgramBlock) {
     setEditingBlock({ dayId, block })
     setBlockForm({
@@ -172,12 +167,38 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
     })
   }
 
+  async function handleQuickAddBlock(dayId: string, data: {
+    startTime: string; endTime: string; title: string; instructorId: string; isBreak: boolean
+  }) {
+    setLoading(true)
+    try {
+      const isAllInstructors = data.instructorId === '__ALL__'
+      const day = (program.modules ?? []).flatMap(m => m.days ?? []).find(d => d.id === dayId)
+      await apiCall('/api/programma/blocco', 'POST', {
+        dayId, programId: program.id,
+        title: data.title,
+        description: null,
+        startTime: data.startTime || null,
+        endTime: data.endTime || null,
+        instructorId: isAllInstructors ? null : (data.instructorId || null),
+        instructorName: isAllInstructors ? 'Tutti i docenti del corso' : null,
+        isBreak: data.isBreak,
+        orderIndex: (day?.blocks ?? []).length,
+      })
+      const parentModule = (program.modules ?? []).find(m => (m.days ?? []).some(d => d.id === dayId))
+      setExpandedDays(prev => new Set([...prev, dayId]))
+      if (parentModule) setExpandedModules(prev => new Set([...prev, parentModule.id]))
+      await reload()
+    } finally { setLoading(false) }
+  }
+
   async function handleSaveBlock() {
-    if (!editingBlock || !blockForm.title.trim()) return
+    if (!editingBlock?.block || !blockForm.title.trim()) return
     setLoading(true)
     try {
       const isAllInstructors = blockForm.instructorId === '__ALL__'
-      const payload = {
+      await apiCall('/api/programma/blocco', 'PATCH', {
+        id: editingBlock.block.id,
         dayId: editingBlock.dayId,
         programId: program.id,
         title: blockForm.title.trim(),
@@ -187,18 +208,7 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
         instructorId: isAllInstructors ? null : (blockForm.instructorId || null),
         instructorName: isAllInstructors ? 'Tutti i docenti del corso' : (blockForm.instructorName.trim() || null),
         isBreak: blockForm.isBreak,
-      }
-      if (editingBlock.block) {
-        await apiCall('/api/programma/blocco', 'PATCH', { id: editingBlock.block.id, ...payload })
-      } else {
-        const day = (program.modules ?? []).flatMap(m => m.days ?? []).find(d => d.id === editingBlock.dayId)
-        await apiCall('/api/programma/blocco', 'POST', { ...payload, orderIndex: (day?.blocks ?? []).length })
-      }
-      // Assicura che giornata e modulo siano espansi prima di ricaricare
-      const dayId = editingBlock.dayId
-      const parentModule = (program.modules ?? []).find(m => (m.days ?? []).some(d => d.id === dayId))
-      setExpandedDays(prev => new Set([...prev, dayId]))
-      if (parentModule) setExpandedModules(prev => new Set([...prev, parentModule.id]))
+      })
       setEditingBlock(null)
       await reload()
     } finally { setLoading(false) }
@@ -307,9 +317,6 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <button onClick={() => { setEditingDayId(day.id); setEditDayTitle(day.title || ''); setEditDayDate(day.day_date || '') }} className="p-1 rounded hover:bg-blue-50 text-blue-300 hover:text-blue-500 transition"><Pencil size={11} /></button>
                             <button onClick={() => handleDeleteDay(day.id)} disabled={loading} className="p-1 rounded hover:bg-red-50 text-red-300 hover:text-red-500 transition"><Trash2 size={11} /></button>
-                            <button onClick={() => openAddBlock(day.id)} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition ml-1">
-                              <Plus size={11} /> Fascia
-                            </button>
                           </div>
                         )}
                       </div>
@@ -317,9 +324,6 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
                       {/* Fasce orarie */}
                       {isDayExpanded && (
                         <div className="px-4 py-2 space-y-1">
-                          {(day.blocks ?? []).length === 0 && !readOnly && (
-                            <p className="text-xs text-gray-300 py-1.5 text-center">Nessuna fascia oraria — clicca &ldquo;+ Fascia&rdquo; per aggiungerne una</p>
-                          )}
                           {sortByTime(day.blocks ?? []).map((block) => (
                             <BlockRow
                               key={block.id}
@@ -330,6 +334,14 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
                               loading={loading}
                             />
                           ))}
+                          {!readOnly && (
+                            <QuickAddRow
+                              dayId={day.id}
+                              courseInstructors={courseInstructors}
+                              onAdd={(data) => handleQuickAddBlock(day.id, data)}
+                              loading={loading}
+                            />
+                          )}
                         </div>
                       )}
                     </div>
@@ -434,7 +446,6 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
           onSave={handleSaveBlock}
           onClose={() => setEditingBlock(null)}
           courseInstructors={courseInstructors}
-          isEdit={!!editingBlock.block}
           loading={loading}
         />
       )}
@@ -511,13 +522,12 @@ function BlockRow({ block, readOnly, onEdit, onDelete, loading }: {
 }
 
 // ── Pannello laterale fascia oraria ────────────────────────
-function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdit, loading }: {
+function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, loading }: {
   form: { title: string; description: string; startTime: string; endTime: string; instructorId: string; instructorName: string; isBreak: boolean }
   onChange: (f: typeof form) => void
   onSave: () => void
   onClose: () => void
   courseInstructors: { id: string; full_name: string }[]
-  isEdit: boolean
   loading: boolean
 }) {
   return (
@@ -529,7 +539,7 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2 bg-gray-50 flex-shrink-0">
           <Clock size={15} className="text-blue-600 flex-shrink-0" />
-          <h3 className="font-semibold text-gray-900 text-sm">{isEdit ? 'Modifica fascia oraria' : 'Nuova fascia oraria'}</h3>
+          <h3 className="font-semibold text-gray-900 text-sm">Modifica fascia oraria</h3>
           <button onClick={onClose} className="ml-auto p-1 rounded hover:bg-gray-200 text-gray-400"><X size={15} /></button>
         </div>
 
@@ -620,10 +630,112 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
             disabled={loading || !form.title.trim()}
             className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition"
           >
-            {isEdit ? 'Salva modifiche' : 'Aggiungi'}
+            Salva modifiche
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ── Form inline aggiunta rapida fascia ─────────────────────
+function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
+  dayId: string
+  courseInstructors: { id: string; full_name: string }[]
+  onAdd: (data: { startTime: string; endTime: string; title: string; instructorId: string; isBreak: boolean }) => void
+  loading: boolean
+}) {
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+  const [title, setTitle] = useState('')
+  const [instructorId, setInstructorId] = useState('')
+  const [isBreak, setIsBreak] = useState(false)
+  const titleRef = useRef<HTMLInputElement>(null)
+
+  function submit() {
+    if (!title.trim()) { titleRef.current?.focus(); return }
+    onAdd({ startTime, endTime, title: title.trim(), instructorId, isBreak })
+    // incatena: porta l'orario di fine come orario di inizio del prossimo
+    setStartTime(endTime)
+    setEndTime('')
+    setTitle('')
+    setInstructorId('')
+    setIsBreak(false)
+    titleRef.current?.focus()
+  }
+
+  function handleKey(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') submit()
+  }
+
+  function toggleBreak() {
+    const next = !isBreak
+    setIsBreak(next)
+    if (next) setInstructorId('')
+  }
+
+  return (
+    <div className={`flex items-center gap-1.5 mt-2 p-2 rounded-xl border transition-colors ${isBreak ? 'bg-amber-50 border-amber-200' : 'bg-blue-50/40 border-blue-100'}`}>
+      {/* Orari */}
+      <input
+        type="text"
+        value={startTime}
+        onChange={e => setStartTime(e.target.value)}
+        onKeyDown={handleKey}
+        placeholder="09:00"
+        className="w-14 px-2 py-1.5 text-xs font-mono rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white text-center"
+      />
+      <span className="text-gray-300 text-xs flex-shrink-0">–</span>
+      <input
+        type="text"
+        value={endTime}
+        onChange={e => setEndTime(e.target.value)}
+        onKeyDown={handleKey}
+        placeholder="10:30"
+        className="w-14 px-2 py-1.5 text-xs font-mono rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white text-center"
+      />
+      {/* Titolo */}
+      <input
+        ref={titleRef}
+        type="text"
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        onKeyDown={handleKey}
+        placeholder={isBreak ? 'Es. Pausa caffè, Pranzo…' : 'Titolo fascia oraria…'}
+        className={`flex-1 min-w-0 px-2 py-1.5 text-xs rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white ${isBreak ? 'border-amber-200 placeholder:text-amber-400' : 'border-gray-200'}`}
+      />
+      {/* Docente */}
+      {!isBreak && courseInstructors.length > 0 && (
+        <select
+          value={instructorId}
+          onChange={e => setInstructorId(e.target.value)}
+          className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white max-w-[130px] text-gray-600"
+        >
+          <option value="">Docente…</option>
+          <option value="__ALL__">Tutti i docenti</option>
+          {courseInstructors.map(i => (
+            <option key={i.id} value={i.id}>{i.full_name}</option>
+          ))}
+        </select>
+      )}
+      {/* Toggle pausa */}
+      <button
+        type="button"
+        onClick={toggleBreak}
+        title={isBreak ? 'Rimuovi pausa' : 'Segna come pausa'}
+        className={`flex-shrink-0 p-1.5 rounded-lg border transition-colors ${isBreak ? 'bg-amber-400 border-amber-400 text-white' : 'bg-white border-gray-200 text-gray-400 hover:text-amber-500 hover:border-amber-300'}`}
+      >
+        <Coffee size={13} />
+      </button>
+      {/* Aggiungi */}
+      <button
+        type="button"
+        onClick={submit}
+        disabled={loading || !title.trim()}
+        className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 transition"
+      >
+        <Plus size={12} /> Aggiungi
+      </button>
     </div>
   )
 }
