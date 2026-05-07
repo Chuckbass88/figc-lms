@@ -17,6 +17,11 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Safari non eredita il font sui form element — forzatura esplicita */
+input, select, textarea, button {
+  font-family: inherit;
+}
+
 /* Sfondo pagina */
 .bg-page-gradient {
   background: #F8FAFC;

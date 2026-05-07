@@ -538,6 +538,13 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, loadi
   loading: boolean
 }) {
   const isDeletingTime = useRef(false)
+  const [timeError, setTimeError] = useState('')
+
+  function handleSave() {
+    if (form.startTime && !form.endTime) { setTimeError('Inserisci anche l\'orario di fine'); return }
+    setTimeError('')
+    onSave()
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -598,10 +605,11 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, loadi
                 type="text"
                 value={form.endTime}
                 onKeyDown={e => { isDeletingTime.current = e.key === 'Backspace' || e.key === 'Delete' }}
-                onChange={e => onChange({ ...form, endTime: processTimeInput(e.target.value, isDeletingTime.current) })}
+                onChange={e => { onChange({ ...form, endTime: processTimeInput(e.target.value, isDeletingTime.current) }); setTimeError('') }}
                 placeholder="10:30"
-                className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className={`w-full px-3 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 ${timeError ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:ring-blue-400'}`}
               />
+              {timeError && <p className="mt-1.5 text-xs text-red-500">{timeError}</p>}
             </div>
           </div>
 
@@ -662,11 +670,14 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
   const [instructorId, setInstructorId] = useState('')
   const [isBreak, setIsBreak] = useState(false)
   const [breakTitleAuto, setBreakTitleAuto] = useState(false)
+  const [timeError, setTimeError] = useState('')
   const titleRef = useRef<HTMLInputElement>(null)
   const isDeletingTime = useRef(false)
 
   function submit() {
     if (!title.trim()) { titleRef.current?.focus(); return }
+    if (startTime && !endTime) { setTimeError('Inserisci anche l\'orario di fine'); return }
+    setTimeError('')
     onAdd({ startTime, endTime, title: title.trim(), instructorId, isBreak })
     setStartTime(endTime)
     setEndTime('')
@@ -708,13 +719,20 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
         className={`${inputCls} w-16 text-center tabular-nums`}
       />
       <span className="text-gray-300 text-xs flex-shrink-0">–</span>
-      <input
-        type="text" value={endTime}
-        onChange={e => setEndTime(processTimeInput(e.target.value, isDeletingTime.current))}
-        onKeyDown={handleTimeKey}
-        placeholder="10:30"
-        className={`${inputCls} w-16 text-center tabular-nums`}
-      />
+      <div className="relative">
+        <input
+          type="text" value={endTime}
+          onChange={e => { setEndTime(processTimeInput(e.target.value, isDeletingTime.current)); setTimeError('') }}
+          onKeyDown={handleTimeKey}
+          placeholder="10:30"
+          className={`${inputCls} w-16 text-center tabular-nums ${timeError ? 'border-red-400 ring-1 ring-red-400' : ''}`}
+        />
+        {timeError && (
+          <span className="absolute left-0 top-full mt-1 text-xs text-red-500 whitespace-nowrap bg-white border border-red-200 rounded-lg px-2 py-1 shadow-sm z-10">
+            {timeError}
+          </span>
+        )}
+      </div>
       {/* Titolo */}
       <input
         ref={titleRef}
