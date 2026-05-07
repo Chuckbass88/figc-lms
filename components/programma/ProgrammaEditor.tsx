@@ -172,20 +172,18 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
     })
   }
 
-  async function handleSaveBlock(startTimeOverride?: string, endTimeOverride?: string) {
+  async function handleSaveBlock() {
     if (!editingBlock || !blockForm.title.trim()) return
     setLoading(true)
     try {
-      const startTime = startTimeOverride ?? blockForm.startTime
-      const endTime = endTimeOverride ?? blockForm.endTime
       const isAllInstructors = blockForm.instructorId === '__ALL__'
       const payload = {
         dayId: editingBlock.dayId,
         programId: program.id,
         title: blockForm.title.trim(),
         description: blockForm.description.trim() || null,
-        startTime: startTime || null,
-        endTime: endTime || null,
+        startTime: blockForm.startTime || null,
+        endTime: blockForm.endTime || null,
         instructorId: isAllInstructors ? null : (blockForm.instructorId || null),
         instructorName: isAllInstructors ? 'Tutti i docenti del corso' : (blockForm.instructorName.trim() || null),
         isBreak: blockForm.isBreak,
@@ -433,7 +431,7 @@ export default function ProgrammaEditor({ program: initialProgram, courseInstruc
         <FasciaPanel
           form={blockForm}
           onChange={setBlockForm}
-          onSave={(start, end) => handleSaveBlock(start, end)}
+          onSave={handleSaveBlock}
           onClose={() => setEditingBlock(null)}
           courseInstructors={courseInstructors}
           isEdit={!!editingBlock.block}
@@ -516,19 +514,12 @@ function BlockRow({ block, readOnly, onEdit, onDelete, loading }: {
 function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdit, loading }: {
   form: { title: string; description: string; startTime: string; endTime: string; instructorId: string; instructorName: string; isBreak: boolean }
   onChange: (f: typeof form) => void
-  onSave: (startTime: string, endTime: string) => void
+  onSave: () => void
   onClose: () => void
   courseInstructors: { id: string; full_name: string }[]
   isEdit: boolean
   loading: boolean
 }) {
-  // type="text" invece di type="time": Safari non aggiorna element.value
-  // correttamente per i time input nativi, rendendo qualsiasi approccio
-  // (controllato/non controllato/ref) inaffidabile. Con type="text" lo stato
-  // locale funziona normalmente in tutti i browser.
-  const [startTime, setStartTime] = useState(() => form.startTime)
-  const [endTime, setEndTime] = useState(() => form.endTime)
-
   return (
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop */}
@@ -575,8 +566,8 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
               <label className="text-xs font-semibold text-gray-600 block mb-1.5">Inizio</label>
               <input
                 type="text"
-                value={startTime}
-                onChange={e => setStartTime(e.target.value)}
+                value={form.startTime}
+                onChange={e => onChange({ ...form, startTime: e.target.value })}
                 placeholder="09:00"
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
@@ -585,8 +576,8 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
               <label className="text-xs font-semibold text-gray-600 block mb-1.5">Fine</label>
               <input
                 type="text"
-                value={endTime}
-                onChange={e => setEndTime(e.target.value)}
+                value={form.endTime}
+                onChange={e => onChange({ ...form, endTime: e.target.value })}
                 placeholder="10:30"
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
@@ -625,7 +616,7 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
         <div className="px-5 py-4 border-t border-gray-100 flex gap-2 flex-shrink-0 bg-gray-50">
           <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-200 border border-gray-200 transition">Annulla</button>
           <button
-            onClick={() => onSave(startTime, endTime)}
+            onClick={onSave}
             disabled={loading || !form.title.trim()}
             className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition"
           >
