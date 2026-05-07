@@ -488,7 +488,7 @@ function BlockRow({ block, readOnly, onEdit, onDelete, loading }: {
     <div className={`flex items-stretch rounded-lg overflow-hidden border ${block.is_break ? 'border-amber-100 bg-amber-50' : 'border-gray-100 bg-white'}`}>
       {/* Colonna orario */}
       <div className={`flex-shrink-0 w-20 flex items-center justify-center px-2 py-2 ${block.is_break ? 'bg-amber-100/50' : 'bg-gray-50'}`}>
-        <span className={`text-xs font-mono font-bold ${block.is_break ? 'text-amber-700' : 'text-blue-700'}`}>
+        <span className={`text-xs font-semibold tabular-nums ${block.is_break ? 'text-amber-700' : 'text-blue-700'}`}>
           {timeStr || '—'}
         </span>
       </div>
@@ -705,7 +705,7 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
         onChange={e => setStartTime(processTimeInput(e.target.value, isDeletingTime.current))}
         onKeyDown={handleTimeKey}
         placeholder="09:00"
-        className={`${inputCls} w-16 text-center font-mono`}
+        className={`${inputCls} w-16 text-center tabular-nums`}
       />
       <span className="text-gray-300 text-xs flex-shrink-0">–</span>
       <input
@@ -713,7 +713,7 @@ function QuickAddRow({ dayId: _dayId, courseInstructors, onAdd, loading }: {
         onChange={e => setEndTime(processTimeInput(e.target.value, isDeletingTime.current))}
         onKeyDown={handleTimeKey}
         placeholder="10:30"
-        className={`${inputCls} w-16 text-center font-mono`}
+        className={`${inputCls} w-16 text-center tabular-nums`}
       />
       {/* Titolo */}
       <input
