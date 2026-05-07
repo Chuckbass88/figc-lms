@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Pencil, Trash2, Check, X, ChevronDown, ChevronRight, Coffee, Clock, CalendarDays, Link2 } from 'lucide-react'
 import type { ProgramWithDetails, ProgramModule, ProgramDay, ProgramBlock, ModuleType } from '@/lib/types'
 
@@ -522,20 +522,12 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
   isEdit: boolean
   loading: boolean
 }) {
-  // Stato locale inizializzato una volta dal form (non risincronizzato dal parent).
-  // Controllato localmente: nessuna interferenza da re-render del parent.
-  // I ref servono come fallback per leggere il valore DOM al salvataggio (Safari).
+  // type="text" invece di type="time": Safari non aggiorna element.value
+  // correttamente per i time input nativi, rendendo qualsiasi approccio
+  // (controllato/non controllato/ref) inaffidabile. Con type="text" lo stato
+  // locale funziona normalmente in tutti i browser.
   const [startTime, setStartTime] = useState(() => form.startTime)
   const [endTime, setEndTime] = useState(() => form.endTime)
-  const startRef = useRef<HTMLInputElement>(null)
-  const endRef = useRef<HTMLInputElement>(null)
-
-  function handleSave() {
-    // Preferisci lo stato locale; se per qualsiasi motivo è vuoto, leggi dal DOM
-    const s = startTime || startRef.current?.value || ''
-    const e = endTime || endRef.current?.value || ''
-    onSave(s, e)
-  }
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -582,20 +574,20 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1.5">Inizio</label>
               <input
-                ref={startRef}
-                type="time"
+                type="text"
                 value={startTime}
                 onChange={e => setStartTime(e.target.value)}
+                placeholder="09:00"
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1.5">Fine</label>
               <input
-                ref={endRef}
-                type="time"
+                type="text"
                 value={endTime}
                 onChange={e => setEndTime(e.target.value)}
+                placeholder="10:30"
                 className="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
@@ -633,7 +625,7 @@ function FasciaPanel({ form, onChange, onSave, onClose, courseInstructors, isEdi
         <div className="px-5 py-4 border-t border-gray-100 flex gap-2 flex-shrink-0 bg-gray-50">
           <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-200 border border-gray-200 transition">Annulla</button>
           <button
-            onClick={handleSave}
+            onClick={() => onSave(startTime, endTime)}
             disabled={loading || !form.title.trim()}
             className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition"
           >
