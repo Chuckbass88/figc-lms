@@ -25,19 +25,19 @@ function formatDateShort(d: string | null) {
 }
 
 const C = {
-  navy:      '#0D1B4B',
-  blue:      '#1565C0',
-  blueMid:   '#1E88E5',
-  gold:      '#C8A84B',
-  goldDark:  '#A08030',
+  navy:      '#1B3768',
+  blue:      '#0891B2',
+  blueMid:   '#0E7490',
+  gold:      '#0891B2',
+  goldDark:  '#0E7490',
   white:     '#FFFFFF',
   gray:      '#6B7280',
   grayLight: '#9CA3AF',
-  bg:        '#F8F9FA',
-  breakBg:   '#FFFBEB',
-  breakText: '#92400E',
-  amber:     '#D97706',
-  border:    '#E5E7EB',
+  bg:        '#F8FAFC',
+  breakBg:   '#F0F9FF',
+  breakText: '#0E7490',
+  amber:     '#0891B2',
+  border:    '#E2E8F0',
 }
 
 const styles = StyleSheet.create({
@@ -50,14 +50,14 @@ const styles = StyleSheet.create({
   coverBody:      { flex: 1, padding: 48, justifyContent: 'flex-end' },
   coverOverline:  { fontSize: 9, color: C.gold, fontFamily: 'Helvetica-Bold', letterSpacing: 2, marginBottom: 20, textTransform: 'uppercase' },
   coverTitle:     { fontSize: 34, fontFamily: 'Helvetica-Bold', color: C.white, marginBottom: 10, lineHeight: 1.2 },
-  coverCourse:    { fontSize: 15, color: '#BDC3D8', marginBottom: 6 },
-  coverLocation:  { fontSize: 12, color: '#8892B0', marginBottom: 4 },
-  coverDates:     { fontSize: 12, color: '#8892B0', marginBottom: 32 },
-  coverDivider:   { backgroundColor: C.gold, height: 1, width: 60, marginBottom: 32 },
+  coverCourse:    { fontSize: 15, color: 'rgba(255,255,255,0.75)', marginBottom: 6 },
+  coverLocation:  { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 },
+  coverDates:     { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 32 },
+  coverDivider:   { backgroundColor: 'rgba(255,255,255,0.3)', height: 1, width: 60, marginBottom: 32 },
   coverFooter:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  coverBrand:     { fontSize: 11, fontFamily: 'Helvetica-Bold', color: C.gold, letterSpacing: 1 },
-  coverGenDate:   { fontSize: 9, color: '#4A5568' },
-  coverBottomBar: { backgroundColor: C.gold, height: 3 },
+  coverBrand:     { fontSize: 11, fontFamily: 'Helvetica-Bold', color: C.white, letterSpacing: 1 },
+  coverGenDate:   { fontSize: 9, color: 'rgba(255,255,255,0.5)' },
+  coverBottomBar: { backgroundColor: C.blue, height: 3 },
 
   // ── Header giornata ────────────────────────────────────────
   dayHeader:      { backgroundColor: C.blue, paddingHorizontal: 28, paddingVertical: 12, flexDirection: 'row', alignItems: 'center' },
