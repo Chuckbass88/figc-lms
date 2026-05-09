@@ -170,7 +170,7 @@ export default function NuovaValutazioneForm({ courseId, students, templates }: 
               className="h-2 rounded-full transition-all duration-300"
               style={{
                 width: `${(completedCount / totalCount) * 100}%`,
-                backgroundColor: completedCount === totalCount ? '#16a34a' : '#1565C0'
+                backgroundColor: completedCount === totalCount ? '#16a34a' : '#1EB8E5'
               }}
             />
           </div>
@@ -282,7 +282,7 @@ export default function NuovaValutazioneForm({ courseId, students, templates }: 
             onClick={submit}
             disabled={!canSubmit || loading}
             className="flex-[2] flex items-center justify-center gap-2 py-4 rounded-2xl text-white font-bold text-base transition disabled:opacity-40"
-            style={{ backgroundColor: canSubmit ? '#1565C0' : '#94a3b8' }}
+            style={{ backgroundColor: canSubmit ? '#1EB8E5' : '#94a3b8' }}
           >
             {loading ? (
               <Loader2 size={18} className="animate-spin" />

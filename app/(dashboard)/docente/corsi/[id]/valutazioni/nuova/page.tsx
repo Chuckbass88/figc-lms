@@ -85,7 +85,7 @@ export default async function NuovaValutazionePage({ params }: { params: Promise
           <ArrowLeft size={15} /> Valutazioni
         </Link>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
             <ClipboardCheck size={15} />
           </div>
           <div className="min-w-0">

@@ -40,7 +40,7 @@ export default function GuideTooltip({ content, title, screenshot, position = 't
         className={`flex-shrink-0 rounded-full flex items-center justify-center transition hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-400
           ${size === 'sm' ? 'w-4 h-4' : 'w-5 h-5'}
         `}
-        style={{ backgroundColor: '#EFF4FF', color: '#1565C0' }}
+        style={{ backgroundColor: '#EFF4FF', color: '#1EB8E5' }}
         title="Aiuto"
         aria-label="Apri guida"
       >

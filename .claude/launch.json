@@ -1,0 +1,31 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "figc-lms",
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["node_modules/.bin/next", "dev"],
+      "cwd": "/Users/alessandrodanti/figc-lms",
+      "port": 3000,
+      "env": {
+        "PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      }
+    },
+    {
+      "name": "keeperlab-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "-p", "3001"],
+      "cwd": "/Users/alessandrodanti/keeperlab-website",
+      "port": 3001,
+      "autoPort": false
+    },
+    {
+      "name": "coachlab-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "-p", "3002"],
+      "cwd": "/Users/alessandrodanti/coachlab-website",
+      "port": 3002,
+      "autoPort": false
+    }
+  ]
+}

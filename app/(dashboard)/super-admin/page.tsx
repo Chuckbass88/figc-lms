@@ -178,7 +178,7 @@ export default async function SuperAdminDashboard() {
           <p className="text-sm text-gray-400 mt-0.5 capitalize">{todayLabel}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/super-admin/corsi?new=1" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition" style={{ backgroundColor: '#1565C0' }}>
+          <Link href="/super-admin/corsi?new=1" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition" style={{ backgroundColor: '#1EB8E5' }}>
             <BookOpen size={13} /> Crea corso
           </Link>
           <Link href="/super-admin/utenti?new=1" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-green-100 text-green-800 hover:bg-green-200 transition">
@@ -186,9 +186,6 @@ export default async function SuperAdminDashboard() {
           </Link>
           <Link href="/super-admin/sessioni" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">
             <Calendar size={13} /> Sessioni
-          </Link>
-          <Link href="/super-admin/report" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-            <UserCheck size={13} /> Report
           </Link>
         </div>
       </div>
@@ -420,7 +417,7 @@ export default async function SuperAdminDashboard() {
               >
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                  style={{ backgroundColor: '#1565C0' }}
+                  style={{ backgroundColor: '#1EB8E5' }}
                 >
                   {s.full_name.charAt(0)}
                 </div>
@@ -465,7 +462,7 @@ export default async function SuperAdminDashboard() {
             <Link key={u.id} href={`/super-admin/utenti/${u.id}`} className="flex items-center gap-3 px-6 py-3.5 hover:bg-gray-50 transition group">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                style={{ backgroundColor: '#1565C0' }}
+                style={{ backgroundColor: '#1EB8E5' }}
               >
                 {(u.full_name ?? '?').charAt(0)}
               </div>

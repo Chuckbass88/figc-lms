@@ -43,7 +43,7 @@ export default function IscriviCorsoBtn({ studentId, availableCourses }: { stude
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         <PlusCircle size={14} /> Iscrivi a corso
       </button>
@@ -80,7 +80,7 @@ export default function IscriviCorsoBtn({ studentId, availableCourses }: { stude
                 onClick={iscrivi}
                 disabled={!selectedId || loading}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
-                style={{ backgroundColor: '#1565C0' }}
+                style={{ backgroundColor: '#1EB8E5' }}
               >
                 {loading && <Loader2 size={14} className="animate-spin" />}
                 Iscrivi

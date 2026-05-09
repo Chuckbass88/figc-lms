@@ -233,7 +233,7 @@ export default function QuizRunner({
               onClick={() => setStarted(true)}
               disabled={!confirmed}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               <Play size={15} /> Inizia quiz
             </button>
@@ -336,7 +336,7 @@ export default function QuizRunner({
           onClick={() => handleSubmit(false)}
           disabled={!allAnswered || submitting}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
-          style={{ backgroundColor: '#1565C0' }}
+          style={{ backgroundColor: '#1EB8E5' }}
         >
           {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
           Invia risposte

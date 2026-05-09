@@ -79,7 +79,7 @@ export default function InviaNotificaBtn({ studentId, studentName }: Props) {
                 onClick={send}
                 disabled={sending || sent || !title.trim() || !message.trim()}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition"
-                style={{ backgroundColor: sent ? '#16a34a' : '#1565C0' }}
+                style={{ backgroundColor: sent ? '#16a34a' : '#1EB8E5' }}
               >
                 {sending ? <Loader2 size={14} className="animate-spin" /> : sent ? '✓ Inviata' : <><Send size={13} /> Invia</>}
               </button>

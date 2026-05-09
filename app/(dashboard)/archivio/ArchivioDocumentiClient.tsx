@@ -253,7 +253,7 @@ function UploadModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
             onClick={handleUpload}
             disabled={uploading}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-60 transition hover:opacity-90"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
             {uploading ? 'Caricamento...' : 'Carica'}
@@ -461,7 +461,7 @@ export default function ArchivioDocumentiClient({
             <button
               onClick={() => setShowAddMenu(v => !v)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               <Plus size={16} />
               Aggiungi

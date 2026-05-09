@@ -49,7 +49,7 @@ export default function ImportaExcelBtn() {
         onClick={() => { setResult(null); setError(null); inputRef.current?.click() }}
         disabled={loading}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60 transition hover:opacity-90"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         {loading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
         Importa da Excel

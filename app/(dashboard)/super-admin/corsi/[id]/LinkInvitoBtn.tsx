@@ -129,7 +129,7 @@ export default function LinkInvitoBtn({ courseId, courseName, inviteToken: initi
                   onClick={generaToken}
                   disabled={regenerating}
                   className="flex items-center gap-2 mx-auto px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50"
-                  style={{ backgroundColor: '#1565C0' }}
+                  style={{ backgroundColor: '#1EB8E5' }}
                 >
                   {regenerating ? <Loader2 size={14} className="animate-spin" /> : <QrCode size={14} />}
                   Genera link invito

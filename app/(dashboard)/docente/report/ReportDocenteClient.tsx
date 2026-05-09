@@ -116,7 +116,7 @@ export default function ReportDocenteClient({
               key={f.value}
               onClick={() => setFilter(f.value as typeof filter)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${filter === f.value ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-              style={filter === f.value ? { backgroundColor: '#1565C0' } : {}}
+              style={filter === f.value ? { backgroundColor: '#1EB8E5' } : {}}
             >
               {f.label}
             </button>

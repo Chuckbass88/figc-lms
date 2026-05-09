@@ -195,7 +195,7 @@ export default async function DocenteDashboard() {
         <div className="flex flex-wrap gap-2">
           {myCourses.filter(c => c.status === 'active').slice(0, 1).map(c => (
             <Link key={c.id} href={`/docente/corsi/${c.id}/presenze`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition" style={{ backgroundColor: '#1565C0' }}>
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition" style={{ backgroundColor: '#1EB8E5' }}>
               <ClipboardList size={13} /> Presenze
             </Link>
           ))}
@@ -354,7 +354,7 @@ export default async function DocenteDashboard() {
               >
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                  style={{ backgroundColor: '#1565C0' }}
+                  style={{ backgroundColor: '#1EB8E5' }}
                 >
                   {(s.full_name ?? '?').charAt(0)}
                 </div>

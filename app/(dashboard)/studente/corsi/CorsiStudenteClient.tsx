@@ -60,7 +60,7 @@ export default function CorsiStudenteClient({ enrollments }: { enrollments: Cour
                 key={val}
                 onClick={() => setStatusFilter(val)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${statusFilter === val ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-                style={statusFilter === val ? { backgroundColor: '#1565C0' } : {}}
+                style={statusFilter === val ? { backgroundColor: '#1EB8E5' } : {}}
               >
                 {label}
               </button>

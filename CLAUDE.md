@@ -1,7 +1,14 @@
 # CoachLab LMS — Contesto di sviluppo
 
 ## Progetto
-CoachLab LMS — Portale di formazione allenatori di calcio. Cartella: `/Users/alessandrodanti/figc-lms`.
+CoachLab LMS — Portale di formazione allenatori di calcio.
+
+**Percorsi canonici (tutto in Claude Workspace):**
+- **Web app:** `/Users/alessandrodanti/Documents/Claude Workspace/CoachLab LMS/web-app` (alias: `~/figc-lms`)
+- **Mobile app:** `/Users/alessandrodanti/Documents/Claude Workspace/CoachLab LMS/mobile-app` (alias: `~/figc-lms-mobile`)
+- **Landing page:** `/Users/alessandrodanti/Documents/Claude Workspace/CoachLab LMS/landing-page` (alias: `~/coachlab-website`)
+- **Workspace master:** `/Users/alessandrodanti/Documents/Claude Workspace/CoachLab LMS/`
+
 Guida ripresa sessione: `/Users/alessandrodanti/Desktop/Claude files/Guida CoachLab/CoachLab — Guida Ripresa Sessione 05-04-2026.html`
 ⚠️ **Nessun riferimento a "FIGC" nell'app** — brand è solo CoachLab (accordo FIGC non ancora attivo)
 
@@ -22,7 +29,8 @@ Guida ripresa sessione: `/Users/alessandrodanti/Desktop/Claude files/Guida Coach
 
 ## Server locale
 ```bash
-cd /Users/alessandrodanti/figc-lms && npm run dev
+cd "/Users/alessandrodanti/Documents/Claude Workspace/CoachLab LMS/web-app" && npm run dev
+# oppure (alias retro-compatibile): cd ~/figc-lms && npm run dev
 # → http://localhost:3000
 ```
 

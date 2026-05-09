@@ -76,7 +76,7 @@ export default function CambiaRuoloBtn({ userId, currentRole }: { userId: string
                 onClick={handleSave}
                 disabled={loading || selected === currentRole}
                 className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white transition disabled:opacity-50"
-                style={{ backgroundColor: '#1565C0' }}
+                style={{ backgroundColor: '#1EB8E5' }}
               >
                 {loading ? 'Salvando...' : 'Salva'}
               </button>

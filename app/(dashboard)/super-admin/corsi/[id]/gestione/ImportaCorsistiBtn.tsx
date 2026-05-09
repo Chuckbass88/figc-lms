@@ -125,7 +125,7 @@ export default function ImportaCorsistiBtn({
                       onClick={handleImport}
                       disabled={!file || loading}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition disabled:opacity-60"
-                      style={{ backgroundColor: '#1565C0' }}
+                      style={{ backgroundColor: '#1EB8E5' }}
                     >
                       {loading && <Loader2 size={13} className="animate-spin" />}
                       {loading ? 'Importazione...' : 'Importa'}
@@ -173,7 +173,7 @@ export default function ImportaCorsistiBtn({
                   <button
                     onClick={close}
                     className="w-full px-4 py-2 rounded-lg text-white text-sm font-semibold transition hover:opacity-90"
-                    style={{ backgroundColor: '#1565C0' }}
+                    style={{ backgroundColor: '#1EB8E5' }}
                   >
                     Chiudi
                   </button>

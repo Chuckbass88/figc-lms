@@ -142,7 +142,7 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
                 className="h-2 rounded-full transition-all duration-200"
                 style={{
                   width: `${uploadProgress}%`,
-                  backgroundColor: uploadProgress === 100 ? '#16a34a' : '#1565C0',
+                  backgroundColor: uploadProgress === 100 ? '#16a34a' : '#1EB8E5',
                 }}
               />
             </div>
@@ -153,7 +153,7 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
           onClick={() => setShowConfirm(true)}
           disabled={loading || (!notes.trim() && !file)}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
-          style={{ backgroundColor: '#1565C0' }}
+          style={{ backgroundColor: '#1EB8E5' }}
         >
           {loading && uploadProgress === null ? (
             <><Loader2 size={14} className="animate-spin" /> Invio in corso…</>
@@ -197,7 +197,7 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
               <button
                 onClick={submit}
                 className="flex-1 px-4 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
-                style={{ backgroundColor: '#1565C0' }}
+                style={{ backgroundColor: '#1EB8E5' }}
               >
                 {hasExisting ? 'Sì, aggiorna' : 'Sì, invia'}
               </button>

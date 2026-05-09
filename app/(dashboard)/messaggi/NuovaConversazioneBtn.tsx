@@ -143,7 +143,7 @@ export default function NuovaConversazioneBtn({
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         <Plus size={14} /> Nuovo messaggio
       </button>
@@ -205,7 +205,7 @@ export default function NuovaConversazioneBtn({
                           className={`px-3 py-1 rounded-full text-xs font-medium transition ${
                             roleFilter === f.value ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
-                          style={roleFilter === f.value ? { backgroundColor: '#1565C0' } : {}}
+                          style={roleFilter === f.value ? { backgroundColor: '#1EB8E5' } : {}}
                         >
                           {f.label}
                         </button>
@@ -220,7 +220,7 @@ export default function NuovaConversazioneBtn({
                             onClick={() => setSelected(u)}
                             className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left"
                           >
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                               {u.full_name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
                             </div>
                             <p className="text-sm font-medium text-gray-900 truncate flex-1">{u.full_name}</p>
@@ -235,7 +235,7 @@ export default function NuovaConversazioneBtn({
                 ) : (
                   <>
                     <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
-                      <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                         {selected.full_name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -253,7 +253,7 @@ export default function NuovaConversazioneBtn({
                     <button
                       onClick={handleSendSingolo} disabled={!message.trim() || sending}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
-                      style={{ backgroundColor: '#1565C0' }}
+                      style={{ backgroundColor: '#1EB8E5' }}
                     >
                       {sending ? <><Loader2 size={14} className="animate-spin" /> Invio...</> : 'Invia messaggio'}
                     </button>
@@ -349,7 +349,7 @@ export default function NuovaConversazioneBtn({
                             onClick={handleSendGruppo}
                             disabled={!message.trim() || sending}
                             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
-                            style={{ backgroundColor: '#1565C0' }}
+                            style={{ backgroundColor: '#1EB8E5' }}
                           >
                             {sending
                               ? <><Loader2 size={14} className="animate-spin" /> Invio in corso...</>

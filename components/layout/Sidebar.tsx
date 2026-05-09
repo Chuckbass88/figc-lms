@@ -49,15 +49,7 @@ const NAV: Record<UserRole, NavNode[]> = {
         { type: 'leaf', label: 'Template corsi', href: '/super-admin/corsi/template' },
       ],
     },
-    {
-      type: 'section', label: 'Utenti', icon: <Users size={17} />, key: 'sa_utenti',
-      items: [
-        { type: 'leaf', label: 'Corsisti', href: '/super-admin/utenti?ruolo=studente' },
-        { type: 'leaf', label: 'Docenti', href: '/super-admin/utenti?ruolo=docente' },
-        { type: 'leaf', label: 'Admin', href: '/super-admin/utenti?ruolo=admin' },
-        { type: 'leaf', label: 'Importa utenti', href: '/super-admin/utenti/importa' },
-      ],
-    },
+    { type: 'leaf', label: 'Utenti', href: '/super-admin/utenti', icon: <Users size={17} /> },
     {
       type: 'section', label: 'Archivio Generale', icon: <Archive size={17} />, key: 'sa_archivio',
       items: [
@@ -84,13 +76,7 @@ const NAV: Record<UserRole, NavNode[]> = {
         { type: 'leaf', label: 'Template corsi', href: '/super-admin/corsi/template' },
       ],
     },
-    {
-      type: 'section', label: 'Utenti', icon: <Users size={17} />, key: 'adm_utenti',
-      items: [
-        { type: 'leaf', label: 'Corsisti', href: '/super-admin/utenti?ruolo=studente' },
-        { type: 'leaf', label: 'Docenti', href: '/super-admin/utenti?ruolo=docente' },
-      ],
-    },
+    { type: 'leaf', label: 'Utenti', href: '/super-admin/utenti', icon: <Users size={17} /> },
     {
       type: 'section', label: 'Archivio Generale', icon: <Archive size={17} />, key: 'adm_archivio',
       items: [

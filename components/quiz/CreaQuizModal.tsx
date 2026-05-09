@@ -182,7 +182,7 @@ export default function CreaQuizModal({ courses, defaultCourseId, label = 'Crea 
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         <Plus size={14} /> {label}
       </button>
@@ -492,7 +492,7 @@ export default function CreaQuizModal({ courses, defaultCourseId, label = 'Crea 
             onClick={pubblica}
             disabled={!isValid() || loading}
             className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
             Pubblica quiz

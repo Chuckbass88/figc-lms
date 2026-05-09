@@ -224,7 +224,7 @@ export default function CourseForm({ course }: { course?: Course }) {
               type="submit"
               disabled={loading}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition disabled:opacity-60"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               {loading && <Loader2 size={14} className="animate-spin" />}
               {isEdit ? 'Salva modifiche' : 'Crea corso'}

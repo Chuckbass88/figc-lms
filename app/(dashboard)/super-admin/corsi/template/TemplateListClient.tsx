@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { Plus, BookTemplate, Trash2 } from 'lucide-react'
+import { Plus, BookTemplate, Trash2, ArrowLeft } from 'lucide-react'
 import type { CourseTemplate } from '@/lib/types'
 
 export default function TemplateListClient({
@@ -15,10 +15,16 @@ export default function TemplateListClient({
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold" style={{ color: '#1B3768' }}>Template Corsi</h1>
+        <div>
+          <Link href="/super-admin/corsi" className="flex items-center gap-1.5 text-sm mb-2 transition"
+            style={{ color: 'rgba(27,55,104,0.5)' }}>
+            <ArrowLeft size={14} /> Gestione Corsi
+          </Link>
+          <h1 className="text-xl font-bold" style={{ color: '#1B3768' }}>Template Corsi</h1>
+        </div>
         <Link href="/super-admin/corsi/template/nuovo"
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: '#0891B2' }}>
+          style={{ background: '#1EB8E5' }}>
           <Plus size={16} /> Nuovo template
         </Link>
       </div>

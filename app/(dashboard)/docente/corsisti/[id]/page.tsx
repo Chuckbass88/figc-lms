@@ -178,7 +178,7 @@ export default async function DettaglioCorsista({ params }: { params: Promise<{ 
         <div className="flex items-center gap-4">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             {student.full_name.charAt(0)}
           </div>

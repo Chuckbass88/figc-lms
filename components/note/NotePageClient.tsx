@@ -110,7 +110,7 @@ export default function NotePageClient({ initialNotes, currentUserId, allDocenti
           onClick={handleCreate}
           disabled={loading}
           className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-white hover:opacity-90 transition disabled:opacity-50 flex-shrink-0"
-          style={{ backgroundColor: '#1565C0' }}
+          style={{ backgroundColor: '#1EB8E5' }}
         >
           <Plus size={15} /> Nuova nota
         </button>

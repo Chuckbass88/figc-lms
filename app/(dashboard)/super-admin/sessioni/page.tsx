@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Calendar, MapPin, Users, CalendarCheck, CalendarClock } from 'lucide-react'
+import { Calendar, MapPin, Users, CalendarCheck, CalendarClock, ArrowLeft } from 'lucide-react'
 
 export default async function SuperAdminSessioniPage() {
   const supabase = await createClient()
@@ -68,7 +68,7 @@ export default async function SuperAdminSessioniPage() {
         className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition group"
       >
         <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center flex-shrink-0 ${isToday ? 'text-white' : 'bg-gray-100'}`}
-          style={isToday ? { backgroundColor: '#1565C0' } : {}}>
+          style={isToday ? { backgroundColor: '#1EB8E5' } : {}}>
           <span className={`text-sm font-black leading-none ${isToday ? 'text-white' : 'text-gray-700'}`}>
             {date.getDate()}
           </span>
@@ -112,6 +112,10 @@ export default async function SuperAdminSessioniPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
+          <Link href="/super-admin" className="flex items-center gap-1.5 text-sm mb-2 transition"
+            style={{ color: 'rgba(27,55,104,0.5)' }}>
+            <ArrowLeft size={14} /> Torna alla dashboard
+          </Link>
           <h2 className="text-2xl font-bold text-gray-900">Agenda sessioni</h2>
           <p className="text-gray-500 text-sm mt-1">{sessions.length} sessioni totali in tutti i corsi</p>
         </div>

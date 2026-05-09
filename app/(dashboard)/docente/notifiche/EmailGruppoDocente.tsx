@@ -217,7 +217,7 @@ export default function EmailGruppoDocente({ courses, groups, students }: Props)
         onClick={send}
         disabled={sending || !canSend}
         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         {sending ? <Loader2 size={15} className="animate-spin" /> : <Mail size={15} />}
         {sending ? 'Invio in corso...' : 'Invia email'}

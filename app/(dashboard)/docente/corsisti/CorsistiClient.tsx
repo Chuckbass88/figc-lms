@@ -115,7 +115,7 @@ export default function CorsistiClient({ courseGroups, totalStudents, isAdmin }:
               >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                  style={{ backgroundColor: '#1565C0' }}
+                  style={{ backgroundColor: '#1EB8E5' }}
                 >
                   {s.full_name.charAt(0)}
                 </div>

@@ -126,7 +126,7 @@ export default async function ValutazioniPage({ params }: { params: Promise<{ id
           <Link
             href={`/docente/corsi/${id}/valutazioni/nuova`}
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-white font-semibold hover:opacity-90 transition"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             <Plus size={12} /> Nuova valutazione pratica
           </Link>

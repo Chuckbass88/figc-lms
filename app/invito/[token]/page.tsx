@@ -89,7 +89,7 @@ export default async function InvitoPage({ params }: { params: Promise<{ token: 
           <Link
             href={dashboardHref}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             <BookOpen size={16} /> Vai al pannello corso
           </Link>
@@ -118,7 +118,7 @@ export default async function InvitoPage({ params }: { params: Promise<{ token: 
           <Link
             href={`/studente/corsi/${course.id}`}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             <BookOpen size={16} /> Vai al corso
           </Link>

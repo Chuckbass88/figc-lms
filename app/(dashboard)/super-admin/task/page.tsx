@@ -179,7 +179,7 @@ export default async function AdminTaskPage() {
                       <Link
                         href={`/super-admin/corsi/${courseId}/task/${task.id}`}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-                        style={{ backgroundColor: '#1565C0' }}
+                        style={{ backgroundColor: '#1EB8E5' }}
                       >
                         Apri task
                         <ChevronRight size={13} />

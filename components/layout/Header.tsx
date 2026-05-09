@@ -36,21 +36,28 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/quiz')) return 'Esami del Corso'
   if (pathname.startsWith('/super-admin/corsi') && pathname.match(/\/task\/[^/]+/)) return 'Dettaglio Task'
   if (pathname.startsWith('/super-admin/corsi') && pathname.includes('/task')) return 'Task del Corso'
+  if (pathname.startsWith('/super-admin/corsi/template/nuovo')) return 'Nuovo Template'
+  if (pathname.match(/\/super-admin\/corsi\/template\/[^/]+$/)) return 'Modifica Template'
+  if (pathname.startsWith('/super-admin/corsi/template')) return 'Template Corsi'
   if (pathname.startsWith('/super-admin/corsi/nuovo')) return 'Nuovo Corso'
   if (pathname.match(/\/super-admin\/corsi\/[^/]+$/)) return 'Dettaglio Corso'
   if (pathname.startsWith('/super-admin/corsi')) return 'Gestione Corsi'
   // Utenti
+  if (pathname.startsWith('/super-admin/utenti') && pathname.includes('/permessi')) return 'Permessi Admin'
   if (pathname.startsWith('/super-admin/utenti') && pathname.includes('/attestato')) return 'Attestato di Frequenza'
   if (pathname.match(/\/super-admin\/utenti\/[^/]+/)) return 'Dettaglio Utente'
   if (pathname.startsWith('/super-admin/utenti')) return 'Gestione Utenti'
   // Altre sezioni admin
   if (pathname.startsWith('/super-admin/sessioni')) return 'Agenda Sessioni'
+  if (pathname.startsWith('/super-admin/calendari')) return 'Calendari'
+  if (pathname.startsWith('/super-admin/archivio-generale')) return 'Archivio Generale'
   if (pathname.startsWith('/super-admin/task')) return 'Panoramica Task'
   if (pathname.startsWith('/super-admin/quiz')) return 'Panoramica Esami'
   if (pathname.startsWith('/super-admin/domande')) return 'Archivio Domande'
   if (pathname.startsWith('/docente/domande')) return 'Mia Libreria Domande'
   if (pathname.startsWith('/super-admin/cerca')) return 'Cerca'
   if (pathname.startsWith('/super-admin/report')) return 'Report Presenze'
+  if (pathname.startsWith('/super-admin/note')) return 'Note'
   if (pathname.startsWith('/super-admin/impostazioni')) return 'Invia Notifiche'
 
   // ── Docente ───────────────────────────────────────────────────

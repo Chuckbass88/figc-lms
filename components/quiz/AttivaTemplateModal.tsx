@@ -142,7 +142,7 @@ export default function AttivaTemplateModal({ template, courses }: Props) {
         onClick={handleOpen}
         disabled={courses.length === 0}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
         title={courses.length === 0 ? 'Nessun corso disponibile' : `Attiva "${template.title}" in un corso`}
       >
         <Archive size={12} /> Attiva nel corso
@@ -311,7 +311,7 @@ export default function AttivaTemplateModal({ template, courses }: Props) {
                 onClick={handleAttiva}
                 disabled={!courseId || !title.trim() || loading || (useAvailableFrom && !availableFrom)}
                 className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
-                style={{ backgroundColor: '#1565C0' }}
+                style={{ backgroundColor: '#1EB8E5' }}
               >
                 {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {loading ? 'Attivazione...' : 'Attiva quiz'}

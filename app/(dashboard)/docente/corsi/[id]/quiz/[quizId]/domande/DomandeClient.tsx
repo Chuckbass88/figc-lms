@@ -281,7 +281,7 @@ export default function DomandeClient({ quizId, initialQuestions }: Props) {
             <button
               onClick={() => { setAdding(true); setEditingId(null); setDeletingId(null) }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               <Plus size={15} /> Nuova domanda
             </button>

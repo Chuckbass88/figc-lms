@@ -108,7 +108,7 @@ export default async function ConversazionePage({ params }: { params: Promise<{ 
           </div>
         ) : (
           <div className="w-9 h-9 rounded-2xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-            style={{ backgroundColor: '#1565C0' }}>
+            style={{ backgroundColor: '#1EB8E5' }}>
             {initials(displayName)}
           </div>
         )}

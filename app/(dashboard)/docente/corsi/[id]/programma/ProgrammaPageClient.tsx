@@ -126,7 +126,7 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
             <h2 className="text-2xl font-bold text-gray-900">Programma del Corso</h2>
             <p className="text-gray-500 text-sm mt-1">{courseName}</p>
           </div>
-          <button onClick={() => { setCreatingNew(true); setNewTitle('') }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition" style={{ backgroundColor: '#1565C0' }}>
+          <button onClick={() => { setCreatingNew(true); setNewTitle('') }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white hover:opacity-90 transition" style={{ backgroundColor: '#1EB8E5' }}>
             <Plus size={15} /> Nuovo programma
           </button>
         </div>
@@ -148,7 +148,7 @@ export default function ProgrammaPageClient({ courseId, courseName, programs: in
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-16 text-center">
           <FileText size={40} className="text-gray-200 mx-auto mb-4" />
           <p className="text-gray-500 text-sm">Nessun programma ancora.</p>
-          <button onClick={() => setCreatingNew(true)} className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white" style={{ backgroundColor: '#1565C0' }}>
+          <button onClick={() => setCreatingNew(true)} className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white" style={{ backgroundColor: '#1EB8E5' }}>
             <Plus size={15} /> Crea il primo programma
           </button>
         </div>

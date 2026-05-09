@@ -77,7 +77,7 @@ export default function NuovoTaskForm({ courseId, groups, students }: Props) {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90 flex-shrink-0"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         <Plus size={15} /> Nuova task
       </button>
@@ -251,7 +251,7 @@ export default function NuovoTaskForm({ courseId, groups, students }: Props) {
                   onClick={crea}
                   disabled={!title.trim() || loading || (attachType === 'link' && !linkUrl.trim())}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
-                  style={{ backgroundColor: '#1565C0' }}
+                  style={{ backgroundColor: '#1EB8E5' }}
                 >
                   {loading && <Loader2 size={13} className="animate-spin" />}
                   Crea task

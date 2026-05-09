@@ -177,7 +177,7 @@ export default function RegistrazioneDocenteForm({ token }: Props) {
         type="submit"
         disabled={loading || !canSubmit}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition disabled:opacity-50"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         {loading ? (
           <><Loader2 size={14} className="animate-spin" /> Registrazione in corso...</>

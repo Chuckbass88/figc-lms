@@ -190,7 +190,7 @@ export default function PresenzeClient({ courseId, courseName, students, initial
             <button
               onClick={() => setShowNewForm(v => !v)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               <Plus size={15} /> Nuova sessione
             </button>
@@ -228,7 +228,7 @@ export default function PresenzeClient({ courseId, courseName, students, initial
               onClick={createSession}
               disabled={creating || !newTitle.trim()}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               {creating && <Loader2 size={13} className="animate-spin" />}
               Crea sessione
@@ -283,7 +283,7 @@ export default function PresenzeClient({ courseId, courseName, students, initial
                         onClick={() => saveSession(s.id)}
                         disabled={!editTitle.trim()}
                         className="flex-1 px-2 py-1.5 rounded-lg text-white text-xs font-semibold disabled:opacity-60 hover:opacity-90 transition"
-                        style={{ backgroundColor: '#1565C0' }}
+                        style={{ backgroundColor: '#1EB8E5' }}
                       >
                         Salva
                       </button>
@@ -399,7 +399,7 @@ export default function PresenzeClient({ courseId, courseName, students, initial
                   return (
                     <div key={student.id} className="flex items-center gap-3 px-5 py-3">
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                        style={{ backgroundColor: '#1565C0' }}>
+                        style={{ backgroundColor: '#1EB8E5' }}>
                         {student.full_name.charAt(0)}
                       </div>
                       <Link href={`/docente/corsisti/${student.id}`} className="flex-1 text-sm font-medium text-gray-900 hover:text-blue-700 transition truncate">{student.full_name}</Link>
@@ -466,7 +466,7 @@ export default function PresenzeClient({ courseId, courseName, students, initial
                 return (
                   <div key={s.id} className="px-5 py-3 flex items-center gap-4">
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                      style={{ backgroundColor: '#1565C0' }}>
+                      style={{ backgroundColor: '#1EB8E5' }}>
                       {s.full_name.charAt(0)}
                     </div>
                     <Link href={`/docente/corsisti/${s.id}`} className="flex-1 text-sm font-medium text-gray-900 hover:text-blue-700 transition truncate">{s.full_name}</Link>

@@ -111,7 +111,7 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
           <Link
             href={`/docente/corsi/${id}/presenze`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             <ClipboardList size={14} /> Registro Presenze
           </Link>

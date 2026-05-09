@@ -127,7 +127,7 @@ export default function GestioneCorsoClient({
           <div className="divide-y divide-gray-50 min-h-[60px]">
             {assignedDocenti.map(d => (
               <div key={d.id} className="px-5 py-2.5 flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                   {d.full_name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">

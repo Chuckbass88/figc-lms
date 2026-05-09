@@ -225,21 +225,21 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
         <button
           onClick={() => setTab('corsi')}
           className={`px-4 py-2 rounded-lg text-xs font-medium transition ${tab === 'corsi' ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-          style={tab === 'corsi' ? { backgroundColor: '#1565C0' } : {}}
+          style={tab === 'corsi' ? { backgroundColor: '#1EB8E5' } : {}}
         >
           Per Corso
         </button>
         <button
           onClick={() => setTab('corsisti')}
           className={`px-4 py-2 rounded-lg text-xs font-medium transition ${tab === 'corsisti' ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-          style={tab === 'corsisti' ? { backgroundColor: '#1565C0' } : {}}
+          style={tab === 'corsisti' ? { backgroundColor: '#1EB8E5' } : {}}
         >
           Per Corsista
         </button>
         <button
           onClick={() => setTab('idoneita')}
           className={`px-4 py-2 rounded-lg text-xs font-medium transition ${tab === 'idoneita' ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-          style={tab === 'idoneita' ? { backgroundColor: '#1565C0' } : {}}
+          style={tab === 'idoneita' ? { backgroundColor: '#1EB8E5' } : {}}
         >
           Idoneità
         </button>
@@ -267,7 +267,7 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
                   key={f.value}
                   onClick={() => setStatusFilter(f.value)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${statusFilter === f.value ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-                  style={statusFilter === f.value ? { backgroundColor: '#1565C0' } : {}}
+                  style={statusFilter === f.value ? { backgroundColor: '#1EB8E5' } : {}}
                 >
                   {f.label}
                 </button>
@@ -491,7 +491,7 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
                   key={f.value}
                   onClick={() => setIdoneitaFilter(f.value as typeof idoneitaFilter)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${idoneitaFilter === f.value ? 'text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
-                  style={idoneitaFilter === f.value ? { backgroundColor: '#1565C0' } : {}}
+                  style={idoneitaFilter === f.value ? { backgroundColor: '#1EB8E5' } : {}}
                 >
                   {f.label}
                 </button>

@@ -32,7 +32,7 @@ function StepCard({ step, index }: { step: GuideSection['steps'][0]; index: numb
     <div className="flex gap-4 py-5 border-b border-gray-50 last:border-0">
       {/* Numero */}
       <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white mt-0.5"
-        style={{ backgroundColor: '#1565C0' }}>
+        style={{ backgroundColor: '#1EB8E5' }}>
         {index + 1}
       </div>
 
@@ -198,7 +198,7 @@ export default function GuideClient({ role, userName, sections, quickActions }: 
 
   // Role label
   const roleLabel = role === 'studente' ? 'Corsista' : 'Docente'
-  const roleColor = role === 'studente' ? '#29ABE2' : '#1565C0'
+  const roleColor = role === 'studente' ? '#29ABE2' : '#1EB8E5'
   const firstName = userName.split(' ')[0]
 
   // Progresso completamento (da localStorage)
@@ -273,7 +273,7 @@ export default function GuideClient({ role, userName, sections, quickActions }: 
         {!search && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-3">
-              <Zap size={15} style={{ color: '#1565C0' }} />
+              <Zap size={15} style={{ color: '#1EB8E5' }} />
               <p className="text-sm font-bold text-gray-900">Cosa vuoi fare?</p>
             </div>
             <div className="flex flex-wrap gap-2">

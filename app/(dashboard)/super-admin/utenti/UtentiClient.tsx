@@ -196,7 +196,7 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
           <button
             onClick={() => { setShowForm(v => !v); setCreateError('') }}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             <UserPlus size={15} />
             Nuovo utente
@@ -269,7 +269,7 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
               onClick={createUser}
               disabled={creating || !newUser.full_name.trim() || !newUser.email.trim() || !newUser.password.trim()}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition disabled:opacity-60"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               {creating && <Loader2 size={13} className="animate-spin" />}
               Crea utente
@@ -305,7 +305,7 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
               onClick={() => setShowCourseDropdown(v => !v)}
               disabled={enrolling}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-white text-sm font-medium transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               {enrolling ? <Loader2 size={13} className="animate-spin" /> : <GraduationCap size={13} />}
               Iscrivi al corso...
@@ -422,7 +422,7 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${!user.is_active ? 'bg-gray-400' : ''}`}
-                          style={user.is_active ? { backgroundColor: '#1565C0' } : {}}>
+                          style={user.is_active ? { backgroundColor: '#1EB8E5' } : {}}>
                           {user.full_name.charAt(0)}
                         </div>
                         <div>

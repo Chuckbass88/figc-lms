@@ -134,7 +134,7 @@ export default function MaterialiClient({ courseId, initialMaterials, canUpload,
           <button
             onClick={() => { setShowForm(v => !v); setError('') }}
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium text-white hover:opacity-90 transition"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             <Plus size={12} /> Carica file
           </button>
@@ -183,7 +183,7 @@ export default function MaterialiClient({ courseId, initialMaterials, canUpload,
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition ${
                       targetType === t.v ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
-                    style={targetType === t.v ? { backgroundColor: '#1565C0' } : {}}
+                    style={targetType === t.v ? { backgroundColor: '#1EB8E5' } : {}}
                   >
                     {t.icon}{t.label}
                   </button>
@@ -241,7 +241,7 @@ export default function MaterialiClient({ courseId, initialMaterials, canUpload,
             onClick={upload}
             disabled={uploading || !file || !name.trim()}
             className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             {uploading ? <><Loader2 size={13} className="animate-spin" /> Caricamento...</> : <><Upload size={13} /> Carica</>}
           </button>

@@ -95,7 +95,7 @@ export default function NuovaValutazioneApertaForm({
         </button>
         <button onClick={salva} disabled={!studentId || voto == null || loading}
           className="flex-[2] py-2 rounded-lg text-white text-xs font-semibold transition disabled:opacity-50 flex items-center justify-center gap-1"
-          style={{ backgroundColor: '#1565C0' }}>
+          style={{ backgroundColor: '#1EB8E5' }}>
           {loading ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
           Salva voto
         </button>

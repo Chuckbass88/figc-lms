@@ -170,7 +170,7 @@ export default async function StudentePresenzeAggregate() {
                           <Link
                             href={`/studente/corsi/${c.courseId}/attestato`}
                             className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg text-white hover:opacity-90 transition"
-                            style={{ backgroundColor: '#1565C0' }}
+                            style={{ backgroundColor: '#1EB8E5' }}
                           >
                             <Award size={11} /> Attestato
                           </Link>

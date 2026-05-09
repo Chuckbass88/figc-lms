@@ -111,7 +111,7 @@ export default async function DocenteTaskPage({ params }: { params: Promise<{ id
                 <Link
                   href={`/docente/corsi/${id}/task/${task.id}`}
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-                  style={{ backgroundColor: '#1565C0' }}
+                  style={{ backgroundColor: '#1EB8E5' }}
                 >
                   Apri task
                   <ChevronRight size={14} />

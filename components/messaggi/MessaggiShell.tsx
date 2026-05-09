@@ -69,7 +69,7 @@ function ConvAvatar({ conv }: { conv: ConvItem }) {
   )
   return (
     <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm font-bold text-white"
-      style={{ backgroundColor: '#1565C0' }}>
+      style={{ backgroundColor: '#1EB8E5' }}>
       {initials(conv.displayName)}
     </div>
   )
@@ -245,7 +245,7 @@ function NuovoMessaggioModal({
                 {visibleFilters.map(f => (
                   <button key={f.value} onClick={() => setRoleFilter(f.value)}
                     className={`px-2.5 py-1 rounded-full text-xs font-medium transition ${roleFilter === f.value ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                    style={roleFilter === f.value ? { backgroundColor: '#1565C0' } : {}}>
+                    style={roleFilter === f.value ? { backgroundColor: '#1EB8E5' } : {}}>
                     {f.label}
                   </button>
                 ))}
@@ -257,7 +257,7 @@ function NuovoMessaggioModal({
                   {results.map(u => (
                     <button key={u.id} onClick={() => setSelected(u)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left min-w-0">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                         {initials(u.full_name)}
                       </div>
                       <p className="text-sm font-medium text-gray-900 flex-1 truncate min-w-0">{u.full_name}</p>
@@ -274,7 +274,7 @@ function NuovoMessaggioModal({
           {mode === 'singolo' && selected && (
             <>
               <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                   {initials(selected.full_name)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -290,7 +290,7 @@ function NuovoMessaggioModal({
               />
               <button onClick={handleSendSingolo} disabled={!message.trim() || sending}
                 className="w-full py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50 transition flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#1565C0' }}>
+                style={{ backgroundColor: '#1EB8E5' }}>
                 {sending ? <><Loader2 size={14} className="animate-spin" /> Invio...</> : 'Invia messaggio'}
               </button>
             </>
@@ -326,7 +326,7 @@ function NuovoMessaggioModal({
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
               <button onClick={handleSendCorso} disabled={!message.trim() || sending}
                 className="w-full py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50 transition flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#1565C0' }}>
+                style={{ backgroundColor: '#1EB8E5' }}>
                 {sending ? <><Loader2 size={14} className="animate-spin" /> Invio...</> : <><Users size={14} /> Invia al gruppo</>}
               </button>
             </>
@@ -471,7 +471,7 @@ export default function MessaggiShell({
             <button
               onClick={() => setShowModal(true)}
               className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:opacity-90 transition flex-shrink-0"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
               title="Nuovo messaggio"
             >
               <Plus size={15} />

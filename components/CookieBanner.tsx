@@ -35,7 +35,7 @@ export default function CookieBanner() {
         <div className="flex items-start gap-3">
           {/* Icona */}
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#EFF4FF' }}>
-            <Cookie size={18} style={{ color: '#1565C0' }} />
+            <Cookie size={18} style={{ color: '#1EB8E5' }} />
           </div>
 
           {/* Contenuto */}
@@ -57,7 +57,7 @@ export default function CookieBanner() {
               <button
                 onClick={accept}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition hover:opacity-90"
-                style={{ backgroundColor: '#1565C0' }}
+                style={{ backgroundColor: '#1EB8E5' }}
               >
                 <Check size={12} />
                 Accetta tutti

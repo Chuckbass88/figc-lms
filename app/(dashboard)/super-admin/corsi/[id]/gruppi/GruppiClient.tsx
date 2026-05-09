@@ -168,7 +168,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
           <button
             onClick={() => setShowForm(v => !v)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             <Plus size={15} />
             Crea nuovo microgruppo
@@ -205,7 +205,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
               onClick={createGroup}
               disabled={creating || !newName.trim()}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold transition disabled:opacity-60"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               {creating && <Loader2 size={13} className="animate-spin" />}
               Crea gruppo
@@ -254,7 +254,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
                       onClick={() => saveGroupEdit(group.id)}
                       disabled={savingEdit || !editName.trim()}
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-semibold disabled:opacity-60 transition"
-                      style={{ backgroundColor: '#1565C0' }}
+                      style={{ backgroundColor: '#1EB8E5' }}
                     >
                       {savingEdit ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                       Salva
@@ -266,7 +266,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
                   className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
                   onClick={() => setExpanded(isOpen ? null : group.id)}
                 >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                     <Users size={15} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -389,7 +389,7 @@ export default function GruppiClient({ course, initialGroups, courseDocenti, cou
             <button
               onClick={() => setShowForm(true)}
               className="px-4 py-2 rounded-lg text-white text-sm font-medium"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               Crea il primo gruppo
             </button>

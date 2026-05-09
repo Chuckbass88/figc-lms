@@ -187,7 +187,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
             <Link
               href={`/super-admin/corsi/${id}/gestione`}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               <Users size={14} /> Partecipanti
             </Link>
@@ -275,7 +275,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
           <div className="divide-y divide-gray-50">
             {(docenti as { id: string; full_name: string; email: string }[]).map(d => (
               <Link key={d.id} href={`/super-admin/utenti/${d.id}`} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 transition group">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                   {d.full_name.charAt(0)}
                 </div>
                 <div className="min-w-0">

@@ -17,7 +17,7 @@ function CompactStep({ step, index }: { step: GuideSection['steps'][0]; index: n
   return (
     <div className="flex gap-3 py-3 border-b border-gray-50 last:border-0">
       <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white mt-0.5"
-        style={{ backgroundColor: '#1565C0' }}>
+        style={{ backgroundColor: '#1EB8E5' }}>
         {index + 1}
       </div>
       <div className="flex-1 min-w-0">

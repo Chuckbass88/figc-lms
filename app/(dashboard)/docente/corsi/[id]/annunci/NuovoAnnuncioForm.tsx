@@ -49,7 +49,7 @@ export default function NuovoAnnuncioForm({ courseId }: { courseId: string }) {
       <button
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-white font-semibold hover:opacity-90 transition"
-        style={{ backgroundColor: '#1565C0' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         <Megaphone size={12} /> Nuovo annuncio
       </button>
@@ -152,7 +152,7 @@ export default function NuovoAnnuncioForm({ courseId }: { courseId: string }) {
           onClick={pubblica}
           disabled={!title.trim() || !content.trim() || loading}
           className="flex items-center gap-1 px-4 py-1.5 rounded-lg text-white text-xs font-semibold hover:opacity-90 transition disabled:opacity-50"
-          style={{ backgroundColor: '#1565C0' }}
+          style={{ backgroundColor: '#1EB8E5' }}
         >
           {loading && <Loader2 size={11} className="animate-spin" />}
           <Check size={11} /> Pubblica

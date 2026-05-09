@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-03-26T12:37:23.674Z",
+  "projectRoot": "/Users/alessandrodanti/figc-lms",
+  "structure": {
+    "hasPackageJson": true,
+    "hasTsConfig": true,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1774528643674
+}

@@ -92,7 +92,7 @@ function MessageBubble({
       {/* Avatar (altri) */}
       {!isMe && (
         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mb-0.5 ${showAvatar ? 'opacity-100' : 'opacity-0'}`}
-          style={{ backgroundColor: '#1565C0' }}>
+          style={{ backgroundColor: '#1EB8E5' }}>
           {avatarInitials}
         </div>
       )}
@@ -116,7 +116,7 @@ function MessageBubble({
               ? 'text-white rounded-br-sm'
               : 'bg-white border border-gray-100 text-gray-900 rounded-bl-sm shadow-sm'
           }`}
-          style={isMe && !isDeleted ? { backgroundColor: '#1565C0' } : {}}
+          style={isMe && !isDeleted ? { backgroundColor: '#1EB8E5' } : {}}
           onClick={() => !isDeleted && setShowEmoji(v => !v)}
         >
           {isDeleted ? (
@@ -419,7 +419,7 @@ export default function ChatClient({
         {/* Typing indicator */}
         {isTyping && (
           <div className="flex items-end gap-2 mt-2">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mb-0.5" style={{ backgroundColor: '#1565C0' }}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mb-0.5" style={{ backgroundColor: '#1EB8E5' }}>
               {otherInitials}
             </div>
             <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-1">
@@ -473,7 +473,7 @@ export default function ChatClient({
               onClick={handleSend}
               disabled={!content.trim() || sending || uploading}
               className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white disabled:opacity-40 hover:opacity-90 transition"
-              style={{ backgroundColor: '#1565C0' }}
+              style={{ backgroundColor: '#1EB8E5' }}
             >
               {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
             </button>

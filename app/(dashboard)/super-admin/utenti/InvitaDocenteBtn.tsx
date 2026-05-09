@@ -53,7 +53,7 @@ export default function InvitaDocenteBtn() {
       <button
         onClick={apri}
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition hover:opacity-90"
-        style={{ backgroundColor: '#1B3768' }}
+        style={{ backgroundColor: '#1EB8E5' }}
       >
         <UserPlus size={15} />
         Invita docente

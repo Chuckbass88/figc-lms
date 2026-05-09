@@ -145,7 +145,7 @@ export default function AggiungiDomandaBtn({ categories }: Props) {
           onClick={handleSave}
           disabled={!isValid || loading}
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50 transition"
-          style={{ backgroundColor: '#1565C0' }}
+          style={{ backgroundColor: '#1EB8E5' }}
         >
           {loading ? <Loader2 size={13} className="animate-spin" /> : saved ? <Check size={13} /> : <Plus size={13} />}
           {saved ? 'Salvata!' : 'Salva domanda'}

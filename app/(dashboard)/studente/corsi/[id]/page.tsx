@@ -165,7 +165,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
           <Link
             href={`/studente/corsi/${id}/presenze`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition"
-            style={{ backgroundColor: '#1565C0' }}
+            style={{ backgroundColor: '#1EB8E5' }}
           >
             <ClipboardList size={14} /> Le mie presenze
           </Link>
@@ -336,7 +336,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
               <div className="space-y-1.5">
                 {myGroup.course_group_instructors.map(i => (
                   <div key={i.instructor_id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-blue-50">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                       {i.profiles?.full_name.charAt(0) ?? '?'}
                     </div>
                     <span className="text-sm text-gray-800 font-medium">{i.profiles?.full_name}</span>
@@ -396,7 +396,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
         <div className="divide-y divide-gray-50">
           {docenti.map(d => (
             <div key={d.id} className="px-5 py-3 flex items-center gap-3">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1565C0' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1EB8E5' }}>
                 {d.full_name.charAt(0)}
               </div>
               <div className="min-w-0">

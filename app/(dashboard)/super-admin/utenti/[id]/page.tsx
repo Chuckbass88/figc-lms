@@ -199,7 +199,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           {/* Avatar */}
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0"
-            style={{ backgroundColor: profile.is_active ? '#1565C0' : '#9ca3af' }}
+            style={{ backgroundColor: profile.is_active ? '#1EB8E5' : '#9ca3af' }}
           >
             {profile.full_name?.charAt(0)?.toUpperCase() ?? '?'}
           </div>
@@ -244,7 +244,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       {/* Corsi iscritti */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <GraduationCap size={18} style={{ color: '#1565C0' }} />
+          <GraduationCap size={18} style={{ color: '#1EB8E5' }} />
           <h2 className="text-lg font-semibold text-gray-900">Corsi iscritti</h2>
           <span className="text-sm text-gray-400">({enrollments.length})</span>
           {profile.role === 'studente' && (
