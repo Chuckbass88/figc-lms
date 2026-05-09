@@ -6,6 +6,7 @@ import {
   ClipboardList, Calendar, UserCheck,
 } from 'lucide-react'
 import NotificaRischioBtn from './NotificaRischioBtn'
+import CorsiAttiviTable from './CorsiAttiviTable'
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Admin', docente: 'Docente', studente: 'Corsista',
@@ -41,9 +42,9 @@ export default async function SuperAdminDashboard() {
     { data: recentUsers },
     { data: upcomingSessions },
     { data: upcomingTasksRaw },
-    { data: activeCoursesData },
     { data: allTasksRaw },
     { data: pendingSubmissionsRaw },
+    { data: corsiPerTabella },
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('courses').select('*', { count: 'exact', head: true }),
@@ -66,51 +67,30 @@ export default async function SuperAdminDashboard() {
       .lte('due_date', endOfWeek.toISOString().split('T')[0])
       .order('due_date', { ascending: true })
       .limit(8),
-    supabase.from('courses')
-      .select('id, name, location, end_date, course_instructors(profiles(id, full_name)), course_enrollments(id, status)')
-      .eq('status', 'active')
-      .order('end_date', { ascending: true })
-      .limit(8),
     supabase.from('course_tasks').select('id, title, course_id, courses(name)'),
     supabase.from('task_submissions').select('task_id').is('grade', null),
+    supabase.from('courses')
+      .select(`
+        id, name, status, regione, tipo_corso, cu_number, cu_url,
+        course_instructors(profiles(full_name))
+      `)
+      .eq('status', 'active')
+      .order('name', { ascending: true }),
   ])
 
-  // --- Presenze per corsi attivi ---
-  const activeCourseIds = (activeCoursesData ?? []).map(c => c.id)
-  const { data: pastActiveSessions } = activeCourseIds.length > 0
-    ? await supabase.from('course_sessions')
-        .select('id, course_id')
-        .in('course_id', activeCourseIds)
-        .lt('session_date', today.toISOString().split('T')[0])
-    : { data: [] }
-
-  const pastActiveSessionIds = (pastActiveSessions ?? []).map(s => s.id)
-  const { data: pastActiveAttendances } = pastActiveSessionIds.length > 0
-    ? await supabase.from('attendances').select('session_id, present').in('session_id', pastActiveSessionIds)
-    : { data: [] }
-
-  const sessionsByCourse: Record<string, string[]> = {}
-  for (const s of pastActiveSessions ?? []) {
-    if (!sessionsByCourse[s.course_id]) sessionsByCourse[s.course_id] = []
-    sessionsByCourse[s.course_id].push(s.id)
-  }
-  const presenceBySession: Record<string, { present: number; total: number }> = {}
-  for (const a of pastActiveAttendances ?? []) {
-    if (!presenceBySession[a.session_id]) presenceBySession[a.session_id] = { present: 0, total: 0 }
-    presenceBySession[a.session_id].total++
-    if (a.present) presenceBySession[a.session_id].present++
-  }
-  const presencePerCourse: Record<string, number | null> = {}
-  for (const courseId of activeCourseIds) {
-    const sids = sessionsByCourse[courseId] ?? []
-    if (sids.length === 0) { presencePerCourse[courseId] = null; continue }
-    let totalP = 0, presentP = 0
-    for (const sid of sids) {
-      const p = presenceBySession[sid]
-      if (p) { totalP += p.total; presentP += p.present }
+  // --- Mappa corsi per tabella ---
+  const corsiMappati = (corsiPerTabella ?? []).map(c => {
+    const instructors = (c.course_instructors as unknown as { profiles: { full_name: string } | null }[]) ?? []
+    return {
+      id: c.id,
+      name: c.name,
+      regione: (c as any).regione as string | null ?? null,
+      tipo_corso: (c as any).tipo_corso as string | null ?? null,
+      cu_number: (c as any).cu_number as string | null ?? null,
+      cu_url: (c as any).cu_url as string | null ?? null,
+      docente: instructors[0]?.profiles?.full_name ?? null,
     }
-    presencePerCourse[courseId] = totalP > 0 ? Math.round((presentP / totalP) * 100) : null
-  }
+  })
 
   // --- Task in attesa di valutazione ---
   const pendingCountByTask = new Map<string, number>()
@@ -181,6 +161,7 @@ export default async function SuperAdminDashboard() {
   }
 
   const hasScadenze = (upcomingSessions && upcomingSessions.length > 0) || ((upcomingTasksRaw ?? []).length > 0)
+  const scadenzeCount = (upcomingSessions?.length ?? 0) + (upcomingTasksRaw?.length ?? 0)
 
   const greeting = today.getHours() < 12 ? 'Buongiorno' : today.getHours() < 18 ? 'Buon pomeriggio' : 'Buonasera'
   const todayLabel = today.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -246,75 +227,26 @@ export default async function SuperAdminDashboard() {
         />
       </div>
 
-      {/* ── 1. Corsi attivi ── */}
-      {(activeCoursesData ?? []).length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BookOpen size={15} className="text-emerald-600" />
-              <h3 className="font-semibold text-gray-900 text-sm">Corsi attivi</h3>
-              <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
-                {totalActiveCourses ?? 0}
-              </span>
-            </div>
-            <Link href="/super-admin/corsi" className="text-xs font-medium text-blue-600 hover:underline">
-              Gestisci tutti →
-            </Link>
-          </div>
-          <div className="divide-y divide-gray-50">
-            {(activeCoursesData ?? []).map(course => {
-              const instructors = (course.course_instructors as unknown as { profiles: { id: string; full_name: string } | null }[]) ?? []
-              const mainInstructor = instructors[0]?.profiles?.full_name ?? '—'
-              const activeEnrollments = (course.course_enrollments as { id: string; status: string }[])?.filter(e => e.status === 'active').length ?? 0
-              const pctPresenze = presencePerCourse[course.id]
-              const endDate = course.end_date ? new Date(course.end_date) : null
-              const daysLeft = endDate ? Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null
-
-              return (
-                <Link
-                  key={course.id}
-                  href={`/super-admin/corsi/${course.id}`}
-                  className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50 transition group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition truncate">{course.name}</p>
-                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                      {course.location && (
-                        <span className="text-xs text-gray-400 flex items-center gap-0.5">
-                          <MapPin size={9} />{course.location}
-                        </span>
-                      )}
-                      <span className="text-xs text-gray-400 flex items-center gap-0.5">
-                        <UserCheck size={9} />{mainInstructor}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-5 flex-shrink-0 text-center">
-                    <div>
-                      <p className={`text-sm font-bold leading-none ${pctPresenze === null ? 'text-gray-300' : pctPresenze >= 75 ? 'text-emerald-600' : pctPresenze >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
-                        {pctPresenze !== null ? `${pctPresenze}%` : '—'}
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">presenze</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold leading-none text-gray-700">{activeEnrollments}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">iscritti</p>
-                    </div>
-                    {daysLeft !== null && (
-                      <div>
-                        <p className={`text-sm font-bold leading-none ${daysLeft <= 7 ? 'text-red-600' : daysLeft <= 30 ? 'text-amber-600' : 'text-gray-600'}`}>
-                          {daysLeft}gg
-                        </p>
-                        <p className="text-[10px] text-gray-400 mt-0.5">alla fine</p>
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
+      {/* ── Widget summary + Tabella corsi ── */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(27,55,104,0.1)' }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'rgba(27,55,104,0.6)' }}>Corsi attivi</p>
+          <p className="text-2xl font-bold" style={{ color: '#1B3768' }}>{totalActiveCourses ?? 0}</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>in corso adesso</p>
         </div>
-      )}
+        <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(27,55,104,0.1)' }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'rgba(27,55,104,0.6)' }}>Scadenze prossime</p>
+          <p className="text-2xl font-bold" style={{ color: '#1B3768' }}>{scadenzeCount}</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>entro 7 giorni</p>
+        </div>
+        <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(27,55,104,0.1)' }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'rgba(27,55,104,0.6)' }}>Task da valutare</p>
+          <p className="text-2xl font-bold" style={{ color: '#1B3768' }}>{totalPendingEvaluations}</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>risposte in attesa</p>
+        </div>
+      </div>
+
+      <CorsiAttiviTable corsi={corsiMappati} />
 
       {/* ── 2. Scadenze prossimi 7 giorni (sessioni + task) ── */}
       {hasScadenze && (
@@ -515,40 +447,6 @@ export default async function SuperAdminDashboard() {
               </Link>
             </div>
           )}
-        </div>
-      )}
-
-      {/* ── 4. Quiz KPI ── */}
-      {(totalQuizzes ?? 0) > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ClipboardList size={15} className="text-purple-600" />
-              <h3 className="font-semibold text-gray-900 text-sm">Riepilogo quiz</h3>
-            </div>
-            <Link href="/super-admin/quiz" className="text-xs font-medium text-blue-600 hover:underline">
-              Vedi tutti →
-            </Link>
-          </div>
-          <div className="grid grid-cols-3 divide-x divide-gray-100">
-            <div className="px-6 py-5 text-center">
-              <p className="text-2xl font-black text-gray-900">{totalQuizzes ?? 0}</p>
-              <p className="text-xs text-gray-500 mt-1">Quiz pubblicati</p>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-2xl font-black text-gray-900">{totalAttempts ?? 0}</p>
-              <p className="text-xs text-gray-500 mt-1">Tentativi completati</p>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <p className={`text-2xl font-black ${(totalAttempts ?? 0) > 0 ? 'text-emerald-600' : 'text-gray-400'}`}>
-                {(totalAttempts ?? 0) > 0
-                  ? `${Math.round(((passedAttempts ?? 0) / (totalAttempts ?? 1)) * 100)}%`
-                  : '—'
-                }
-              </p>
-              <p className="text-xs text-gray-500 mt-1">% superati ({passedAttempts ?? 0}/{totalAttempts ?? 0})</p>
-            </div>
-          </div>
         </div>
       )}
 
