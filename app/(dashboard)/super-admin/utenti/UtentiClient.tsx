@@ -40,7 +40,15 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
 
   // Form nuovo utente
   const [showForm, setShowForm] = useState(false)
-  const [newUser, setNewUser] = useState({ full_name: '', email: '', password: '', role: 'studente' as UserRole })
+  const [newUser, setNewUser] = useState({
+    full_name: '', email: '', password: '', role: 'studente' as UserRole,
+    // campi comuni
+    telefono: '', regione: '',
+    // docente
+    contratto: '', categoria_corsi: '', materia: '',
+    // corsista
+    abilitazioni: '', note_profilo: '',
+  })
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
 
@@ -139,7 +147,7 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
         created_at: new Date().toISOString(),
       }
       setUsers(prev => [created, ...prev])
-      setNewUser({ full_name: '', email: '', password: '', role: 'studente' })
+      setNewUser({ full_name: '', email: '', password: '', role: 'studente', telefono: '', regione: '', contratto: '', categoria_corsi: '', materia: '', abilitazioni: '', note_profilo: '' })
       setShowForm(false)
     }
     setCreating(false)
@@ -213,50 +221,114 @@ export default function UtentiClient({ initialUsers, currentUserId }: { initialU
               <X size={16} />
             </button>
           </div>
+          {/* Campi base */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">Nome completo *</label>
-              <input
-                type="text"
-                value={newUser.full_name}
+              <input type="text" value={newUser.full_name}
                 onChange={e => setNewUser(p => ({ ...p, full_name: e.target.value }))}
                 placeholder="Mario Rossi"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">Email *</label>
-              <input
-                type="email"
-                value={newUser.email}
+              <input type="email" value={newUser.email}
                 onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))}
                 placeholder="mario@coachlab.it"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">Password *</label>
-              <input
-                type="password"
-                value={newUser.password}
+              <input type="password" value={newUser.password}
                 onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))}
                 placeholder="Min. 8 caratteri"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">Ruolo *</label>
-              <select
-                value={newUser.role}
-                onChange={e => setNewUser(p => ({ ...p, role: e.target.value as UserRole }))}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              >
+              <select value={newUser.role}
+                onChange={e => setNewUser(p => ({ ...p, role: e.target.value as UserRole, contratto: '', categoria_corsi: '', materia: '', abilitazioni: '', note_profilo: '' }))}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="studente">Corsista</option>
                 <option value="docente">Docente</option>
                 <option value="super_admin">Super Admin</option>
               </select>
             </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Telefono</label>
+              <input type="tel" value={newUser.telefono}
+                onChange={e => setNewUser(p => ({ ...p, telefono: e.target.value }))}
+                placeholder="+39 333 1234567"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Regione</label>
+              <input type="text" value={newUser.regione}
+                onChange={e => setNewUser(p => ({ ...p, regione: e.target.value }))}
+                placeholder="es. Lombardia"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
           </div>
+
+          {/* Campi docente */}
+          {newUser.role === 'docente' && (
+            <div className="border-t border-gray-100 pt-3 space-y-3">
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Informazioni docente</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Contratto</label>
+                  <select value={newUser.contratto}
+                    onChange={e => setNewUser(p => ({ ...p, contratto: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">— Seleziona —</option>
+                    <option value="determinato">Tempo determinato</option>
+                    <option value="a_chiamata">A chiamata</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Categoria corsi</label>
+                  <select value={newUser.categoria_corsi}
+                    onChange={e => setNewUser(p => ({ ...p, categoria_corsi: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">— Seleziona —</option>
+                    <option value="periferico">Periferici</option>
+                    <option value="centrali">Centrali</option>
+                    <option value="entrambi">Entrambi</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Materia insegnata</label>
+                  <input type="text" value={newUser.materia}
+                    onChange={e => setNewUser(p => ({ ...p, materia: e.target.value }))}
+                    placeholder="es. Tattica, Portieri..."
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Campi corsista */}
+          {newUser.role === 'studente' && (
+            <div className="border-t border-gray-100 pt-3 space-y-3">
+              <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Informazioni corsista (opzionali)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Abilitazioni</label>
+                  <input type="text" value={newUser.abilitazioni}
+                    onChange={e => setNewUser(p => ({ ...p, abilitazioni: e.target.value }))}
+                    placeholder="es. UEFA B, Portieri..."
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Note</label>
+                  <input type="text" value={newUser.note_profilo}
+                    onChange={e => setNewUser(p => ({ ...p, note_profilo: e.target.value }))}
+                    placeholder="Note interne..."
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+            </div>
+          )}
           {createError && <p className="text-sm text-red-600">{createError}</p>}
           <div className="flex gap-3">
             <button
