@@ -125,6 +125,39 @@ export default async function StudenteDashboard() {
         <p className="text-gray-500 text-sm mt-1">Monitora il tuo percorso formativo</p>
       </div>
 
+      {(upcomingSessions ?? []).length > 0 && (() => {
+        const prossima = upcomingSessions![0]
+        const corsoInfo = prossima.courses as unknown as { id: string; name: string; location: string | null } | null
+        const dataLezione = new Date(prossima.session_date)
+        const isOggi = dataLezione.toDateString() === new Date().toDateString()
+        return (
+          <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(8,145,178,0.2)' }}>
+            <div className="flex-shrink-0 w-12 h-12 rounded-xl flex flex-col items-center justify-center" style={{ background: isOggi ? '#0891B2' : 'rgba(8,145,178,0.1)' }}>
+              <span className="text-lg font-black leading-none" style={{ color: isOggi ? 'white' : '#0891B2' }}>
+                {dataLezione.getDate()}
+              </span>
+              <span className="text-[9px] font-semibold uppercase" style={{ color: isOggi ? 'rgba(255,255,255,0.8)' : '#0891B2' }}>
+                {dataLezione.toLocaleDateString('it-IT', { month: 'short' })}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium mb-0.5" style={{ color: '#0891B2' }}>
+                {isOggi ? 'Sessione di oggi' : 'Prossima lezione'}
+              </p>
+              <p className="text-sm font-bold truncate" style={{ color: '#1B3768' }}>{prossima.title}</p>
+              <p className="text-xs truncate mt-0.5" style={{ color: 'rgba(27,55,104,0.6)' }}>
+                {corsoInfo?.name}{corsoInfo?.location ? ` · ${corsoInfo.location}` : ''}
+              </p>
+            </div>
+            {isOggi && (
+              <span className="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: '#0891B2', color: 'white' }}>
+                Oggi
+              </span>
+            )}
+          </div>
+        )
+      })()}
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatsCard
           title="Corsi Iscritto"
@@ -258,7 +291,7 @@ export default async function StudenteDashboard() {
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ClipboardCheck size={15} className="text-green-600" />
-              <h3 className="font-semibold text-gray-900 text-sm">I miei quiz</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">Esami e Prove Intermedie</h3>
             </div>
             <Link href="/studente/quiz" className="text-xs font-medium text-blue-600 hover:underline">
               Vedi tutti →
