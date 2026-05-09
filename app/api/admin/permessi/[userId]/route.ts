@@ -11,6 +11,12 @@ export async function GET(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
 
+  const { data: callerProfile } = await supabase
+    .from('profiles').select('role').eq('id', user.id).single()
+  if (callerProfile?.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Solo super_admin' }, { status: 403 })
+  }
+
   const { data } = await supabase
     .from('admin_permissions')
     .select('*')

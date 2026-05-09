@@ -7,10 +7,7 @@ export default async function TemplateListPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: templates }, { data: aree }] = await Promise.all([
-    supabase.from('course_templates').select('*').order('nome'),
-    supabase.from('aree').select('*').order('nome'),
-  ])
+  const { data: templates } = await supabase.from('course_templates').select('*').order('nome')
 
-  return <TemplateListClient templates={templates ?? []} aree={aree ?? []} />
+  return <TemplateListClient templates={templates ?? []} aree={[]} />
 }

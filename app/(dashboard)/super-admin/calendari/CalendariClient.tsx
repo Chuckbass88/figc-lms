@@ -31,8 +31,11 @@ export default function CalendariClient({ eventi, corsi, docenti }: Props) {
     return true
   })
 
+  const toLocalDateStr = (d: Date): string =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
   const eventiPerGiorno = (data: Date) => {
-    const dataStr = data.toISOString().split('T')[0]
+    const dataStr = toLocalDateStr(data)
     return eventiFiltered.filter(e => e.data === dataStr)
   }
 
