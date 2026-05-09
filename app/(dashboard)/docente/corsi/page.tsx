@@ -219,7 +219,7 @@ export default async function DocenteCorsi() {
                   href={`/docente/corsi/${course.id}/quiz`}
                   className="relative flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition"
                 >
-                  <BookMarked size={12} /> Quiz
+                  <BookMarked size={12} /> Esami
                   {(quizCountByCourse.get(course.id) ?? 0) > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                       {quizCountByCourse.get(course.id)}

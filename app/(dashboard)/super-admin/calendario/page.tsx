@@ -120,7 +120,7 @@ export default async function SuperAdminCalendario() {
           </div>
         </div>
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${badge}`}>
-          {isSession ? 'Sessione' : isTask ? 'Task' : 'Quiz'}
+          {isSession ? 'Sessione' : isTask ? 'Task' : 'Esame'}
         </span>
       </Link>
     )
@@ -196,7 +196,7 @@ export default async function SuperAdminCalendario() {
                     <p className="text-xs text-gray-400 truncate">{name} · {formatShort(ev.date)}</p>
                   </div>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${badge}`}>
-                    {isSession ? 'Sessione' : isTask ? 'Task' : 'Quiz'}
+                    {isSession ? 'Sessione' : isTask ? 'Task' : 'Esame'}
                   </span>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
                     daysLeft === 0 ? 'bg-green-100 text-green-700' : daysLeft === 1 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'

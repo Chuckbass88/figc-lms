@@ -217,7 +217,7 @@ export default async function SuperAdminDashboard() {
           subtitle={totalPendingEvaluations > 0 ? 'consegne da valutare' : 'nessuna consegna in attesa'}
         />
         <StatsCard
-          title="Quiz"
+          title="Esami e Prove Int."
           value={totalQuizzes ?? 0}
           icon={<ClipboardList size={20} />}
           variant="purple"

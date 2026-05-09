@@ -179,7 +179,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
             href={`/studente/corsi/${id}/quiz`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 transition"
           >
-            <ClipboardCheck size={14} /> Quiz
+            <ClipboardCheck size={14} /> Esami
           </Link>
           <Link
             href={`/studente/corsi/${id}/annunci`}
@@ -283,7 +283,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
                 <p className="text-2xl font-bold text-indigo-700">
                   {quizCompletati}<span className="text-base text-gray-400 font-normal">/{quizIds.length}</span>
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Quiz completati</p>
+                <p className="text-xs text-gray-500 mt-1">Esami completati</p>
                 {quizSuperati > 0 && (
                   <p className="flex items-center justify-center gap-1 text-xs text-green-600 font-medium mt-1.5">
                     <CheckCircle size={11} /> {quizSuperati} superati

@@ -78,7 +78,7 @@ export default function ReportDocenteClient({
   }, [studentReports, sortKey, sortDir, search, filter])
 
   function exportCSV() {
-    const headers = ['Corsista', 'Email', 'Presenze %', 'Idoneo', 'Corsi idonei', 'Quiz superati', 'Quiz totali', 'Task consegnati', 'Task totali']
+    const headers = ['Corsista', 'Email', 'Presenze %', 'Idoneo', 'Corsi idonei', 'Esami superati', 'Esami totali', 'Task consegnati', 'Task totali']
     const rows = filtered.map(s => [
       s.full_name, s.email,
       s.presenzePct !== null ? `${s.presenzePct}%` : '—',
@@ -155,7 +155,7 @@ export default function ReportDocenteClient({
                 </th>
                 <th className="text-center px-4 py-3">
                   <button onClick={() => handleSort('quizSuperati')} className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700 mx-auto">
-                    Quiz <SortIcon col="quizSuperati" sortKey={sortKey} sortDir={sortDir} />
+                    Esami <SortIcon col="quizSuperati" sortKey={sortKey} sortDir={sortDir} />
                   </button>
                 </th>
                 <th className="text-center px-4 py-3">
