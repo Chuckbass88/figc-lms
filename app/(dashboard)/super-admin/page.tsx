@@ -25,7 +25,8 @@ export default async function SuperAdminDashboard() {
     : { data: null }
   const firstName = myProfile?.full_name?.split(' ')[0] ?? 'Admin'
 
-  const today = new Date()
+  const now = new Date()
+  const today = new Date(now)
   today.setHours(0, 0, 0, 0)
   const endOfWeek = new Date(today)
   endOfWeek.setDate(today.getDate() + 7)
@@ -67,7 +68,7 @@ export default async function SuperAdminDashboard() {
       .lte('due_date', endOfWeek.toISOString().split('T')[0])
       .order('due_date', { ascending: true })
       .limit(8),
-    supabase.from('course_tasks').select('id, title, course_id, courses(name)'),
+    supabase.from('course_tasks').select('id, title, course_id, courses(name)').limit(500),
     supabase.from('task_submissions').select('task_id').is('grade', null),
     supabase.from('courses')
       .select(`
@@ -163,7 +164,7 @@ export default async function SuperAdminDashboard() {
   const hasScadenze = (upcomingSessions && upcomingSessions.length > 0) || ((upcomingTasksRaw ?? []).length > 0)
   const scadenzeCount = (upcomingSessions?.length ?? 0) + (upcomingTasksRaw?.length ?? 0)
 
-  const greeting = today.getHours() < 12 ? 'Buongiorno' : today.getHours() < 18 ? 'Buon pomeriggio' : 'Buonasera'
+  const greeting = now.getHours() < 12 ? 'Buongiorno' : now.getHours() < 18 ? 'Buon pomeriggio' : 'Buonasera'
   const todayLabel = today.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
@@ -465,7 +466,7 @@ export default async function SuperAdminDashboard() {
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                 style={{ backgroundColor: '#1565C0' }}
               >
-                {u.full_name.charAt(0)}
+                {(u.full_name ?? '?').charAt(0)}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700 transition truncate">{u.full_name}</p>
