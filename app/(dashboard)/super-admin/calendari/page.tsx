@@ -7,8 +7,10 @@ export default async function CalendariPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const oggi = new Date().toISOString().split('T')[0]
-  const fra60 = new Date(Date.now() + 60 * 86400000).toISOString().split('T')[0]
+  // Fetch 2 months back + 4 months ahead for smooth month navigation
+  const now = new Date()
+  const da = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().split('T')[0]
+  const a = new Date(now.getFullYear(), now.getMonth() + 5, 0).toISOString().split('T')[0]
 
   const [{ data: eventi }, { data: corsi }, { data: docenti }] = await Promise.all([
     supabase
@@ -18,8 +20,8 @@ export default async function CalendariPage() {
         corso:courses(id, name),
         docenti:corso_eventi_docenti(docente_id, stato, profile:profiles(id, full_name))
       `)
-      .gte('data', oggi)
-      .lte('data', fra60)
+      .gte('data', da)
+      .lte('data', a)
       .order('data', { ascending: true })
       .order('ora_inizio', { ascending: true }),
     supabase.from('courses').select('id, name').eq('status', 'active').order('name'),
