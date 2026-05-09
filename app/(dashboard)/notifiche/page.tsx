@@ -42,6 +42,8 @@ export default async function NotifichePage({
   // Dati per i tab di invio
   let coursesForDocente: { id: string; name: string; status: string }[] = []
   let usersForAdmin: { id: string; full_name: string; role: string }[] = []
+  let coursesForAdmin: { id: string; name: string }[] = []
+  let groupsForAdmin: { id: string; name: string; courseId: string }[] = []
   let groupsForEmail: { id: string; name: string; courseId: string }[] = []
   let studentsForEmail: { id: string; full_name: string; email: string; courseId: string }[] = []
   let allCourses: { id: string; name: string; status: string }[] = []
@@ -57,12 +59,15 @@ export default async function NotifichePage({
           .map((r: any) => r.courses)
           .filter(Boolean) as { id: string; name: string; status: string }[]
     } else if (role === 'super_admin') {
-      const { data: usersData } = await supabase
-        .from('profiles')
-        .select('id, full_name, role')
-        .eq('is_active', true)
-        .order('full_name')
+      const admin = createAdminClient()
+      const [{ data: usersData }, { data: coursesData }, { data: groupsData }] = await Promise.all([
+        supabase.from('profiles').select('id, full_name, role').eq('is_active', true).order('full_name'),
+        admin.from('courses').select('id, name').order('name'),
+        admin.from('course_groups').select('id, name, course_id'),
+      ])
       usersForAdmin = usersData ?? []
+      coursesForAdmin = coursesData ?? []
+      groupsForAdmin = (groupsData ?? []).map(g => ({ id: g.id, name: g.name, courseId: g.course_id }))
     }
   }
 
@@ -179,7 +184,7 @@ export default async function NotifichePage({
             </p>
           </div>
           <div className="p-6">
-            <NotificheForm users={usersForAdmin} />
+            <NotificheForm users={usersForAdmin} courses={coursesForAdmin} groups={groupsForAdmin} />
           </div>
         </div>
       )}

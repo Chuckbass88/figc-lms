@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
   }
 
-  const { title, message, target, courseId } = await request.json()
-  // target: 'all' | 'docenti' | 'studenti' | 'course' | string (userId)
+  const { title, message, target, courseId, groupId } = await request.json()
+  // target: 'all' | 'docenti' | 'studenti' | 'course' | 'group' | string (userId)
 
   if (!title?.trim() || !message?.trim() || !target) {
     return NextResponse.json({ error: 'Campi obbligatori mancanti' }, { status: 400 })
@@ -55,6 +55,22 @@ export async function POST(request: Request) {
       .eq('course_id', courseId)
       .eq('status', 'active')
     userIds = data?.map(e => e.student_id) ?? []
+  } else if (target === 'group' && courseId && groupId) {
+    // Notifica ai membri di un microgruppo
+    if (profile.role === 'docente') {
+      const { data: assigned } = await supabase
+        .from('course_instructors')
+        .select('instructor_id')
+        .eq('course_id', courseId)
+        .eq('instructor_id', user.id)
+        .single()
+      if (!assigned) return NextResponse.json({ error: 'Non autorizzato per questo corso' }, { status: 403 })
+    }
+    const { data } = await supabase
+      .from('course_group_members')
+      .select('student_id')
+      .eq('group_id', groupId)
+    userIds = data?.map(m => m.student_id) ?? []
   } else {
     // userId specifico
     userIds = [target]
