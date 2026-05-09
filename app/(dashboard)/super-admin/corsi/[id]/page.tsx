@@ -139,58 +139,47 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
               <CambiaStatoBtn courseId={id} currentStatus={course.status} />
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <LinkInvitoBtn courseId={id} courseName={course.name} inviteToken={course.invite_token ?? null} />
-            <NotificaCorso courseId={id} courseName={course.name} />
-            <Link
-              href={`/super-admin/corsi/${id}/sessioni`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
-            >
+          {/* Nav sezioni — Panoramica sempre prima */}
+          <div className="flex gap-1.5 flex-wrap mt-1">
+            {/* Panoramica (pagina corrente — evidenziata) */}
+            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ backgroundColor: '#1B3768' }}>
+              <Layers size={14} /> Panoramica
+            </span>
+            <Link href={`/super-admin/corsi/${id}/sessioni`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
               <CalendarDays size={14} /> Sessioni
             </Link>
-            <Link
-              href={`/super-admin/corsi/${id}/programma`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 border border-blue-200 transition"
-            >
+            <Link href={`/super-admin/corsi/${id}/programma`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
               <CalendarRange size={14} /> Programma
             </Link>
-            <Link
-              href={`/docente/corsi/${id}/quiz`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
-            >
-              <ClipboardCheck size={14} /> Esami
-            </Link>
-            <Link
-              href={`/docente/corsi/${id}/task`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
-            >
-              <ClipboardList size={14} /> Task
-            </Link>
-            <Link
-              href={`/docente/corsi/${id}/annunci`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
-            >
-              <Megaphone size={14} /> Annunci
-            </Link>
-            <Link
-              href={`/super-admin/corsi/${id}/modifica`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
-            >
-              <Pencil size={14} /> Modifica
-            </Link>
-            <Link
-              href={`/super-admin/corsi/${id}/presenze`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
-            >
+            <Link href={`/super-admin/corsi/${id}/presenze`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
               <ClipboardList size={14} /> Presenze
             </Link>
-            <Link
-              href={`/super-admin/corsi/${id}/gestione`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#1EB8E5' }}
-            >
+            <Link href={`/super-admin/corsi/${id}/gestione`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
               <Users size={14} /> Partecipanti
             </Link>
+            <Link href={`/docente/corsi/${id}/quiz`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+              <ClipboardCheck size={14} /> Esami
+            </Link>
+            <Link href={`/docente/corsi/${id}/task`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+              <ClipboardList size={14} /> Task
+            </Link>
+            <Link href={`/docente/corsi/${id}/annunci`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+              <Megaphone size={14} /> Annunci
+            </Link>
+            <Link href={`/super-admin/corsi/${id}/modifica`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+              <Pencil size={14} /> Modifica
+            </Link>
+            <NotificaCorso courseId={id} courseName={course.name} />
+            <LinkInvitoBtn courseId={id} courseName={course.name} inviteToken={course.invite_token ?? null} />
           </div>
         </div>
       </div>

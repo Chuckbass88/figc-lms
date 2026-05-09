@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star, CalendarRange } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star, CalendarRange, CalendarDays } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 import ArchivioCorsoSection from '@/components/archivio/ArchivioCorsoSection'
 import LinkInvitoBtn from '@/app/(dashboard)/super-admin/corsi/[id]/LinkInvitoBtn'
@@ -107,54 +107,45 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
         {course.description && (
           <p className="text-gray-500 text-sm">{course.description}</p>
         )}
-        <div className="mt-3 flex items-center gap-3 flex-wrap">
-          <Link
-            href={`/docente/corsi/${id}/presenze`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition"
-            style={{ backgroundColor: '#1EB8E5' }}
-          >
+        {/* Nav sezioni — Panoramica sempre prima */}
+        <div className="mt-3 flex gap-1.5 flex-wrap">
+          {/* Panoramica (pagina corrente — evidenziata) */}
+          <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+            style={{ backgroundColor: '#1B3768' }}>
+            <Layers size={14} /> Panoramica
+          </span>
+          <Link href={`/docente/corsi/${id}/presenze`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
             <ClipboardList size={14} /> Registro Presenze
           </Link>
-          <Link
-            href={`/docente/corsi/${id}/task`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition"
-          >
+          <Link href={`/docente/corsi/${id}/programma`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+            <CalendarRange size={14} /> Programma
+          </Link>
+          <Link href={`/docente/corsi/${id}/task`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
             <ClipboardCheck size={14} /> Task
           </Link>
-          <Link
-            href={`/docente/corsi/${id}/quiz`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 transition"
-          >
+          <Link href={`/docente/corsi/${id}/quiz`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
             <ClipboardCheck size={14} /> Esami
           </Link>
-          <Link
-            href={`/docente/corsi/${id}/annunci`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition"
-          >
+          <Link href={`/docente/corsi/${id}/annunci`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
             <Megaphone size={14} /> Annunci
             {(announcementCount ?? 0) > 0 && (
-              <span className="ml-0.5 text-xs bg-indigo-200 text-indigo-800 px-1.5 py-0 rounded-full font-semibold">
+              <span className="ml-0.5 text-xs bg-gray-200 text-gray-700 px-1.5 rounded-full font-semibold">
                 {announcementCount}
               </span>
             )}
           </Link>
-          <Link
-            href={`/docente/corsi/${id}/gruppi`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-50 text-purple-700 hover:bg-purple-100 transition"
-          >
+          <Link href={`/docente/corsi/${id}/gruppi`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
             <UsersRound size={14} /> Microgruppi
           </Link>
-          <Link
-            href={`/docente/corsi/${id}/valutazioni`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 transition"
-          >
+          <Link href={`/docente/corsi/${id}/valutazioni`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
             <Star size={14} /> Valutazioni
-          </Link>
-          <Link
-            href={`/docente/corsi/${id}/programma`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition"
-          >
-            <CalendarRange size={14} /> Programma
           </Link>
           <LinkInvitoBtn courseId={id} courseName={course.name} inviteToken={(course as { invite_token?: string | null }).invite_token ?? null} />
         </div>
