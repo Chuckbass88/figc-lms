@@ -9,10 +9,11 @@ import NotificaRischioBtn from './NotificaRischioBtn'
 import CorsiAttiviTable from './CorsiAttiviTable'
 
 const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Admin', docente: 'Docente', studente: 'Corsista',
+  super_admin: 'Admin', admin: 'Admin', docente: 'Docente', studente: 'Corsista',
 }
 const ROLE_COLORS: Record<string, string> = {
   super_admin: 'bg-purple-100 text-purple-700',
+  admin: 'bg-purple-100 text-purple-700',
   docente: 'bg-blue-100 text-blue-700',
   studente: 'bg-green-100 text-green-700',
 }

@@ -252,7 +252,8 @@ function SidebarSection({
       setOpen(true)
       localStorage.setItem(storageKey, 'true')
     }
-  }, [isAnyChildActive]) // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAnyChildActive, storageKey])
 
   const toggle = () => {
     const next = !open
