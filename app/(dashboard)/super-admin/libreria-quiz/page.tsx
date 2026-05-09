@@ -29,7 +29,7 @@ export default async function LibreriaQuizAdminPage({
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Panoramica quiz
+          Panoramica esami
         </Link>
         <Link
           href="/super-admin/libreria-quiz?tab=domande"

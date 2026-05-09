@@ -125,9 +125,9 @@ export default async function DocenteQuizGlobale({
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">I Miei Quiz</h2>
+          <h2 className="text-2xl font-bold text-gray-900">I miei Esami</h2>
           <p className="text-gray-500 text-sm mt-1">
-            {totalQuizzesAll} quiz su {courseIds.length} {courseIds.length === 1 ? 'corso' : 'corsi'}
+            {totalQuizzesAll} esami su {courseIds.length} {courseIds.length === 1 ? 'corso' : 'corsi'}
             {totalPending > 0 && (
               <span className="text-amber-500 font-semibold"> · {totalPending} completamenti in attesa</span>
             )}
@@ -161,13 +161,13 @@ export default async function DocenteQuizGlobale({
       <div className="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-indigo-100 flex items-center gap-3 bg-indigo-50">
           <Archive size={15} className="text-indigo-600" />
-          <h3 className="font-semibold text-gray-900 text-sm flex-1">Quiz pre-archiviati</h3>
+          <h3 className="font-semibold text-gray-900 text-sm flex-1">Esami pre-archiviati</h3>
           <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">{templateList.length}</span>
           <CreaTemplateModal />
         </div>
         {templateList.length === 0 ? (
           <p className="px-5 py-6 text-sm text-gray-400 text-center">
-            Nessun quiz pre-archiviato. Crea un quiz base da riutilizzare nei corsi.
+            Nessun esame pre-archiviato. Crea un esame base da riutilizzare nei corsi.
           </p>
         ) : (
           <div className="divide-y divide-gray-50">
@@ -198,14 +198,14 @@ export default async function DocenteQuizGlobale({
       {allQuizzes.length === 0 && totalQuizzesAll === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <ClipboardCheck size={32} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">Nessun quiz creato</p>
-          <p className="text-gray-400 text-sm mt-1">Crea il primo quiz usando il pulsante in alto a destra.</p>
+          <p className="text-gray-500 font-medium">Nessun esame creato</p>
+          <p className="text-gray-400 text-sm mt-1">Crea il primo esame usando il pulsante in alto a destra.</p>
         </div>
       )}
 
       {allQuizzes.length === 0 && totalQuizzesAll > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-gray-500 text-sm">Nessun quiz con tipologia <strong>{categoria}</strong>.</p>
+          <p className="text-gray-500 text-sm">Nessun esame con tipologia <strong>{categoria}</strong>.</p>
         </div>
       )}
 

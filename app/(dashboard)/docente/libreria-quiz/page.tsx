@@ -29,7 +29,7 @@ export default async function LibreriaQuizDocentePage({
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          I miei quiz
+          I miei Esami
         </Link>
         <Link
           href="/docente/libreria-quiz?tab=domande"

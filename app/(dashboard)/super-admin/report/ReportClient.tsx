@@ -162,7 +162,7 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
   }
 
   function exportIdoneitaCSV() {
-    const headers = ['Corsista', 'Email', 'Presenze %', 'Idoneo', 'Corsi idonei', 'Quiz superati', 'Quiz totali', 'Task consegnati', 'Task totali']
+    const headers = ['Corsista', 'Email', 'Presenze %', 'Idoneo', 'Corsi idonei', 'Esami superati', 'Esami totali', 'Task consegnati', 'Task totali']
     const rows = filteredIdoneita.map(s => [
       s.full_name, s.email,
       s.presenzePct !== null ? `${s.presenzePct}%` : '—',
@@ -528,7 +528,7 @@ export default function ReportClient({ reports, studentReports, idoneitaReports 
                     </th>
                     <th className="text-center px-4 py-3">
                       <button onClick={() => handleIdoneitaSort('quizSuperati')} className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700 mx-auto">
-                        Quiz <IdoneitaSortIcon col="quizSuperati" />
+                        Esami <IdoneitaSortIcon col="quizSuperati" />
                       </button>
                     </th>
                     <th className="text-center px-4 py-3">

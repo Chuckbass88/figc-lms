@@ -460,7 +460,7 @@ export default async function DocenteDashboard() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
             <ClipboardCheck size={15} className="text-green-600" />
-            <h3 className="font-semibold text-gray-900 text-sm">Quiz recenti</h3>
+            <h3 className="font-semibold text-gray-900 text-sm">Esami recenti</h3>
           </div>
           <div className="divide-y divide-gray-50">
             {(recentQuizzes ?? []).map(q => {

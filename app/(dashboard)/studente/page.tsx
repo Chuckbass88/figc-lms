@@ -258,7 +258,7 @@ export default async function StudenteDashboard() {
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ClipboardCheck size={15} className="text-green-600" />
-              <h3 className="font-semibold text-gray-900 text-sm">I miei quiz</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">I miei Esami</h3>
             </div>
             <Link href="/studente/quiz" className="text-xs font-medium text-blue-600 hover:underline">
               Vedi tutti →

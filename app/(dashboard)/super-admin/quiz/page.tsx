@@ -128,7 +128,7 @@ export default async function AdminQuizPage({
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 text-center">
           <p className="text-3xl font-bold text-gray-900">{totalQuizzesAll}</p>
-          <p className="text-sm text-gray-500 font-medium mt-1">Quiz totali</p>
+          <p className="text-sm text-gray-500 font-medium mt-1">Esami totali</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 text-center">
           <p className="text-3xl font-bold text-blue-700">{totalAttempts}</p>
@@ -165,13 +165,13 @@ export default async function AdminQuizPage({
       <div className="bg-white rounded-xl border border-indigo-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-indigo-100 flex items-center gap-3 bg-indigo-50">
           <Archive size={15} className="text-indigo-600" />
-          <h3 className="font-semibold text-gray-900 text-sm flex-1">Quiz pre-archiviati</h3>
+          <h3 className="font-semibold text-gray-900 text-sm flex-1">Esami pre-archiviati</h3>
           <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">{templateList.length}</span>
           <CreaTemplateModal />
         </div>
         {templateList.length === 0 ? (
           <p className="px-5 py-6 text-sm text-gray-400 text-center">
-            Nessun quiz pre-archiviato. Crea un quiz base da riutilizzare nei corsi.
+            Nessun esame pre-archiviato. Crea un esame base da riutilizzare nei corsi.
           </p>
         ) : (
           <div className="divide-y divide-gray-50">

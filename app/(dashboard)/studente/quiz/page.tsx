@@ -25,7 +25,7 @@ export default async function StudenteQuizGlobale() {
     return (
       <div className="max-w-3xl mx-auto space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">I Miei Quiz</h2>
+          <h2 className="text-2xl font-bold text-gray-900">I miei Esami</h2>
           <p className="text-gray-500 text-sm mt-1">Nessun corso attivo.</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
@@ -139,7 +139,7 @@ export default async function StudenteQuizGlobale() {
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold text-gray-900">I Miei Quiz</h2>
+          <h2 className="text-2xl font-bold text-gray-900">I miei Esami</h2>
           <GuideTooltip
             title="📝 Come funzionano i Quiz"
             content="I quiz sono test di verifica assegnati dal docente. Clicca su un quiz per iniziarlo: risponderai a domande a scelta multipla. Una volta consegnato non puoi modificare le risposte. Controlla la data di scadenza!"
@@ -147,7 +147,7 @@ export default async function StudenteQuizGlobale() {
           />
         </div>
         <p className="text-gray-500 text-sm mt-1">
-          {visibleQuizzes.length} quiz · {completed.length} consegnati
+          {visibleQuizzes.length} esami · {completed.length} consegnati
           {pending.length > 0 && <span className="text-blue-500"> · {pending.length} da svolgere</span>}
         </p>
       </div>

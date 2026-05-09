@@ -158,7 +158,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
               href={`/docente/corsi/${id}/quiz`}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition"
             >
-              <ClipboardCheck size={14} /> Quiz
+              <ClipboardCheck size={14} /> Esami
             </Link>
             <Link
               href={`/docente/corsi/${id}/task`}

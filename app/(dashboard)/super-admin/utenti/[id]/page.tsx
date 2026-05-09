@@ -316,7 +316,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                                       ? <CheckCircle size={11} className="text-green-600" />
                                       : <ClipboardCheck size={11} className="text-gray-400" />
                                     }
-                                    Quiz: <span className="font-semibold text-green-700">{q.passed}</span>/{q.total} superati
+                                    Esami: <span className="font-semibold text-green-700">{q.passed}</span>/{q.total} superati
                                   </span>
                                 )}
                                 {t && t.total > 0 && (

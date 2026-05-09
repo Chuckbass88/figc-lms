@@ -420,7 +420,7 @@ export default function CalendarioVisuale({
             {[
               { label: 'Sessione',   cls: 'bg-blue-500' },
               { label: 'Task',       cls: 'bg-amber-500' },
-              { label: 'Quiz',       cls: 'bg-purple-500' },
+              { label: 'Esame',      cls: 'bg-purple-500' },
               { label: 'Promemoria', cls: 'bg-gray-400' },
             ].map(({ label, cls }) => (
               <div key={label} className="hidden sm:flex items-center gap-1.5">
@@ -589,7 +589,7 @@ export default function CalendarioVisuale({
                 {selectedEvts.map(ev => {
                   const { dot, pill } = getEvColor(ev)
                   const isLocked = ev.kind === 'quiz' && ev.available === false
-                  const kindLabel = ev.kind === 'session' ? 'Sessione' : ev.kind === 'task' ? 'Task' : isLocked ? 'In arrivo' : 'Quiz'
+                  const kindLabel = ev.kind === 'session' ? 'Sessione' : ev.kind === 'task' ? 'Task' : isLocked ? 'In arrivo' : 'Esame'
                   const badgeCls = ev.kind === 'session' ? 'bg-blue-50 text-blue-700' : ev.kind === 'task' ? 'bg-amber-50 text-amber-700' : isLocked ? 'bg-gray-50 text-gray-400' : 'bg-purple-50 text-purple-700'
 
                   const row = (

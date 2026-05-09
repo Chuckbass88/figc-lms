@@ -18,7 +18,7 @@ export default function EsportaIdoneitaCSV({
   students: StudentIdoneitaRow[]
 }) {
   function handleExport() {
-    const header = ['Corsista', 'Email', 'Presenze %', 'Idoneo (presenze)', 'Quiz completati', 'Quiz superati']
+    const header = ['Corsista', 'Email', 'Presenze %', 'Idoneo (presenze)', 'Esami completati', 'Esami superati']
     const rows = students.map(s => [
       s.full_name,
       s.email,

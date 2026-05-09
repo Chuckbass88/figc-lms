@@ -234,7 +234,7 @@ export default async function SuperAdminDashboard() {
           subtitle={totalPendingEvaluations > 0 ? 'consegne da valutare' : 'nessuna consegna in attesa'}
         />
         <StatsCard
-          title="Quiz"
+          title="Esami e Prove Int."
           value={totalQuizzes ?? 0}
           icon={<ClipboardList size={20} />}
           variant="purple"
@@ -524,7 +524,7 @@ export default async function SuperAdminDashboard() {
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ClipboardList size={15} className="text-purple-600" />
-              <h3 className="font-semibold text-gray-900 text-sm">Riepilogo quiz</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">Riepilogo esami e prove</h3>
             </div>
             <Link href="/super-admin/quiz" className="text-xs font-medium text-blue-600 hover:underline">
               Vedi tutti →
@@ -533,7 +533,7 @@ export default async function SuperAdminDashboard() {
           <div className="grid grid-cols-3 divide-x divide-gray-100">
             <div className="px-6 py-5 text-center">
               <p className="text-2xl font-black text-gray-900">{totalQuizzes ?? 0}</p>
-              <p className="text-xs text-gray-500 mt-1">Quiz pubblicati</p>
+              <p className="text-xs text-gray-500 mt-1">Esami pubblicati</p>
             </div>
             <div className="px-6 py-5 text-center">
               <p className="text-2xl font-black text-gray-900">{totalAttempts ?? 0}</p>
