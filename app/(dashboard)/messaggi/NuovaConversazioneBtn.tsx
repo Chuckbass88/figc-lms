@@ -23,7 +23,7 @@ const ROLE_FILTERS = [
   { value: 'super_admin', label: 'Admin' },
 ]
 
-type Mode = 'singolo' | 'corso' | 'microgruppo'
+type Mode = 'singolo' | 'gruppo' | 'corso' | 'microgruppo'
 
 export default function NuovaConversazioneBtn({
   currentUserId,
@@ -132,6 +132,22 @@ export default function NuovaConversazioneBtn({
     }
   }
 
+  async function handleCreaChatGruppo() {
+    if (!selectedCourse || !message.trim()) return
+    setSending(true)
+    const res = await fetch('/api/messaggi/crea-gruppo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId: selectedCourse.id, content: message.trim() }),
+    })
+    const data = await res.json()
+    setSending(false)
+    if (res.ok && data.conversationId) {
+      setOpen(false)
+      router.push(`/messaggi/${data.conversationId}`)
+    }
+  }
+
   const visibleFilters = currentUserRole === 'super_admin'
     ? ROLE_FILTERS
     : ROLE_FILTERS.filter(f => f.value !== 'super_admin')
@@ -163,7 +179,8 @@ export default function NuovaConversazioneBtn({
               <div className="flex border-b border-gray-100">
                 {([
                   { key: 'singolo', label: 'Singolo', icon: null },
-                  { key: 'corso', label: 'Corso intero', icon: <BookOpen size={11} /> },
+                  { key: 'gruppo', label: 'Chat gruppo', icon: <Users size={11} /> },
+                  { key: 'corso', label: 'Broadcast corso', icon: <BookOpen size={11} /> },
                   { key: 'microgruppo', label: 'Microgruppo', icon: <Users size={11} /> },
                 ] as { key: Mode; label: string; icon: React.ReactNode }[]).map(t => (
                   <button
@@ -259,6 +276,62 @@ export default function NuovaConversazioneBtn({
                     </button>
                   </>
                 )
+              )}
+
+              {/* ── MODO GRUPPO (chat condivisa) ── */}
+              {mode === 'gruppo' && (
+                <>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Crea una <strong>chat di gruppo</strong> condivisa con tutti i corsisti e docenti del corso. Tutti vedranno i messaggi degli altri.
+                  </p>
+                  {loadingCourses && <p className="text-xs text-gray-400 text-center py-2">Caricamento corsi...</p>}
+                  {!loadingCourses && !selectedCourse && (
+                    <div className="space-y-1.5">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Seleziona corso</p>
+                      {courses.length === 0 && <p className="text-xs text-gray-400 text-center py-3">Nessun corso disponibile</p>}
+                      <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50 max-h-52 overflow-y-auto">
+                        {courses.map(c => (
+                          <button
+                            key={c.id}
+                            onClick={() => setSelectedCourse(c)}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left"
+                          >
+                            <Users size={14} className="text-blue-400 flex-shrink-0" />
+                            <p className="text-sm font-medium text-gray-900 truncate flex-1">{c.name}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {selectedCourse && (
+                    <>
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl">
+                        <Users size={14} className="text-blue-600 flex-shrink-0" />
+                        <p className="text-sm font-semibold text-gray-900 truncate flex-1">{selectedCourse.name}</p>
+                        <button onClick={() => setSelectedCourse(null)} className="text-gray-400 hover:text-red-500 transition">
+                          <X size={14} />
+                        </button>
+                      </div>
+                      <textarea
+                        autoFocus value={message} onChange={e => setMessage(e.target.value)}
+                        placeholder="Scrivi il primo messaggio della chat di gruppo..."
+                        rows={3}
+                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      />
+                      <button
+                        onClick={handleCreaChatGruppo}
+                        disabled={!message.trim() || sending}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
+                        style={{ backgroundColor: '#1EB8E5' }}
+                      >
+                        {sending
+                          ? <><Loader2 size={14} className="animate-spin" /> Creazione...</>
+                          : <><Users size={14} /> Crea chat di gruppo</>
+                        }
+                      </button>
+                    </>
+                  )}
+                </>
               )}
 
               {/* ── MODO CORSO / MICROGRUPPO ── */}
