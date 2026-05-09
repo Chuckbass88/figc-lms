@@ -8,6 +8,7 @@ import type { UserRole } from '@/lib/types'
 
 const ROLE_ROUTES: Record<UserRole, string> = {
   super_admin: '/super-admin',
+  admin: '/super-admin',
   docente: '/docente',
   studente: '/studente',
 }
