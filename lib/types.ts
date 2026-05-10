@@ -241,7 +241,7 @@ export interface CourseTemplate {
   id: string
   nome: string
   tipologia: string | null
-  struttura_tipo?: 'giorni' | 'moduli'
+  struttura_tipo: 'giorni' | 'moduli'
   materiali_tags: string[]
   quiz_tags: string[]
   parametri: {
