@@ -20,10 +20,16 @@ export default function ArchivioPaginaClient({
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploadForm, setUploadForm] = useState({ nome: '', area_id: '', corso_id: '' })
 
+  // Corsi filtrati per tipologia (usato in tutti filtrati + vista corso)
+  const corsiIdPerTipologia = filtroTipologia
+    ? new Set(corsi.filter(c => c.category === filtroTipologia).map(c => c.id))
+    : null
+
   const filtrati = localFiles.filter(f => {
     if (filtroArea && f.area_id !== filtroArea) return false
     if (filtroCorso && f.corso_origine_id !== filtroCorso) return false
     if (filtroTipo && f.tipo !== filtroTipo) return false
+    if (corsiIdPerTipologia && f.corso_origine_id && !corsiIdPerTipologia.has(f.corso_origine_id)) return false
     return true
   })
 
@@ -32,7 +38,7 @@ export default function ArchivioPaginaClient({
   // Tipologie di corso disponibili (dai corsi caricati)
   const tipologieCorso = [...new Set(corsi.map(c => c.category).filter(Boolean))].sort() as string[]
 
-  // Corsi filtrati per tipologia (per la vista "per corso")
+  // Corsi filtrati per tipologia (per la vista "per corso" e dropdown corso specifico)
   const corsiFiltrati = filtroTipologia
     ? corsi.filter(c => c.category === filtroTipologia)
     : corsi
@@ -165,7 +171,7 @@ export default function ArchivioPaginaClient({
           ))}
         </div>
 
-        {/* Filtro materia */}
+        {/* Filtro materia (visibile in tutti e per-materia) */}
         {(vista === 'tutti' || vista === 'area') && aree.length > 0 && (
           <select value={filtroArea} onChange={e => setFiltroArea(e.target.value)}
             className="text-xs rounded-xl px-3 py-2 border bg-white"
@@ -175,8 +181,8 @@ export default function ArchivioPaginaClient({
           </select>
         )}
 
-        {/* Filtro tipologia corso (solo vista corso) */}
-        {vista === 'corso' && tipologieCorso.length > 0 && (
+        {/* Filtro tipologia corso — sempre visibile se ci sono tipologie */}
+        {tipologieCorso.length > 0 && (
           <select value={filtroTipologia} onChange={e => { setFiltroTipologia(e.target.value); setFiltroCorso('') }}
             className="text-xs rounded-xl px-3 py-2 border bg-white"
             style={{ borderColor: 'rgba(27,55,104,0.2)', color: '#1B3768' }}>
