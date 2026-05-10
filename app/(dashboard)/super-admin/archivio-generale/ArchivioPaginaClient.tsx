@@ -1,10 +1,86 @@
 'use client'
 import { useState, useRef } from 'react'
-import { Upload, FileText, Filter, X, AlertCircle, FolderOpen, GraduationCap, List } from 'lucide-react'
+import { Upload, FileText, X, AlertCircle, FolderOpen, GraduationCap, List, ChevronDown, Check } from 'lucide-react'
 import type { ArchiviFile, Area } from '@/lib/types'
+import { TIPOLOGIE_CORSO } from '@/lib/tipologie-corso'
 
 type Corso = { id: string; name: string; category?: string | null }
 type Vista = 'tutti' | 'area' | 'corso'
+
+// ─── Chip multi-select per le tipologie corso ──────────────────────────────────
+
+function TipologieSelector({
+  selected, onChange,
+}: { selected: string[]; onChange: (v: string[]) => void }) {
+  const [open, setOpen] = useState(false)
+
+  function toggle(t: string) {
+    onChange(selected.includes(t) ? selected.filter(s => s !== t) : [...selected, t])
+  }
+
+  return (
+    <div className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm border bg-white text-left"
+        style={{ borderColor: 'rgba(27,55,104,0.2)', color: selected.length ? '#1B3768' : 'rgba(27,55,104,0.4)' }}
+      >
+        <span className="truncate">
+          {selected.length === 0
+            ? 'Tipologia corso (tag)'
+            : selected.length === 1
+              ? selected[0]
+              : `${selected.length} tipologie selezionate`}
+        </span>
+        <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden w-72 max-h-64 overflow-y-auto">
+            {TIPOLOGIE_CORSO.map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => toggle(t)}
+                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-gray-50 transition text-left"
+                style={{ color: '#1B3768' }}
+              >
+                <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border transition ${
+                  selected.includes(t) ? 'border-transparent' : 'border-gray-300'
+                }`} style={selected.includes(t) ? { backgroundColor: '#1EB8E5' } : {}}>
+                  {selected.includes(t) && <Check size={10} className="text-white" strokeWidth={3} />}
+                </div>
+                {t}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Chips selezionate */}
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {selected.map(t => (
+            <span key={t} className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: 'rgba(30,184,229,0.12)', color: '#0891B2' }}>
+              {t}
+              <button type="button" onClick={() => toggle(t)} className="hover:opacity-70 transition">
+                <X size={10} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Main Client Component ─────────────────────────────────────────────────────
 
 export default function ArchivioPaginaClient({
   files, aree, corsi,
@@ -18,9 +94,9 @@ export default function ArchivioPaginaClient({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [localFiles, setLocalFiles] = useState(files)
   const fileRef = useRef<HTMLInputElement>(null)
-  const [uploadForm, setUploadForm] = useState({ nome: '', area_id: '', corso_id: '' })
+  const [uploadForm, setUploadForm] = useState({ nome: '', area_id: '', corso_id: '', tags: [] as string[] })
 
-  // Corsi filtrati per tipologia (usato in tutti filtrati + vista corso)
+  // Corsi filtrati per tipologia (filtro lista)
   const corsiIdPerTipologia = filtroTipologia
     ? new Set(corsi.filter(c => c.category === filtroTipologia).map(c => c.id))
     : null
@@ -35,10 +111,10 @@ export default function ArchivioPaginaClient({
 
   const tipi = [...new Set(localFiles.map(f => f.tipo).filter(Boolean))] as string[]
 
-  // Tipologie di corso disponibili (dai corsi caricati)
+  // Tipologie disponibili dai corsi (per filtro lista)
   const tipologieCorso = [...new Set(corsi.map(c => c.category).filter(Boolean))].sort() as string[]
 
-  // Corsi filtrati per tipologia (per la vista "per corso" e dropdown corso specifico)
+  // Corsi filtrati per tipologia (per vista corso + dropdown specifico)
   const corsiFiltrati = filtroTipologia
     ? corsi.filter(c => c.category === filtroTipologia)
     : corsi
@@ -55,11 +131,12 @@ export default function ArchivioPaginaClient({
       fd.append('nome', uploadForm.nome)
       if (uploadForm.area_id) fd.append('area_id', uploadForm.area_id)
       if (uploadForm.corso_id) fd.append('corso_id', uploadForm.corso_id)
+      if (uploadForm.tags.length) fd.append('tags', uploadForm.tags.join(','))
       const res = await fetch('/api/archivio/upload', { method: 'POST', body: fd })
       const json = await res.json()
       if (json.success && json.file) {
         setLocalFiles(prev => [json.file, ...prev])
-        setUploadForm({ nome: '', area_id: '', corso_id: '' })
+        setUploadForm({ nome: '', area_id: '', corso_id: '', tags: [] })
         if (fileRef.current) fileRef.current.value = ''
       } else {
         setUploadError(json.error ?? 'Errore durante il caricamento. Riprova.')
@@ -76,9 +153,9 @@ export default function ArchivioPaginaClient({
     const materiaNome = aree.find(a => a.id === f.area_id)?.nome
     const corsoNome = corsi.find(c => c.id === f.corso_origine_id)?.name
     return (
-      <div className="flex items-center gap-3 px-5 py-3 border-t hover:bg-gray-50 transition group"
+      <div className="flex items-start gap-3 px-5 py-3 border-t hover:bg-gray-50 transition group"
         style={{ borderColor: 'rgba(27,55,104,0.06)' }}>
-        <FileText size={16} style={{ color: '#0891B2', flexShrink: 0 }} />
+        <FileText size={16} style={{ color: '#0891B2', flexShrink: 0, marginTop: 2 }} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate" style={{ color: '#1B3768' }}>{f.nome}</p>
           <p className="text-xs mt-0.5 flex gap-2 flex-wrap" style={{ color: 'rgba(27,55,104,0.45)' }}>
@@ -87,9 +164,20 @@ export default function ArchivioPaginaClient({
             {materiaNome && vista !== 'area' && <span>· {materiaNome}</span>}
             {corsoNome && vista !== 'corso' && <span>· {corsoNome}</span>}
           </p>
+          {/* Tag tipologie */}
+          {f.tags && f.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {f.tags.map(tag => (
+                <span key={tag} className="text-xs px-1.5 py-0.5 rounded-full font-medium"
+                  style={{ background: 'rgba(30,184,229,0.1)', color: '#0891B2' }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <a href={f.file_url} target="_blank" rel="noopener noreferrer"
-          className="text-xs px-3 py-1.5 rounded-lg font-medium transition opacity-0 group-hover:opacity-100"
+          className="text-xs px-3 py-1.5 rounded-lg font-medium transition opacity-0 group-hover:opacity-100 flex-shrink-0"
           style={{ background: 'rgba(8,145,178,0.08)', color: '#0891B2' }}>
           Scarica
         </a>
@@ -122,25 +210,33 @@ export default function ArchivioPaginaClient({
           </div>
         )}
 
+        {/* Riga 1: nome + materia + corso origine */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input type="text" placeholder="Nome documento *" required
             value={uploadForm.nome} onChange={e => setUploadForm(p => ({ ...p, nome: e.target.value }))}
-            className="rounded-xl px-3 py-2 text-sm border col-span-1 sm:col-span-1"
+            className="rounded-xl px-3 py-2 text-sm border"
             style={{ borderColor: 'rgba(27,55,104,0.2)', color: '#1B3768' }} />
           <select value={uploadForm.area_id} onChange={e => setUploadForm(p => ({ ...p, area_id: e.target.value }))}
-            className="rounded-xl px-3 py-2 text-sm border"
+            className="rounded-xl px-3 py-2 text-sm border bg-white"
             style={{ borderColor: 'rgba(27,55,104,0.2)', color: uploadForm.area_id ? '#1B3768' : 'rgba(27,55,104,0.4)' }}>
             <option value="">Nessuna materia</option>
             {aree.map(a => <option key={a.id} value={a.id}>{a.nome}</option>)}
           </select>
           <select value={uploadForm.corso_id} onChange={e => setUploadForm(p => ({ ...p, corso_id: e.target.value }))}
-            className="rounded-xl px-3 py-2 text-sm border"
+            className="rounded-xl px-3 py-2 text-sm border bg-white"
             style={{ borderColor: 'rgba(27,55,104,0.2)', color: uploadForm.corso_id ? '#1B3768' : 'rgba(27,55,104,0.4)' }}>
             <option value="">Nessun corso</option>
             {corsi.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
 
+        {/* Riga 2: tipologie corso (tag abilitazione) */}
+        <TipologieSelector
+          selected={uploadForm.tags}
+          onChange={tags => setUploadForm(p => ({ ...p, tags }))}
+        />
+
+        {/* Riga 3: file + pulsante */}
         <div className="flex gap-3 items-center">
           <input ref={fileRef} type="file" accept=".pdf,.pptx,.ppt,.doc,.docx,.xlsx,.xls,.mp4,.mov"
             className="text-sm flex-1" required />
@@ -181,7 +277,7 @@ export default function ArchivioPaginaClient({
           </select>
         )}
 
-        {/* Filtro tipologia corso — sempre visibile se ci sono tipologie */}
+        {/* Filtro tipologia corso — sempre visibile */}
         {tipologieCorso.length > 0 && (
           <select value={filtroTipologia} onChange={e => { setFiltroTipologia(e.target.value); setFiltroCorso('') }}
             className="text-xs rounded-xl px-3 py-2 border bg-white"
@@ -247,7 +343,6 @@ export default function ArchivioPaginaClient({
                 </div>
               )
             })}
-          {/* Senza materia */}
           {(() => {
             const senzaMateria = filtrati.filter(f => !f.area_id)
             if (!filtroArea && senzaMateria.length > 0) return (
@@ -272,7 +367,6 @@ export default function ArchivioPaginaClient({
       {/* Contenuto — per corso */}
       {vista === 'corso' && (
         <div className="space-y-4">
-          {/* Separatore tipologia (se filtro attivo, mostra label) */}
           {filtroTipologia && (
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full"

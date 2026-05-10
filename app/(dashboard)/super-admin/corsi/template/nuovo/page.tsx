@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Minus, ArrowLeft, Clock } from 'lucide-react'
+import { TIPOLOGIE_CORSO } from '@/lib/tipologie-corso'
 
 interface Materia { nome: string; ore: number }
 interface Fascia { inizio: string; fine: string; materia: string }
@@ -108,9 +109,12 @@ export default function NuovoTemplatePage() {
           className={inputCls} style={inputStyle} />
 
         <div className="grid grid-cols-2 gap-3">
-          <input type="text" placeholder="Tipologia (es. UEFA A)"
+          <select
             value={form.tipologia} onChange={e => setForm(p => ({ ...p, tipologia: e.target.value }))}
-            className={inputCls} style={inputStyle} />
+            className={inputCls} style={{ ...inputStyle, color: form.tipologia ? '#1B3768' : 'rgba(27,55,104,0.4)' }}>
+            <option value="">Tipologia corso</option>
+            {TIPOLOGIE_CORSO.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
           <div>
             <label className="text-xs font-medium block mb-1" style={{ color: 'rgba(27,55,104,0.6)' }}>
               Durata totale (giorni)
