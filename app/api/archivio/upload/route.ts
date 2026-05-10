@@ -26,19 +26,21 @@ export async function POST(req: NextRequest) {
   const ext = file.name.split('.').pop()?.toUpperCase()
   const tipo = ['PDF', 'PPTX', 'DOC', 'XLSX'].includes(ext ?? '') ? ext : 'ALTRO'
 
+  // Usa document-library (bucket esistente con policy corrette)
   const timestamp = Date.now()
-  const storagePath = `archivio/${user.id}/${timestamp}_${file.name}`
-  const arrayBuffer = await file.arrayBuffer()
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const storagePath = `archivio-generale/${user.id}/${timestamp}_${safeName}`
+
   const { error: uploadError } = await supabase.storage
-    .from('course-materials')
-    .upload(storagePath, arrayBuffer, { contentType: file.type })
+    .from('document-library')
+    .upload(storagePath, file, { contentType: file.type, upsert: false })
 
   if (uploadError) {
     return NextResponse.json({ error: 'Errore upload: ' + uploadError.message }, { status: 500 })
   }
 
   const { data: { publicUrl } } = supabase.storage
-    .from('course-materials').getPublicUrl(storagePath)
+    .from('document-library').getPublicUrl(storagePath)
 
   const { data: archivioRecord, error: dbError } = await supabase
     .from('archivio_generale')
@@ -57,6 +59,8 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (dbError) {
+    // Rollback storage
+    await supabase.storage.from('document-library').remove([storagePath])
     return NextResponse.json({ error: 'Errore DB: ' + dbError.message }, { status: 500 })
   }
 

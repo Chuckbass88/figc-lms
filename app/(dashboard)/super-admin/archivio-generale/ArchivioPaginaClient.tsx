@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
-import { Upload, FileText, X, AlertCircle, FolderOpen, GraduationCap, List, ChevronDown, Check } from 'lucide-react'
+import { Upload, FileText, X, AlertCircle, FolderOpen, GraduationCap, List, ChevronDown, Check, Trash2, Loader2 } from 'lucide-react'
 import type { ArchiviFile, Area } from '@/lib/types'
 import { TIPOLOGIE_CORSO } from '@/lib/tipologie-corso'
 
@@ -20,24 +20,23 @@ function TipologieSelector({
 
   return (
     <div className="relative">
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm border bg-white text-left"
-        style={{ borderColor: 'rgba(27,55,104,0.2)', color: selected.length ? '#1B3768' : 'rgba(27,55,104,0.4)' }}
+        className="w-full flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm border bg-white text-left transition"
+        style={{ borderColor: selected.length ? '#1EB8E5' : 'rgba(27,55,104,0.2)', color: selected.length ? '#0891B2' : 'rgba(27,55,104,0.4)' }}
       >
         <span className="truncate">
           {selected.length === 0
-            ? 'Tipologia corso (tag)'
+            ? 'Tipologia corso (tag abilitazione) *'
             : selected.length === 1
               ? selected[0]
               : `${selected.length} tipologie selezionate`}
         </span>
-        <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          style={{ color: '#0891B2' }} />
       </button>
 
-      {/* Dropdown */}
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
@@ -62,7 +61,6 @@ function TipologieSelector({
         </>
       )}
 
-      {/* Chips selezionate */}
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {selected.map(t => (
@@ -80,6 +78,80 @@ function TipologieSelector({
   )
 }
 
+// ─── Drop zone ─────────────────────────────────────────────────────────────────
+
+function DropZone({ file, onFile }: { file: File | null; onFile: (f: File) => void }) {
+  const [dragging, setDragging] = useState(false)
+  const ref = useRef<HTMLInputElement>(null)
+
+  function onDragOver(e: React.DragEvent) { e.preventDefault(); setDragging(true) }
+  function onDragLeave(e: React.DragEvent) { e.preventDefault(); setDragging(false) }
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault(); setDragging(false)
+    const f = e.dataTransfer.files?.[0]
+    if (f) onFile(f)
+  }
+
+  return (
+    <div
+      onClick={() => ref.current?.click()}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      className="relative cursor-pointer rounded-xl border-2 border-dashed transition-all select-none"
+      style={{
+        borderColor: dragging ? '#1EB8E5' : file ? '#1EB8E5' : 'rgba(27,55,104,0.25)',
+        background: dragging ? 'rgba(30,184,229,0.06)' : file ? 'rgba(30,184,229,0.04)' : 'rgba(27,55,104,0.02)',
+      }}
+    >
+      <input
+        ref={ref}
+        type="file"
+        className="hidden"
+        accept=".pdf,.pptx,.ppt,.doc,.docx,.xlsx,.xls,.mp4,.mov"
+        onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f) }}
+      />
+      <div className="flex flex-col items-center justify-center gap-2 py-7 px-4 text-center">
+        {file ? (
+          <>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(30,184,229,0.12)' }}>
+              <Check size={18} style={{ color: '#1EB8E5' }} />
+            </div>
+            <p className="text-sm font-semibold" style={{ color: '#1B3768' }}>{file.name}</p>
+            <p className="text-xs" style={{ color: 'rgba(27,55,104,0.45)' }}>
+              {file.size < 1024 * 1024
+                ? `${(file.size / 1024).toFixed(1)} KB`
+                : `${(file.size / (1024 * 1024)).toFixed(1)} MB`}
+              · clicca per cambiare
+            </p>
+          </>
+        ) : dragging ? (
+          <>
+            <Upload size={22} style={{ color: '#1EB8E5' }} />
+            <p className="text-sm font-semibold" style={{ color: '#1EB8E5' }}>Rilascia il file qui</p>
+          </>
+        ) : (
+          <>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(27,55,104,0.06)' }}>
+              <Upload size={18} style={{ color: 'rgba(27,55,104,0.4)' }} />
+            </div>
+            <div>
+              <p className="text-sm font-medium" style={{ color: '#1B3768' }}>
+                Trascina un file o <span style={{ color: '#1EB8E5' }}>sfoglia</span>
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(27,55,104,0.4)' }}>
+                PDF, PPTX, DOC, XLSX, MP4 — max 50 MB
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Client Component ─────────────────────────────────────────────────────
 
 export default function ArchivioPaginaClient({
@@ -93,10 +165,10 @@ export default function ArchivioPaginaClient({
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [localFiles, setLocalFiles] = useState(files)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [uploadForm, setUploadForm] = useState({ nome: '', area_id: '', corso_id: '', tags: [] as string[] })
 
-  // Corsi filtrati per tipologia (filtro lista)
   const corsiIdPerTipologia = filtroTipologia
     ? new Set(corsi.filter(c => c.category === filtroTipologia).map(c => c.id))
     : null
@@ -110,24 +182,22 @@ export default function ArchivioPaginaClient({
   })
 
   const tipi = [...new Set(localFiles.map(f => f.tipo).filter(Boolean))] as string[]
-
-  // Tipologie disponibili dai corsi (per filtro lista)
   const tipologieCorso = [...new Set(corsi.map(c => c.category).filter(Boolean))].sort() as string[]
+  const corsiFiltrati = filtroTipologia ? corsi.filter(c => c.category === filtroTipologia) : corsi
 
-  // Corsi filtrati per tipologia (per vista corso + dropdown specifico)
-  const corsiFiltrati = filtroTipologia
-    ? corsi.filter(c => c.category === filtroTipologia)
-    : corsi
+  function handleFileSelected(f: File) {
+    setSelectedFile(f)
+    if (!uploadForm.nome) setUploadForm(p => ({ ...p, nome: f.name.replace(/\.[^/.]+$/, '') }))
+  }
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
-    const file = fileRef.current?.files?.[0]
-    if (!file || !uploadForm.nome) return
+    if (!selectedFile || !uploadForm.nome) return
     setUploading(true)
     setUploadError(null)
     try {
       const fd = new FormData()
-      fd.append('file', file)
+      fd.append('file', selectedFile)
       fd.append('nome', uploadForm.nome)
       if (uploadForm.area_id) fd.append('area_id', uploadForm.area_id)
       if (uploadForm.corso_id) fd.append('corso_id', uploadForm.corso_id)
@@ -137,9 +207,9 @@ export default function ArchivioPaginaClient({
       if (json.success && json.file) {
         setLocalFiles(prev => [json.file, ...prev])
         setUploadForm({ nome: '', area_id: '', corso_id: '', tags: [] })
-        if (fileRef.current) fileRef.current.value = ''
+        setSelectedFile(null)
       } else {
-        setUploadError(json.error ?? 'Errore durante il caricamento. Riprova.')
+        setUploadError(json.error ?? 'Errore durante il caricamento.')
       }
     } catch {
       setUploadError('Errore di rete. Controlla la connessione e riprova.')
@@ -148,14 +218,36 @@ export default function ArchivioPaginaClient({
     }
   }
 
+  async function handleDelete(f: ArchiviFile) {
+    if (!confirm(`Eliminare "${f.nome}"?`)) return
+    setDeletingId(f.id)
+    try {
+      const res = await fetch('/api/archivio/elimina', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: f.id }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setLocalFiles(prev => prev.filter(x => x.id !== f.id))
+      } else {
+        alert(json.error ?? 'Errore durante l\'eliminazione.')
+      }
+    } catch {
+      alert('Errore di rete.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   function FileRow({ f }: { f: ArchiviFile }) {
     const sizeKb = f.file_size ? Math.round(f.file_size / 1024) : null
     const materiaNome = aree.find(a => a.id === f.area_id)?.nome
     const corsoNome = corsi.find(c => c.id === f.corso_origine_id)?.name
     return (
-      <div className="flex items-start gap-3 px-5 py-3 border-t hover:bg-gray-50 transition group"
+      <div className="flex items-start gap-3 px-5 py-3.5 border-t hover:bg-gray-50 transition group"
         style={{ borderColor: 'rgba(27,55,104,0.06)' }}>
-        <FileText size={16} style={{ color: '#0891B2', flexShrink: 0, marginTop: 2 }} />
+        <FileText size={16} style={{ color: '#0891B2', flexShrink: 0, marginTop: 3 }} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate" style={{ color: '#1B3768' }}>{f.nome}</p>
           <p className="text-xs mt-0.5 flex gap-2 flex-wrap" style={{ color: 'rgba(27,55,104,0.45)' }}>
@@ -164,9 +256,8 @@ export default function ArchivioPaginaClient({
             {materiaNome && vista !== 'area' && <span>· {materiaNome}</span>}
             {corsoNome && vista !== 'corso' && <span>· {corsoNome}</span>}
           </p>
-          {/* Tag tipologie */}
           {f.tags && f.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
+            <div className="flex flex-wrap gap-1 mt-1.5">
               {f.tags.map(tag => (
                 <span key={tag} className="text-xs px-1.5 py-0.5 rounded-full font-medium"
                   style={{ background: 'rgba(30,184,229,0.1)', color: '#0891B2' }}>
@@ -176,11 +267,24 @@ export default function ArchivioPaginaClient({
             </div>
           )}
         </div>
-        <a href={f.file_url} target="_blank" rel="noopener noreferrer"
-          className="text-xs px-3 py-1.5 rounded-lg font-medium transition opacity-0 group-hover:opacity-100 flex-shrink-0"
-          style={{ background: 'rgba(8,145,178,0.08)', color: '#0891B2' }}>
-          Scarica
-        </a>
+        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition">
+          <a href={f.file_url} target="_blank" rel="noopener noreferrer"
+            className="text-xs px-3 py-1.5 rounded-lg font-medium transition"
+            style={{ background: 'rgba(8,145,178,0.08)', color: '#0891B2' }}>
+            Scarica
+          </a>
+          <button
+            onClick={() => handleDelete(f)}
+            disabled={deletingId === f.id}
+            className="p-1.5 rounded-lg transition hover:bg-red-50 disabled:opacity-50"
+            title="Elimina"
+            style={{ color: 'rgba(27,55,104,0.35)' }}
+          >
+            {deletingId === f.id
+              ? <Loader2 size={14} className="animate-spin" />
+              : <Trash2 size={14} className="hover:text-red-500" />}
+          </button>
+        </div>
       </div>
     )
   }
@@ -196,25 +300,26 @@ export default function ArchivioPaginaClient({
       <h1 className="text-2xl font-bold" style={{ color: '#1B3768' }}>Archivio Generale</h1>
 
       {/* Form upload */}
-      <form onSubmit={handleUpload} className="rounded-2xl p-5 space-y-3"
-        style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(27,55,104,0.1)' }}>
+      <form onSubmit={handleUpload} className="rounded-2xl p-5 space-y-4"
+        style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(27,55,104,0.12)', boxShadow: '0 1px 4px rgba(27,55,104,0.06)' }}>
         <h2 className="text-sm font-semibold" style={{ color: '#1B3768' }}>Carica nuovo file</h2>
 
         {uploadError && (
           <div className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm bg-red-50 border border-red-200 text-red-700">
             <AlertCircle size={15} className="flex-shrink-0" />
             <span>{uploadError}</span>
-            <button type="button" onClick={() => setUploadError(null)} className="ml-auto">
-              <X size={14} />
-            </button>
+            <button type="button" onClick={() => setUploadError(null)} className="ml-auto"><X size={14} /></button>
           </div>
         )}
 
-        {/* Riga 1: nome + materia + corso origine */}
+        {/* Drop zone — evidenziata */}
+        <DropZone file={selectedFile} onFile={handleFileSelected} />
+
+        {/* Metadati */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input type="text" placeholder="Nome documento *" required
             value={uploadForm.nome} onChange={e => setUploadForm(p => ({ ...p, nome: e.target.value }))}
-            className="rounded-xl px-3 py-2 text-sm border"
+            className="rounded-xl px-3 py-2 text-sm border bg-white"
             style={{ borderColor: 'rgba(27,55,104,0.2)', color: '#1B3768' }} />
           <select value={uploadForm.area_id} onChange={e => setUploadForm(p => ({ ...p, area_id: e.target.value }))}
             className="rounded-xl px-3 py-2 text-sm border bg-white"
@@ -230,35 +335,26 @@ export default function ArchivioPaginaClient({
           </select>
         </div>
 
-        {/* Riga 2: tipologie corso (tag abilitazione) */}
+        {/* Tag tipologie */}
         <TipologieSelector
           selected={uploadForm.tags}
           onChange={tags => setUploadForm(p => ({ ...p, tags }))}
         />
 
-        {/* Riga 3: file + pulsante */}
-        <div className="flex gap-3 items-center">
-          <input ref={fileRef} type="file" accept=".pdf,.pptx,.ppt,.doc,.docx,.xlsx,.xls,.mp4,.mov"
-            className="text-sm flex-1" required />
-          <button type="submit" disabled={uploading}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition flex-shrink-0"
-            style={{ background: uploading ? 'rgba(30,184,229,0.5)' : '#1EB8E5' }}>
-            <Upload size={15} />
-            {uploading ? 'Caricamento...' : 'Carica'}
-          </button>
-        </div>
+        <button type="submit" disabled={uploading || !selectedFile}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold transition disabled:opacity-50"
+          style={{ background: '#1EB8E5' }}>
+          {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+          {uploading ? 'Caricamento...' : 'Carica file'}
+        </button>
       </form>
 
       {/* Vista + Filtri */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Tabs vista */}
         <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1">
           {VISTE.map(v => (
             <button key={v.key} onClick={() => {
-              setVista(v.key)
-              setFiltroArea('')
-              setFiltroCorso('')
-              setFiltroTipologia('')
+              setVista(v.key); setFiltroArea(''); setFiltroCorso(''); setFiltroTipologia('')
             }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${vista === v.key ? 'text-white' : 'text-gray-500 hover:bg-gray-100'}`}
               style={vista === v.key ? { backgroundColor: '#1B3768' } : {}}>
@@ -267,7 +363,6 @@ export default function ArchivioPaginaClient({
           ))}
         </div>
 
-        {/* Filtro materia (visibile in tutti e per-materia) */}
         {(vista === 'tutti' || vista === 'area') && aree.length > 0 && (
           <select value={filtroArea} onChange={e => setFiltroArea(e.target.value)}
             className="text-xs rounded-xl px-3 py-2 border bg-white"
@@ -277,7 +372,6 @@ export default function ArchivioPaginaClient({
           </select>
         )}
 
-        {/* Filtro tipologia corso — sempre visibile */}
         {tipologieCorso.length > 0 && (
           <select value={filtroTipologia} onChange={e => { setFiltroTipologia(e.target.value); setFiltroCorso('') }}
             className="text-xs rounded-xl px-3 py-2 border bg-white"
@@ -287,7 +381,6 @@ export default function ArchivioPaginaClient({
           </select>
         )}
 
-        {/* Filtro corso specifico (solo vista corso) */}
         {vista === 'corso' && corsiFiltrati.length > 0 && (
           <select value={filtroCorso} onChange={e => setFiltroCorso(e.target.value)}
             className="text-xs rounded-xl px-3 py-2 border bg-white"
@@ -307,42 +400,38 @@ export default function ArchivioPaginaClient({
         )}
 
         <span className="text-xs ml-auto" style={{ color: 'rgba(27,55,104,0.5)' }}>
-          {filtrati.length} {filtrati.length === 1 ? 'file' : 'file'}
+          {filtrati.length} file
         </span>
       </div>
 
-      {/* Contenuto — lista piatta */}
+      {/* Lista piatta */}
       {vista === 'tutti' && (
-        <div className="rounded-2xl overflow-hidden bg-white"
-          style={{ border: '1px solid rgba(27,55,104,0.1)' }}>
-          {filtrati.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm" style={{ color: 'rgba(27,55,104,0.4)' }}>
-              Nessun file. Carica il primo documento.
-            </div>
-          ) : filtrati.map(f => <FileRow key={f.id} f={f} />)}
+        <div className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(27,55,104,0.1)' }}>
+          {filtrati.length === 0
+            ? <div className="px-5 py-10 text-center text-sm" style={{ color: 'rgba(27,55,104,0.4)' }}>
+                Nessun file. Carica il primo documento.
+              </div>
+            : filtrati.map(f => <FileRow key={f.id} f={f} />)}
         </div>
       )}
 
-      {/* Contenuto — per materia */}
+      {/* Per materia */}
       {vista === 'area' && (
         <div className="space-y-4">
-          {aree
-            .filter(a => !filtroArea || a.id === filtroArea)
-            .map(materia => {
-              const materiaFiles = filtrati.filter(f => f.area_id === materia.id)
-              if (materiaFiles.length === 0) return null
-              return (
-                <div key={materia.id} className="rounded-2xl overflow-hidden bg-white"
-                  style={{ border: '1px solid rgba(27,55,104,0.1)' }}>
-                  <div className="px-5 py-3 flex items-center justify-between"
-                    style={{ background: 'rgba(27,55,104,0.03)', borderBottom: '1px solid rgba(27,55,104,0.08)' }}>
-                    <h3 className="text-sm font-semibold" style={{ color: '#1B3768' }}>{materia.nome}</h3>
-                    <span className="text-xs" style={{ color: 'rgba(27,55,104,0.45)' }}>{materiaFiles.length} file</span>
-                  </div>
-                  {materiaFiles.map(f => <FileRow key={f.id} f={f} />)}
+          {aree.filter(a => !filtroArea || a.id === filtroArea).map(materia => {
+            const mFiles = filtrati.filter(f => f.area_id === materia.id)
+            if (mFiles.length === 0) return null
+            return (
+              <div key={materia.id} className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(27,55,104,0.1)' }}>
+                <div className="px-5 py-3 flex items-center justify-between"
+                  style={{ background: 'rgba(27,55,104,0.03)', borderBottom: '1px solid rgba(27,55,104,0.08)' }}>
+                  <h3 className="text-sm font-semibold" style={{ color: '#1B3768' }}>{materia.nome}</h3>
+                  <span className="text-xs" style={{ color: 'rgba(27,55,104,0.45)' }}>{mFiles.length} file</span>
                 </div>
-              )
-            })}
+                {mFiles.map(f => <FileRow key={f.id} f={f} />)}
+              </div>
+            )
+          })}
           {(() => {
             const senzaMateria = filtrati.filter(f => !f.area_id)
             if (!filtroArea && senzaMateria.length > 0) return (
@@ -364,7 +453,7 @@ export default function ArchivioPaginaClient({
         </div>
       )}
 
-      {/* Contenuto — per corso */}
+      {/* Per corso */}
       {vista === 'corso' && (
         <div className="space-y-4">
           {filtroTipologia && (
@@ -379,33 +468,30 @@ export default function ArchivioPaginaClient({
               </button>
             </div>
           )}
-          {corsiFiltrati
-            .filter(c => !filtroCorso || c.id === filtroCorso)
-            .map(corso => {
-              const corsoFiles = filtrati.filter(f => f.corso_origine_id === corso.id)
-              if (corsoFiles.length === 0) return null
-              return (
-                <div key={corso.id} className="rounded-2xl overflow-hidden bg-white"
-                  style={{ border: '1px solid rgba(27,55,104,0.1)' }}>
-                  <div className="px-5 py-3 flex items-center justify-between"
-                    style={{ background: 'rgba(27,55,104,0.03)', borderBottom: '1px solid rgba(27,55,104,0.08)' }}>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <h3 className="text-sm font-semibold truncate" style={{ color: '#1B3768' }}>{corso.name}</h3>
-                      {corso.category && (
-                        <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium"
-                          style={{ background: 'rgba(30,184,229,0.12)', color: '#0891B2' }}>
-                          {corso.category}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs flex-shrink-0 ml-3" style={{ color: 'rgba(27,55,104,0.45)' }}>
-                      {corsoFiles.length} file
-                    </span>
+          {corsiFiltrati.filter(c => !filtroCorso || c.id === filtroCorso).map(corso => {
+            const cFiles = filtrati.filter(f => f.corso_origine_id === corso.id)
+            if (cFiles.length === 0) return null
+            return (
+              <div key={corso.id} className="rounded-2xl overflow-hidden bg-white" style={{ border: '1px solid rgba(27,55,104,0.1)' }}>
+                <div className="px-5 py-3 flex items-center justify-between"
+                  style={{ background: 'rgba(27,55,104,0.03)', borderBottom: '1px solid rgba(27,55,104,0.08)' }}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h3 className="text-sm font-semibold truncate" style={{ color: '#1B3768' }}>{corso.name}</h3>
+                    {corso.category && (
+                      <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium"
+                        style={{ background: 'rgba(30,184,229,0.12)', color: '#0891B2' }}>
+                        {corso.category}
+                      </span>
+                    )}
                   </div>
-                  {corsoFiles.map(f => <FileRow key={f.id} f={f} />)}
+                  <span className="text-xs flex-shrink-0 ml-3" style={{ color: 'rgba(27,55,104,0.45)' }}>
+                    {cFiles.length} file
+                  </span>
                 </div>
-              )
-            })}
+                {cFiles.map(f => <FileRow key={f.id} f={f} />)}
+              </div>
+            )
+          })}
           {filtrati.filter(f => {
             const corsoMatch = !filtroCorso || f.corso_origine_id === filtroCorso
             const tipologiaMatch = !filtroTipologia || corsiFiltrati.some(c => c.id === f.corso_origine_id)
