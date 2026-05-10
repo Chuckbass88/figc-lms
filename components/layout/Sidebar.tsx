@@ -42,20 +42,9 @@ const NAV: Record<UserRole, NavNode[]> = {
   super_admin: [
     { type: 'leaf', label: 'Dashboard', href: '/super-admin', icon: <LayoutDashboard size={17} /> },
     { type: 'divider' },
-    {
-      type: 'section', label: 'Corsi', icon: <BookOpen size={17} />, key: 'sa_corsi',
-      items: [
-        { type: 'leaf', label: 'Tutti i corsi', href: '/super-admin/corsi' },
-        { type: 'leaf', label: 'Template corsi', href: '/super-admin/corsi/template' },
-      ],
-    },
+    { type: 'leaf', label: 'Corsi', href: '/super-admin/corsi', icon: <BookOpen size={17} /> },
     { type: 'leaf', label: 'Utenti', href: '/super-admin/utenti', icon: <Users size={17} /> },
-    {
-      type: 'section', label: 'Archivio Generale', icon: <Archive size={17} />, key: 'sa_archivio',
-      items: [
-        { type: 'leaf', label: 'Documenti e Slides', href: '/super-admin/archivio-generale' },
-      ],
-    },
+    { type: 'leaf', label: 'Archivio Generale', href: '/super-admin/archivio-generale', icon: <Archive size={17} /> },
     { type: 'leaf', label: 'Calendari', href: '/super-admin/calendari', icon: <CalendarRange size={17} /> },
     { type: 'leaf', label: 'Cerca', href: '/super-admin/cerca', icon: <Search size={17} /> },
     { type: 'divider' },
@@ -69,20 +58,9 @@ const NAV: Record<UserRole, NavNode[]> = {
   admin: [
     { type: 'leaf', label: 'Dashboard', href: '/super-admin', icon: <LayoutDashboard size={17} /> },
     { type: 'divider' },
-    {
-      type: 'section', label: 'Corsi', icon: <BookOpen size={17} />, key: 'adm_corsi',
-      items: [
-        { type: 'leaf', label: 'Tutti i corsi', href: '/super-admin/corsi' },
-        { type: 'leaf', label: 'Template corsi', href: '/super-admin/corsi/template' },
-      ],
-    },
+    { type: 'leaf', label: 'Corsi', href: '/super-admin/corsi', icon: <BookOpen size={17} /> },
     { type: 'leaf', label: 'Utenti', href: '/super-admin/utenti', icon: <Users size={17} /> },
-    {
-      type: 'section', label: 'Archivio Generale', icon: <Archive size={17} />, key: 'adm_archivio',
-      items: [
-        { type: 'leaf', label: 'Documenti e Slides', href: '/super-admin/archivio-generale' },
-      ],
-    },
+    { type: 'leaf', label: 'Archivio Generale', href: '/super-admin/archivio-generale', icon: <Archive size={17} /> },
     { type: 'leaf', label: 'Calendari', href: '/super-admin/calendari', icon: <CalendarRange size={17} /> },
     { type: 'divider' },
     { type: 'leaf', label: 'Messaggi', href: '/messaggi', icon: <MessageSquare size={17} />, badge: 'messages' },
@@ -95,13 +73,8 @@ const NAV: Record<UserRole, NavNode[]> = {
   docente: [
     { type: 'leaf', label: 'Dashboard', href: '/docente', icon: <LayoutDashboard size={17} /> },
     { type: 'divider' },
-    {
-      type: 'section', label: 'I miei corsi', icon: <BookOpen size={17} />, key: 'doc_corsi',
-      items: [
-        { type: 'leaf', label: 'Tutti i corsi', href: '/docente/corsi' },
-        { type: 'leaf', label: 'I miei corsisti', href: '/docente/corsisti' },
-      ],
-    },
+    { type: 'leaf', label: 'I miei corsi', href: '/docente/corsi', icon: <BookOpen size={17} /> },
+    { type: 'leaf', label: 'I miei corsisti', href: '/docente/corsisti', icon: <GraduationCap size={17} /> },
     {
       type: 'section', label: 'Libreria', icon: <BookMarked size={17} />, key: 'doc_libreria',
       items: [
@@ -122,12 +95,7 @@ const NAV: Record<UserRole, NavNode[]> = {
   studente: [
     { type: 'leaf', label: 'Dashboard', href: '/studente', icon: <LayoutDashboard size={17} /> },
     { type: 'divider' },
-    {
-      type: 'section', label: 'I miei corsi', icon: <BookOpen size={17} />, key: 'stu_corsi',
-      items: [
-        { type: 'leaf', label: 'Tutti i corsi', href: '/studente/corsi' },
-      ],
-    },
+    { type: 'leaf', label: 'I miei corsi', href: '/studente/corsi', icon: <BookOpen size={17} /> },
     { type: 'leaf', label: 'Calendario', href: '/studente/calendario', icon: <Calendar size={17} /> },
     { type: 'divider' },
     { type: 'leaf', label: 'Messaggi', href: '/messaggi', icon: <MessageSquare size={17} />, badge: 'messages' },
@@ -280,7 +248,7 @@ function SidebarSection({
         </span>
       </button>
       {open && (
-        <div className="ml-4 mt-0.5 pl-3 border-l space-y-0.5" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
+        <div className="ml-4 mt-0.5 pl-3 space-y-0.5">
           {section.items.map(item => (
             <SidebarLeaf
               key={item.href}

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, Calendar, Users, Pencil, Trash2, Plus, Eye, Search, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
+import { MapPin, Calendar, Users, Pencil, Trash2, Plus, Eye, Search, ChevronRight, BookOpen, BookTemplate } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Course } from '@/lib/types'
 
@@ -75,6 +76,18 @@ export default function CorsiClient({ initialCourses, sessionCountByCourse }: { 
         >
           <Plus size={15} /> Nuovo corso
         </button>
+      </div>
+
+      {/* Sub-nav: Tutti i corsi / Template */}
+      <div className="flex gap-1.5">
+        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white"
+          style={{ backgroundColor: '#1B3768' }}>
+          <BookOpen size={14} /> Tutti i corsi
+        </span>
+        <Link href="/super-admin/corsi/template"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+          <BookTemplate size={14} /> Template corsi
+        </Link>
       </div>
 
       {/* Filtri */}
