@@ -13,9 +13,18 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
+  const { nome, tipologia, struttura_tipo, materiali_tags, quiz_tags, parametri } = body
   const { data, error } = await supabase
     .from('course_templates')
-    .insert({ ...body, created_by: user.id })
+    .insert({
+      nome,
+      tipologia: tipologia ?? null,
+      struttura_tipo: struttura_tipo ?? 'giorni',
+      materiali_tags: materiali_tags ?? [],
+      quiz_tags: quiz_tags ?? [],
+      parametri: parametri ?? {},
+      created_by: user.id,
+    })
     .select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

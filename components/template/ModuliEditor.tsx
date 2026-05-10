@@ -34,12 +34,12 @@ export default function ModuliEditor({ templateId, moduli, aree, onModuliChange 
   }
 
   async function deleteModulo(id: string) {
-    await fetch(`/api/template/${templateId}/moduli`, {
+    const res = await fetch(`/api/template/${templateId}/moduli`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     })
-    onModuliChange(moduli.filter(m => m.id !== id))
+    if (res.ok) onModuliChange(moduli.filter(m => m.id !== id))
   }
 
   async function updateModuloTitolo(id: string, titolo: string) {
@@ -67,12 +67,12 @@ export default function ModuliEditor({ templateId, moduli, aree, onModuliChange 
   }
 
   async function deleteGiorno(moduloId: string, giornoId: string) {
-    await fetch(`/api/template/${templateId}/giorni`, {
+    const res = await fetch(`/api/template/${templateId}/giorni`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: giornoId }),
     })
-    onModuliChange(moduli.map(m =>
+    if (res.ok) onModuliChange(moduli.map(m =>
       m.id === moduloId ? { ...m, giorni: (m.giorni ?? []).filter(g => g.id !== giornoId) } : m
     ))
   }

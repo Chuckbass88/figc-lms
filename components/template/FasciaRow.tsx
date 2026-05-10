@@ -17,8 +17,8 @@ function toHHMM(t: string): string { return t.slice(0, 5) }
 /** Aggiunge 2 ore a "HH:MM", clampa a 23:59 */
 function add2h(t: string): string {
   const [h, m] = t.split(':').map(Number)
-  const total = h * 60 + (m || 0) + 120
-  const nh = Math.min(Math.floor(total / 60), 23)
+  const total = Math.min(h * 60 + (m || 0) + 120, 23 * 60 + 59)
+  const nh = Math.floor(total / 60)
   const nm = total % 60
   return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`
 }

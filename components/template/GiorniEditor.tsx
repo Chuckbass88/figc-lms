@@ -38,12 +38,12 @@ export default function GiorniEditor({ templateId, giorni, aree, onGiorniChange 
   }
 
   async function deleteGiorno(id: string) {
-    await fetch(`/api/template/${templateId}/giorni`, {
+    const res = await fetch(`/api/template/${templateId}/giorni`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     })
-    onGiorniChange(giorni.filter(g => g.id !== id))
+    if (res.ok) onGiorniChange(giorni.filter(g => g.id !== id))
   }
 
   async function addFascia(giorno: TemplateGiorno) {
