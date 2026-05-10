@@ -13,7 +13,7 @@ export default async function ArchivioPaginaPage() {
       .select('*, area:aree(id, nome), corso_origine:courses(id, name)')
       .order('created_at', { ascending: false }),
     supabase.from('aree').select('*').order('nome'),
-    supabase.from('courses').select('id, name').order('name'),
+    supabase.from('courses').select('id, name, category').order('name'),
   ])
 
   return (
