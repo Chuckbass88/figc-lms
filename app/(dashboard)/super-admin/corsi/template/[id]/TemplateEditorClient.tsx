@@ -163,11 +163,11 @@ export default function TemplateEditorClient({ template, aree }: Props) {
                   style={{ background: 'rgba(154,56,18,0.1)', color: '#9A3412' }}>
                   Annulla
                 </button>
-                <button onClick={() => {
+                <button onClick={async () => {
                   const to = strutturaTipo === 'giorni' ? 'moduli' : 'giorni'
                   setStrutturaTipo(to)
                   setWarnSwitch(false)
-                  fetch(`/api/template/${template.id}`, {
+                  await fetch(`/api/template/${template.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ struttura_tipo: to }),
