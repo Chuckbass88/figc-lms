@@ -241,6 +241,9 @@ export interface CourseTemplate {
   id: string
   nome: string
   tipologia: string | null
+  struttura_tipo?: 'giorni' | 'moduli'
+  materiali_tags: string[]
+  quiz_tags: string[]
   parametri: {
     durata_giorni?: number
     tipo_corso?: string
@@ -252,6 +255,42 @@ export interface CourseTemplate {
   }
   created_by: string | null
   created_at: string
+}
+
+export interface TemplateModulo {
+  id: string
+  template_id: string
+  numero: number
+  titolo: string
+  created_at: string
+  giorni?: TemplateGiorno[]
+}
+
+export interface TemplateGiorno {
+  id: string
+  template_id: string
+  modulo_id: string | null
+  numero: number
+  titolo: string | null
+  created_at: string
+  fasce?: TemplateFascia[]
+}
+
+export interface TemplateFascia {
+  id: string
+  giorno_id: string
+  ora_inizio: string   // "HH:MM:SS" da DB, usa slice(0,5) per "HH:MM"
+  ora_fine: string
+  materia: string
+  area_id: string | null
+  note: string | null
+  created_at: string
+  area?: Area
+}
+
+export interface CourseTemplateCompleto extends CourseTemplate {
+  moduli: TemplateModulo[]   // populated solo se struttura_tipo = 'moduli'
+  giorni: TemplateGiorno[]   // populated solo se struttura_tipo = 'giorni'
 }
 
 export interface CorsoEvento {
