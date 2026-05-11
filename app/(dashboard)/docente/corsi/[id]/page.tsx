@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star, CalendarRange, CalendarDays } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star, CalendarRange, CalendarDays, CalendarCheck } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 import ArchivioCorsoSection from '@/components/archivio/ArchivioCorsoSection'
 import LinkInvitoBtn from '@/app/(dashboard)/super-admin/corsi/[id]/LinkInvitoBtn'
@@ -121,6 +121,10 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
           <Link href={`/docente/corsi/${id}/programma`}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
             <CalendarRange size={14} /> Programma
+          </Link>
+          <Link href={`/docente/corsi/${id}/calendario`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+            <CalendarCheck size={14} /> Calendario
           </Link>
           <Link href={`/docente/corsi/${id}/task`}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">

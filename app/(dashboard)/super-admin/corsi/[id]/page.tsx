@@ -8,6 +8,7 @@ import NotificaCorso from './NotificaCorso'
 import CambiaStatoBtn from './CambiaStatoBtn'
 import LinkInvitoBtn from './LinkInvitoBtn'
 import EsportaIdoneitaCSV, { type StudentIdoneitaRow } from './EsportaIdoneitaCSV'
+import ApplicaTemplateBtn from './ApplicaTemplateBtn'
 
 const STATUS_LABELS: Record<string, string> = { active: 'Attivo', completed: 'Completato', draft: 'Bozza' }
 const STATUS_COLORS: Record<string, string> = {
@@ -28,6 +29,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
     { data: materials },
     { count: sessionCount },
     { data: announcements },
+    { count: eventiCount },
   ] = await Promise.all([
     supabase.from('courses').select('*').eq('id', id).single(),
     supabase.from('course_instructors')
@@ -51,6 +53,7 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
       .order('created_at', { ascending: false }),
     supabase.from('course_sessions').select('*', { count: 'exact', head: true }).eq('course_id', id),
     supabase.from('course_announcements').select('id, title, created_at, profiles(full_name)').eq('course_id', id).order('created_at', { ascending: false }),
+    supabase.from('corso_eventi').select('id', { count: 'exact', head: true }).eq('corso_id', id),
   ])
 
   if (!course) notFound()
@@ -135,8 +138,9 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
             {course.description && (
               <p className="text-gray-500 text-sm">{course.description}</p>
             )}
-            <div className="mt-3">
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
               <CambiaStatoBtn courseId={id} currentStatus={course.status} />
+              <ApplicaTemplateBtn corsoId={id} hasEventi={(eventiCount ?? 0) > 0} />
             </div>
           </div>
           {/* Nav sezioni — Panoramica sempre prima */}
@@ -153,6 +157,10 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
             <Link href={`/super-admin/corsi/${id}/programma`}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
               <CalendarRange size={14} /> Programma
+            </Link>
+            <Link href={`/super-admin/corsi/${id}/calendario`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+              <CalendarCheck size={14} /> Calendario
             </Link>
             <Link href={`/super-admin/corsi/${id}/presenze`}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">

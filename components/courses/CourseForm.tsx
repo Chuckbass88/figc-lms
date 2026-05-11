@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import type { Course } from '@/lib/types'
+import type { Course, CourseTemplate } from '@/lib/types'
+import ApplicaTemplateModal from '@/components/template/ApplicaTemplateModal'
 
 const CATEGORY_OPTIONS = [
   { value: '', label: 'Nessuna categoria' },
@@ -42,6 +43,20 @@ export default function CourseForm({ course }: { course?: Course }) {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [templates, setTemplates] = useState<CourseTemplate[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [showTemplateSection, setShowTemplateSection] = useState(false)
+  const [newCorsoId, setNewCorsoId] = useState<string | null>(null)
+  const [showApplica, setShowApplica] = useState(false)
+
+  useEffect(() => {
+    if (showTemplateSection && templates.length === 0) {
+      fetch('/api/course-templates')
+        .then(r => r.json())
+        .then(j => setTemplates(j.templates ?? []))
+        .catch(() => null)
+    }
+  }, [showTemplateSection, templates.length])
 
   function set(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -77,8 +92,30 @@ export default function CourseForm({ course }: { course?: Course }) {
       return
     }
 
+    if (!isEdit && selectedTemplateId) {
+      const newCourseData = await supabase.from('courses')
+        .select('id').eq('name', payload.name).order('created_at', { ascending: false }).limit(1).single()
+      if (newCourseData.data) {
+        setNewCorsoId(newCourseData.data.id)
+        setLoading(false)
+        setShowApplica(true)
+        return
+      }
+    }
+
     router.push('/super-admin/corsi')
     router.refresh()
+  }
+
+  if (showApplica && newCorsoId) {
+    return (
+      <ApplicaTemplateModal
+        corsoId={newCorsoId}
+        corsoHasEventi={false}
+        onClose={() => { setShowApplica(false); router.push(`/super-admin/corsi/${newCorsoId}`) }}
+        onDone={() => router.push(`/super-admin/corsi/${newCorsoId}/calendario`)}
+      />
+    )
   }
 
   return (
@@ -101,6 +138,36 @@ export default function CourseForm({ course }: { course?: Course }) {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+
+        {/* Sezione template — solo per nuovo corso */}
+        {!isEdit && (
+          <div className="p-4 border-b border-gray-100">
+            <button type="button"
+              onClick={() => setShowTemplateSection(!showTemplateSection)}
+              className="w-full flex items-center justify-between text-sm font-medium transition hover:text-blue-600"
+              style={{ color: '#1B3768' }}>
+              <span>Usa un template (opzionale)</span>
+              <span className="text-gray-400 text-xs">{showTemplateSection ? '▲' : '▼'}</span>
+            </button>
+            {showTemplateSection && (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs text-gray-500">Il template pre-compila il programma e il calendario dopo la creazione del corso.</p>
+                <select
+                  value={selectedTemplateId}
+                  onChange={e => setSelectedTemplateId(e.target.value)}
+                  className="w-full rounded-xl px-3 py-2 text-sm border bg-white focus:outline-none"
+                  style={{ borderColor: 'rgba(27,55,104,0.2)', color: selectedTemplateId ? '#1B3768' : 'rgba(27,55,104,0.4)' }}>
+                  <option value="">Nessun template</option>
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.nome}{t.tipologia ? ` (${t.tipologia})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Sezione: Informazioni base */}
         <div className="px-6 py-5 space-y-4">
