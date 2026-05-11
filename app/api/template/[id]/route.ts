@@ -97,7 +97,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   const body = await req.json()
-  const allowed = ['nome', 'tipologia', 'struttura_tipo', 'materiali_tags', 'quiz_tags', 'parametri']
+  const allowed = ['nome', 'tipologia', 'struttura_tipo', 'materiali_tags', 'quiz_tags', 'parametri', 'ore_totali']
   const update: Record<string, unknown> = {}
   for (const k of allowed) {
     if (k in body) update[k] = body[k]
