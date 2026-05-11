@@ -49,7 +49,28 @@ export async function POST(req: NextRequest) {
   const nGiorni = giorniWithFasce.length
   if (nGiorni === 0) return NextResponse.json({ error: 'Il template non ha giorni' }, { status: 400 })
 
-  const dates = calcolaDateCorso(start_date, nGiorni, { skipSabato: skip_sabato ?? false })
+  const hasCalendarStructure = (template.struttura_tipo as string) === 'calendario'
+    && giorniWithFasce.some(g => (g as Record<string, unknown>).giorno_settimana != null)
+
+  let dates: Date[]
+
+  if (hasCalendarStructure) {
+    // Calendar mode: each giorno has giorno_settimana (1=Mon..6=Sat) and settimana_numero
+    // Actual date = start_date + (settimana_numero - 1) * 7 + (giorno_settimana - 1) days
+    const startDate = new Date(start_date + 'T12:00:00')
+    dates = giorniWithFasce.map(g => {
+      const gRec = g as Record<string, unknown>
+      const settimana = (gRec.settimana_numero as number) ?? 1
+      const dow      = (gRec.giorno_settimana  as number) ?? 1
+      const dayOffset = (settimana - 1) * 7 + (dow - 1)
+      const d = new Date(startDate)
+      d.setDate(d.getDate() + dayOffset)
+      return d
+    })
+  } else {
+    // Sequential mode for 'giorni' and 'moduli' templates
+    dates = calcolaDateCorso(start_date, nGiorni, { skipSabato: skip_sabato ?? false })
+  }
 
   // 3. Elimina vecchi corso_eventi di questo corso (replace)
   await supabase.from('corso_eventi').delete().eq('corso_id', corso_id)
