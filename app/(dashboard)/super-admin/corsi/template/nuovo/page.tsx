@@ -14,7 +14,7 @@ export default function NuovoTemplatePage() {
     nome: '',
     tipologia: '',
     tipo_corso: 'centrale' as 'centrale' | 'periferico',
-    struttura_tipo: 'giorni' as 'giorni' | 'moduli',
+    struttura_tipo: 'giorni' as 'giorni' | 'moduli' | 'calendario',
   })
 
   const inp = "w-full rounded-xl px-3 py-2 text-sm border bg-white focus:outline-none focus:ring-2"
@@ -96,7 +96,7 @@ export default function NuovoTemplatePage() {
         <div>
           <p className="text-xs font-medium mb-2" style={{ color: 'rgba(27,55,104,0.6)' }}>Struttura</p>
           <div className="flex gap-2">
-            {(['giorni', 'moduli'] as const).map(s => (
+            {(['giorni', 'moduli', 'calendario'] as const).map(s => (
               <button key={s} type="button"
                 onClick={() => setForm(p => ({ ...p, struttura_tipo: s }))}
                 className="flex-1 py-2 rounded-xl text-sm font-medium capitalize transition"
@@ -104,7 +104,7 @@ export default function NuovoTemplatePage() {
                   background: form.struttura_tipo === s ? '#1B3768' : 'rgba(27,55,104,0.08)',
                   color: form.struttura_tipo === s ? 'white' : '#1B3768',
                 }}>
-                {s === 'giorni' ? 'Giorni sequenziali' : 'Moduli + Giorni'}
+                {s === 'giorni' ? 'Giorni sequenziali' : s === 'moduli' ? 'Moduli + Giorni' : 'Calendario'}
               </button>
             ))}
           </div>
