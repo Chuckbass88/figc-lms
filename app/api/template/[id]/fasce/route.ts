@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   if (!await requireAdmin(supabase)) return NextResponse.json({ error: 'Permesso negato' }, { status: 403 })
 
-  const { giorno_id, ora_inizio, ora_fine, materia, area_id, note } = await req.json()
+  const { giorno_id, ora_inizio, ora_fine, materia, area_id, note, tipo_pausa } = await req.json()
   if (!giorno_id || !ora_inizio || !ora_fine) {
     return NextResponse.json({ error: 'Campi obbligatori mancanti' }, { status: 400 })
   }
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('template_fasce_orarie')
-    .insert({ giorno_id, ora_inizio, ora_fine, materia, area_id: area_id ?? null, note: note ?? null })
+    .insert({ giorno_id, ora_inizio, ora_fine, materia, area_id: area_id ?? null, note: note ?? null, tipo_pausa: tipo_pausa ?? null })
     .select('*, area:aree(id, nome)')
     .single()
 
@@ -37,7 +37,7 @@ export async function PUT(req: NextRequest) {
   const supabase = await createClient()
   if (!await requireAdmin(supabase)) return NextResponse.json({ error: 'Permesso negato' }, { status: 403 })
 
-  const { id, ora_inizio, ora_fine, materia, area_id, note } = await req.json()
+  const { id, ora_inizio, ora_fine, materia, area_id, note, tipo_pausa } = await req.json()
   if (!id) return NextResponse.json({ error: 'id mancante' }, { status: 400 })
   if (ora_fine && ora_inizio && ora_fine <= ora_inizio) {
     return NextResponse.json({ error: 'ora_fine deve essere dopo ora_inizio' }, { status: 400 })
@@ -49,6 +49,7 @@ export async function PUT(req: NextRequest) {
   if (materia    !== undefined) update.materia    = materia
   if (area_id    !== undefined) update.area_id    = area_id
   if (note       !== undefined) update.note       = note
+  if (tipo_pausa !== undefined) update.tipo_pausa = tipo_pausa
 
   const { data, error } = await supabase
     .from('template_fasce_orarie')
