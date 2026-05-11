@@ -241,7 +241,8 @@ export interface CourseTemplate {
   id: string
   nome: string
   tipologia: string | null
-  struttura_tipo: 'giorni' | 'moduli'
+  struttura_tipo: 'giorni' | 'moduli' | 'calendario'
+  ore_totali: number | null
   materiali_tags: string[]
   quiz_tags: string[]
   parametri: {
@@ -272,6 +273,9 @@ export interface TemplateGiorno {
   modulo_id: string | null
   numero: number
   titolo: string | null
+  giorno_settimana: number | null
+  settimana_numero: number | null
+  is_mezza_giornata: boolean
   created_at: string
   fasce?: TemplateFascia[]
 }
@@ -284,6 +288,7 @@ export interface TemplateFascia {
   materia: string
   area_id: string | null
   note: string | null
+  tipo_pausa: string | null
   created_at: string
   area?: Area
 }

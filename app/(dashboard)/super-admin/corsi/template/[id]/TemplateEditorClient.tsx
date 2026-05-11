@@ -23,7 +23,7 @@ export default function TemplateEditorClient({ template, aree }: Props) {
   const [tipoCorsoProp, setTipoCorso] = useState<string>(
     (template.parametri as { tipo_corso?: string })?.tipo_corso ?? 'centrale'
   )
-  const [strutturaTipo, setStrutturaTipo] = useState<'giorni' | 'moduli'>(template.struttura_tipo)
+  const [strutturaTipo, setStrutturaTipo] = useState<'giorni' | 'moduli' | 'calendario'>(template.struttura_tipo)
   const [materialiTags, setMaterialiTags] = useState<string[]>(template.materiali_tags ?? [])
   const [quizTags, setQuizTags] = useState<string[]>(template.quiz_tags ?? [])
   const [warnSwitch, setWarnSwitch] = useState(false)

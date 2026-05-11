@@ -8,3 +8,8 @@ ALTER TABLE template_fasce_orarie
 
 ALTER TABLE course_templates
   ADD COLUMN IF NOT EXISTS ore_totali numeric(5,1);
+
+-- Update struttura_tipo to allow 'calendario' mode
+ALTER TABLE course_templates DROP CONSTRAINT IF EXISTS course_templates_struttura_tipo_check;
+ALTER TABLE course_templates ADD CONSTRAINT course_templates_struttura_tipo_check
+  CHECK (struttura_tipo IN ('giorni', 'moduli', 'calendario'));
