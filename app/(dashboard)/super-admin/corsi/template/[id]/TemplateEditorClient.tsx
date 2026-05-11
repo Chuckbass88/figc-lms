@@ -30,6 +30,7 @@ export default function TemplateEditorClient({ template, aree }: Props) {
   const [materialiTags, setMaterialiTags] = useState<string[]>(template.materiali_tags ?? [])
   const [quizTags, setQuizTags] = useState<string[]>(template.quiz_tags ?? [])
   const [warnSwitch, setWarnSwitch] = useState(false)
+  const [pendingSwitch, setPendingSwitch] = useState<'giorni' | 'moduli' | 'calendario' | null>(null)
 
   const [oreTotali, setOreTotali] = useState<string>(
     template.ore_totali != null ? String(template.ore_totali) : ''
@@ -66,8 +67,8 @@ export default function TemplateEditorClient({ template, aree }: Props) {
   }
 
   async function handleSwitchStruttura(to: 'giorni' | 'moduli' | 'calendario') {
-    const hasData = strutturaTipo === 'giorni' ? giorni.length > 0 : moduli.length > 0
-    if (hasData) { setWarnSwitch(true); return }
+    const hasData = strutturaTipo === 'giorni' ? giorni.length > 0 : strutturaTipo === 'moduli' ? moduli.length > 0 : giorni.length > 0
+    if (hasData) { setPendingSwitch(to); setWarnSwitch(true); return }
     setStrutturaTipo(to)
     await fetch(`/api/template/${template.id}`, {
       method: 'PUT',
@@ -190,9 +191,10 @@ export default function TemplateEditorClient({ template, aree }: Props) {
                   Annulla
                 </button>
                 <button onClick={async () => {
-                  const to = strutturaTipo === 'giorni' ? 'moduli' : 'giorni'
+                  const to = pendingSwitch!
                   setStrutturaTipo(to)
                   setWarnSwitch(false)
+                  setPendingSwitch(null)
                   await fetch(`/api/template/${template.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },

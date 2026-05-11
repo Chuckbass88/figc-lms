@@ -56,8 +56,12 @@ export async function POST(req: NextRequest) {
 
   if (hasCalendarStructure) {
     // Calendar mode: each giorno has giorno_settimana (1=Mon..6=Sat) and settimana_numero
-    // Actual date = start_date + (settimana_numero - 1) * 7 + (giorno_settimana - 1) days
-    const startDate = new Date(start_date + 'T12:00:00')
+    // Snap start_date to the Monday of its week so offsets are always weekday-correct
+    const rawStart = new Date(start_date + 'T12:00:00')
+    const dowRaw = rawStart.getDay() // 0=Sun..6=Sat
+    const toMonday = dowRaw === 0 ? -6 : 1 - dowRaw
+    const startDate = new Date(rawStart)
+    startDate.setDate(startDate.getDate() + toMonday)
     dates = giorniWithFasce.map(g => {
       const gRec = g as Record<string, unknown>
       const settimana = (gRec.settimana_numero as number) ?? 1
