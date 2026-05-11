@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   if (!await requireAdmin(supabase)) return NextResponse.json({ error: 'Permesso negato' }, { status: 403 })
 
   const { giorno_id, ora_inizio, ora_fine, materia, area_id, note } = await req.json()
-  if (!giorno_id || !ora_inizio || !ora_fine || !materia) {
+  if (!giorno_id || !ora_inizio || !ora_fine) {
     return NextResponse.json({ error: 'Campi obbligatori mancanti' }, { status: 400 })
   }
   if (ora_fine <= ora_inizio) {
