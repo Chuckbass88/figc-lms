@@ -75,12 +75,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 5. Elimina vecchi programmi del corso e ricrea
-  const { data: existingPrograms } = await supabase
-    .from('course_programs').select('id').eq('course_id', corso_id)
-  if (existingPrograms && existingPrograms.length > 0) {
-    await supabase.from('course_programs').delete()
-      .in('id', existingPrograms.map(p => p.id))
-  }
+  await supabase.from('course_programs').delete().eq('course_id', corso_id)
 
   // 6. Crea nuovo course_program
   const { data: newProgram, error: pErr } = await supabase
