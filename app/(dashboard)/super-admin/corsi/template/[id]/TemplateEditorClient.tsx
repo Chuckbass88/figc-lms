@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { ArrowLeft, Save, AlertTriangle } from 'lucide-react'
 import GiorniEditor from '@/components/template/GiorniEditor'
 import ModuliEditor from '@/components/template/ModuliEditor'
+import CalendarioBuilder from '@/components/template/CalendarioBuilder'
+import SettimaneFasceEditor from '@/components/template/SettimaneFasceEditor'
+import OrarioCounter from '@/components/template/OrarioCounter'
 import type { CourseTemplateCompleto, TemplateGiorno, TemplateModulo, Area } from '@/lib/types'
 import { TIPOLOGIE_CORSO } from '@/lib/tipologie-corso'
 
@@ -28,6 +31,10 @@ export default function TemplateEditorClient({ template, aree }: Props) {
   const [quizTags, setQuizTags] = useState<string[]>(template.quiz_tags ?? [])
   const [warnSwitch, setWarnSwitch] = useState(false)
 
+  const [oreTotali, setOreTotali] = useState<string>(
+    template.ore_totali != null ? String(template.ore_totali) : ''
+  )
+
   const [giorni, setGiorni] = useState<TemplateGiorno[]>(template.giorni ?? [])
   const [moduli, setModuli] = useState<TemplateModulo[]>(template.moduli ?? [])
 
@@ -48,6 +55,7 @@ export default function TemplateEditorClient({ template, aree }: Props) {
         materiali_tags: materialiTags,
         quiz_tags: quizTags,
         parametri: { ...template.parametri, tipo_corso: tipoCorsoProp },
+        ore_totali: oreTotali !== '' ? parseFloat(oreTotali) : null,
       }),
     })
     const json = await res.json()
@@ -57,7 +65,7 @@ export default function TemplateEditorClient({ template, aree }: Props) {
     setSaving(false)
   }
 
-  async function handleSwitchStruttura(to: 'giorni' | 'moduli') {
+  async function handleSwitchStruttura(to: 'giorni' | 'moduli' | 'calendario') {
     const hasData = strutturaTipo === 'giorni' ? giorni.length > 0 : moduli.length > 0
     if (hasData) { setWarnSwitch(true); return }
     setStrutturaTipo(to)
@@ -129,6 +137,24 @@ export default function TemplateEditorClient({ template, aree }: Props) {
             ))}
           </div>
         </div>
+
+        <div className="flex items-center gap-3">
+          <label className="text-xs font-medium flex-shrink-0" style={{ color: 'rgba(27,55,104,0.6)' }}>
+            Ore totali corso
+          </label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            step="0.5"
+            placeholder="es. 120"
+            value={oreTotali}
+            onChange={e => setOreTotali(e.target.value)}
+            className="w-28 rounded-xl px-3 py-2 text-sm border bg-white focus:outline-none focus:ring-2"
+            style={{ borderColor: 'rgba(27,55,104,0.2)', color: '#1B3768' }}
+          />
+          <span className="text-xs" style={{ color: 'rgba(27,55,104,0.4)' }}>ore di lezione</span>
+        </div>
       </div>
 
       {/* Blocco 2 — Struttura calendario */}
@@ -136,7 +162,7 @@ export default function TemplateEditorClient({ template, aree }: Props) {
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold" style={{ color: '#1B3768' }}>Struttura calendario</h2>
           <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(27,55,104,0.06)' }}>
-            {(['giorni', 'moduli'] as const).map(s => (
+            {(['giorni', 'moduli', 'calendario'] as const).map(s => (
               <button key={s} type="button"
                 onClick={() => { if (s !== strutturaTipo) handleSwitchStruttura(s) }}
                 className="px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition"
@@ -144,7 +170,7 @@ export default function TemplateEditorClient({ template, aree }: Props) {
                   background: strutturaTipo === s ? '#1B3768' : 'transparent',
                   color: strutturaTipo === s ? 'white' : 'rgba(27,55,104,0.5)',
                 }}>
-                {s}
+                {s === 'calendario' ? '📅 calendario' : s}
               </button>
             ))}
           </div>
@@ -189,13 +215,42 @@ export default function TemplateEditorClient({ template, aree }: Props) {
             aree={aree}
             onGiorniChange={setGiorni}
           />
-        ) : (
+        ) : strutturaTipo === 'moduli' ? (
           <ModuliEditor
             templateId={template.id}
             moduli={moduli}
             aree={aree}
             onModuliChange={setModuli}
           />
+        ) : (
+          <div className="space-y-4">
+            <OrarioCounter
+              oreTotali={oreTotali !== '' ? parseFloat(oreTotali) : null}
+              giorni={giorni}
+            />
+            <div>
+              <p className="text-xs font-semibold mb-2" style={{ color: '#1B3768' }}>
+                1. Seleziona la struttura delle settimane
+              </p>
+              <CalendarioBuilder
+                templateId={template.id}
+                onGiorniChange={setGiorni}
+              />
+            </div>
+            {giorni.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold mb-2" style={{ color: '#1B3768' }}>
+                  2. Configura le fasce orarie
+                </p>
+                <SettimaneFasceEditor
+                  templateId={template.id}
+                  giorni={giorni}
+                  aree={aree}
+                  onGiorniChange={setGiorni}
+                />
+              </div>
+            )}
+          </div>
         )}
       </div>
 
