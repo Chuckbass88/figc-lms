@@ -55,7 +55,7 @@ export default async function TemplateEditorPage({ params }: { params: Promise<{
 
   const templateCompleto = {
     ...template,
-    struttura_tipo: (template.struttura_tipo ?? 'giorni') as 'giorni' | 'moduli',
+    struttura_tipo: (template.struttura_tipo ?? 'giorni') as 'giorni' | 'moduli' | 'calendario',
     materiali_tags: template.materiali_tags ?? [],
     quiz_tags: template.quiz_tags ?? [],
     moduli: moduliWithGiorni,
