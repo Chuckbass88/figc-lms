@@ -221,6 +221,36 @@ export function emailDiGruppo(opts: {
   }
 }
 
+export function emailReminder(opts: {
+  recipientName: string
+  title: string
+  description: string | null
+  remindAt: string
+  appUrl: string
+}): EmailPayload {
+  const dateStr = new Date(opts.remindAt).toLocaleString('it-IT', {
+    day: '2-digit', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+  const descBlock = opts.description
+    ? `<p style="margin:8px 0 0;font-size:13px;color:#475569;">${opts.description}</p>`
+    : ''
+  return {
+    subject: `⏰ Promemoria: ${opts.title}`,
+    to: '',
+    html: emailWrapper(`
+      ${title('Hai un promemoria')}
+      ${subtitle(`Ciao ${opts.recipientName}, è l'ora del tuo promemoria.`)}
+      <div style="background:#faf5ff;border-left:4px solid #7c3aed;border-radius:0 10px 10px 0;padding:16px 20px;">
+        <p style="margin:0;font-size:15px;font-weight:700;color:#0f172a;">${opts.title}</p>
+        ${descBlock}
+        <p style="margin:10px 0 0;font-size:12px;color:#7c3aed;font-weight:600;">⏰ ${dateStr}</p>
+      </div>
+      ${btn(opts.appUrl + '/note', 'Apri l\'app →')}
+    `),
+  }
+}
+
 export function emailInvitoCorso(opts: {
   courseName: string
   inviteUrl: string
