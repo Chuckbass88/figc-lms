@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, Users, UserCheck, Layers, Pencil, GraduationCap, ClipboardList, BookMarked, CalendarDays, CalendarCheck, Megaphone, TrendingUp, ClipboardCheck, CalendarRange } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, UserCheck, Layers, Pencil, GraduationCap, ClipboardList, BookMarked, Megaphone, TrendingUp, ClipboardCheck, CalendarRange } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 import ArchivioCorsoSection from '@/components/archivio/ArchivioCorsoSection'
 import NotificaCorso from './NotificaCorso'
@@ -150,17 +150,9 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
               style={{ backgroundColor: '#1B3768' }}>
               <Layers size={14} /> Panoramica
             </span>
-            <Link href={`/super-admin/corsi/${id}/sessioni`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
-              <CalendarDays size={14} /> Sessioni
-            </Link>
             <Link href={`/super-admin/corsi/${id}/programma`}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
               <CalendarRange size={14} /> Programma
-            </Link>
-            <Link href={`/super-admin/corsi/${id}/calendario`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
-              <CalendarCheck size={14} /> Calendario
             </Link>
             <Link href={`/super-admin/corsi/${id}/presenze`}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
@@ -249,11 +241,9 @@ export default async function CourseDetail({ params }: { params: Promise<{ id: s
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600 flex items-center gap-2">
-                <CalendarCheck size={14} className="text-amber-500" /> Sessioni
+                <CalendarRange size={14} className="text-amber-500" /> Giornate
               </span>
-              <Link href={`/super-admin/corsi/${id}/sessioni`} className="text-sm font-bold text-gray-900 hover:text-blue-600 transition">
-                {sessionCount ?? 0}
-              </Link>
+              <span className="text-sm font-bold text-gray-900">{eventiCount ?? 0}</span>
             </div>
           </div>
         </div>
