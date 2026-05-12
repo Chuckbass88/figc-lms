@@ -316,3 +316,14 @@ export interface CorsoEvento {
     profile?: Pick<Profile, 'id' | 'full_name'>
   }>
 }
+
+export interface CorsoPresenza {
+  id: string
+  corso_id: string
+  student_id: string
+  data: string  // ISO date "YYYY-MM-DD"
+  present: boolean
+  note_assenza: string | null
+  created_by: string | null
+  created_at: string
+}
