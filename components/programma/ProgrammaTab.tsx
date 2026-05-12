@@ -37,6 +37,7 @@ export default function ProgrammaTab({
   eventi, studenti, presenzeAll, canEdit, canManage,
 }: Props) {
   const [activeTab, setActiveTab] = useState<SubTab>('elenco')
+  const [printSections, setPrintSections] = useState({ elenco: true, presenze: false })
 
   return (
     <div className="space-y-4">
@@ -64,6 +65,8 @@ export default function ProgrammaTab({
           eventi={eventi}
           presenze={presenzeAll}
           studenti={studenti}
+          sections={printSections}
+          onSectionsChange={setPrintSections}
         />
       </div>
 
@@ -99,7 +102,7 @@ export default function ProgrammaTab({
         eventi={eventi}
         presenze={presenzeAll}
         studenti={studenti}
-        sections={{ elenco: true, presenze: true }}
+        sections={printSections}
       />
     </div>
   )

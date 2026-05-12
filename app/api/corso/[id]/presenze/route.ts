@@ -26,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
   let query = supabase
     .from('corso_presenze')
-    .select('id, student_id, data, present, note_assenza')
+    .select('id, corso_id, student_id, data, present, note_assenza, created_by, created_at')
     .eq('corso_id', id)
   if (data) query = query.eq('data', data)
 
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       { corso_id: id, student_id, data, present, note_assenza: note_assenza ?? null, created_by: user.id },
       { onConflict: 'corso_id,student_id,data' }
     )
-    .select('id, student_id, data, present, note_assenza')
+    .select('id, corso_id, student_id, data, present, note_assenza, created_by, created_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -15,12 +15,13 @@ interface Props {
   eventi: CorsoEvento[]
   presenze: CorsoPresenza[]
   studenti: Student[]
+  sections: { elenco: boolean; presenze: boolean }
+  onSectionsChange: (s: { elenco: boolean; presenze: boolean }) => void
 }
 
 export default function StampaModal(props: Props) {
-  const { corseName, corsoId, eventi, presenze, studenti } = props
+  const { corseName, corsoId, eventi, presenze, studenti, sections, onSectionsChange } = props
   const [open, setOpen] = useState(false)
-  const [sections, setSections] = useState({ elenco: true, presenze: false })
   const [emailInput, setEmailInput] = useState('')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
@@ -44,7 +45,7 @@ export default function StampaModal(props: Props) {
   }
 
   const toggle = (k: 'elenco' | 'presenze') =>
-    setSections(prev => ({ ...prev, [k]: !prev[k] }))
+    onSectionsChange({ ...sections, [k]: !sections[k] })
 
   return (
     <>

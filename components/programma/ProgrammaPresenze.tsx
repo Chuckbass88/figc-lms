@@ -48,10 +48,10 @@ export default function ProgrammaPresenze({ corsoId, eventi, studenti, canEdit }
     return presenze.find(p => p.student_id === studentId)
   }
 
-  async function toggle(studentId: string) {
+  async function toggle(studentId: string, intent: boolean) {
     if (!canEdit) return
     const current = getPresenza(studentId)
-    const newPresent = current ? !current.present : false  // default: tutti assenti finché non marcati
+    const newPresent = current ? !current.present : intent
     setSaving(studentId)
     const res = await fetch(`/api/corso/${corsoId}/presenze`, {
       method: 'POST',
@@ -242,7 +242,7 @@ export default function ProgrammaPresenze({ corsoId, eventi, studenti, canEdit }
                       <Loader2 size={14} className="animate-spin" style={{ color: '#1EB8E5' }} />
                     ) : (
                       <>
-                        <button onClick={() => toggle(s.id)}
+                        <button onClick={() => toggle(s.id, true)}
                           className="w-8 h-8 rounded-full flex items-center justify-center transition"
                           style={{
                             background: isPresent === true ? '#16a34a' : 'rgba(22,163,74,0.1)',
@@ -251,7 +251,7 @@ export default function ProgrammaPresenze({ corsoId, eventi, studenti, canEdit }
                           title="Presente">
                           <Check size={14} />
                         </button>
-                        <button onClick={() => toggle(s.id)}
+                        <button onClick={() => toggle(s.id, false)}
                           className="w-8 h-8 rounded-full flex items-center justify-center transition"
                           style={{
                             background: isPresent === false ? '#dc2626' : 'rgba(220,38,38,0.08)',
