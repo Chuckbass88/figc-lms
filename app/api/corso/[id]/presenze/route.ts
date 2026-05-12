@@ -21,6 +21,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!await requireInstructor(supabase, id)) return NextResponse.json({ error: 'Permesso negato' }, { status: 403 })
 
   const data = new URL(req.url).searchParams.get('data')
+  if (data && !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return NextResponse.json({ error: 'data deve essere nel formato YYYY-MM-DD' }, { status: 400 })
+  }
   let query = supabase
     .from('corso_presenze')
     .select('id, student_id, data, present, note_assenza')
@@ -43,6 +46,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { student_id, data, present, note_assenza } = await req.json()
   if (!student_id || !data || present === undefined) {
     return NextResponse.json({ error: 'student_id, data e present sono obbligatori' }, { status: 400 })
+  }
+  if (typeof present !== 'boolean') {
+    return NextResponse.json({ error: 'present deve essere un boolean' }, { status: 400 })
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return NextResponse.json({ error: 'data deve essere nel formato YYYY-MM-DD' }, { status: 400 })
   }
 
   const { data: result, error } = await supabase
