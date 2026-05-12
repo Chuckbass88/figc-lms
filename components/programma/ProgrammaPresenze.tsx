@@ -98,15 +98,20 @@ export default function ProgrammaPresenze({ corsoId, eventi, studenti, canEdit }
   async function markAll(present: boolean) {
     if (!canEdit) return
     setSaving('all')
-    await Promise.all(studenti.map(s =>
+    const results = await Promise.allSettled(studenti.map(s =>
       fetch(`/api/corso/${corsoId}/presenze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: s.id, data: selectedDate, present, note_assenza: null }),
       })
     ))
+    const anyFailed = results.some(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok))
     await fetchPresenze(selectedDate)
     setSaving(null)
+    if (anyFailed) {
+      // Could surface error, for now just re-fetch so UI is consistent
+      console.warn('Some presenze could not be saved')
+    }
   }
 
   if (dates.length === 0) {
@@ -243,6 +248,7 @@ export default function ProgrammaPresenze({ corsoId, eventi, studenti, canEdit }
                     ) : (
                       <>
                         <button onClick={() => toggle(s.id, true)}
+                          disabled={saving === 'all'}
                           className="w-8 h-8 rounded-full flex items-center justify-center transition"
                           style={{
                             background: isPresent === true ? '#16a34a' : 'rgba(22,163,74,0.1)',
@@ -252,6 +258,7 @@ export default function ProgrammaPresenze({ corsoId, eventi, studenti, canEdit }
                           <Check size={14} />
                         </button>
                         <button onClick={() => toggle(s.id, false)}
+                          disabled={saving === 'all'}
                           className="w-8 h-8 rounded-full flex items-center justify-center transition"
                           style={{
                             background: isPresent === false ? '#dc2626' : 'rgba(220,38,38,0.08)',

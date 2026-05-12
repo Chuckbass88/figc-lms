@@ -25,6 +25,7 @@ export default function StampaModal(props: Props) {
   const [emailInput, setEmailInput] = useState('')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [emailError, setEmailError] = useState('')
 
   function handlePrint() {
     setOpen(false)
@@ -33,15 +34,30 @@ export default function StampaModal(props: Props) {
 
   async function handleSendEmail() {
     if (!emailInput.trim()) return
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.trim())) {
+      setEmailError('Inserisci un indirizzo email valido')
+      return
+    }
+    setEmailError('')
     setSending(true)
-    await fetch(`/api/corsi/${corsoId}/calendario/invia`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: emailInput }),
-    })
-    setSending(false)
-    setSent(true)
-    setTimeout(() => { setSent(false); setOpen(false) }, 2000)
+    try {
+      const res = await fetch(`/api/corsi/${corsoId}/calendario/invia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput }),
+      })
+      if (!res.ok) {
+        setEmailError('Errore durante l\'invio. Riprova.')
+        setSending(false)
+        return
+      }
+      setSending(false)
+      setSent(true)
+      setTimeout(() => { setSent(false); setOpen(false) }, 2000)
+    } catch {
+      setEmailError('Errore di rete. Riprova.')
+      setSending(false)
+    }
   }
 
   const toggle = (k: 'elenco' | 'presenze') =>
@@ -123,6 +139,9 @@ export default function StampaModal(props: Props) {
                   {sent ? 'Inviato!' : sending ? '...' : 'Invia'}
                 </button>
               </div>
+              {emailError && (
+                <p className="text-xs text-red-600 mt-1">{emailError}</p>
+              )}
             </div>
           </div>
         </div>
