@@ -35,9 +35,11 @@ const TABS: { key: Mode; label: string; icon: React.ReactNode; desc: string }[] 
 export default function NuovaConversazioneBtn({
   currentUserId,
   currentUserRole,
+  compact = false,
 }: {
   currentUserId: string
   currentUserRole: string
+  compact?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<Mode>('singolo')
@@ -151,13 +153,24 @@ export default function NuovaConversazioneBtn({
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
-        style={{ backgroundColor: '#1EB8E5' }}
-      >
-        <Plus size={14} /> Nuovo messaggio
-      </button>
+      {compact ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white hover:opacity-90 transition flex-shrink-0"
+          style={{ backgroundColor: '#1EB8E5' }}
+          title="Nuovo messaggio"
+        >
+          <Plus size={15} />
+        </button>
+      ) : (
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
+          style={{ backgroundColor: '#1EB8E5' }}
+        >
+          <Plus size={14} /> Nuovo messaggio
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
