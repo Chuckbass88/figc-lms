@@ -16,7 +16,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const supabase = await createClient()
   if (!await requireAdmin(supabase)) return NextResponse.json({ error: 'Permesso negato' }, { status: 403 })
 
-  const { data, ora_inizio, ora_fine, materia, note, area_id } = await req.json()
+  const { data, ora_inizio, ora_fine, materia, note, area_id, location } = await req.json()
   if (!data || !ora_inizio || !ora_fine || !materia) {
     return NextResponse.json({ error: 'data, ora_inizio, ora_fine e materia sono obbligatori' }, { status: 400 })
   }
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: evento, error } = await supabase
     .from('corso_eventi')
-    .insert({ corso_id: id, data, ora_inizio, ora_fine, materia, note: note ?? null, area_id: area_id ?? null })
+    .insert({ corso_id: id, data, ora_inizio, ora_fine, materia, note: note ?? null, area_id: area_id ?? null, location: location ?? null })
     .select('*')
     .single()
 

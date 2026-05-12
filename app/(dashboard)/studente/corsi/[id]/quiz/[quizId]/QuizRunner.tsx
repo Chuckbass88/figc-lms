@@ -164,11 +164,12 @@ export default function QuizRunner({
         {/* Header con logo */}
         <div className="bg-gradient-to-br from-blue-700 to-blue-900 px-8 py-8 text-white text-center">
           <Image
-            src="/logo-coachlab-white.png"
+            src="/logo-coachlab.png"
             alt="CoachLab"
             width={140}
             height={40}
             className="mx-auto mb-5 object-contain"
+            style={{ filter: 'brightness(0) invert(1)' }}
           />
           <h2 className="text-xl font-bold">{quizTitle}</h2>
         </div>

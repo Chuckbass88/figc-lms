@@ -307,6 +307,7 @@ export interface CorsoEvento {
   ora_inizio: string
   ora_fine: string
   note: string | null
+  location: string | null
   created_at: string
   area?: Area
   corso?: Pick<Course, 'id' | 'name'>

@@ -59,9 +59,10 @@ export default function ProgrammaElenco({ eventi, corseName, corsoId, canManage 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({ materia: '', ora_inizio: '', ora_fine: '', note: '' })
   const [addingFasciaDate, setAddingFasciaDate] = useState<string | null>(null)
-  const [newFascia, setNewFascia] = useState({ materia: '', ora_inizio: '', ora_fine: '', note: '' })
+  const [newFascia, setNewFascia] = useState({ materia: '', ora_inizio: '', ora_fine: '', note: '', location: '' })
   const [addingGiorno, setAddingGiorno] = useState(false)
-  const [newGiorno, setNewGiorno] = useState({ data: '', materia: '', ora_inizio: '', ora_fine: '' })
+  const [newGiorno, setNewGiorno] = useState({ data: '', materia: '', ora_inizio: '', ora_fine: '', location: '' })
+  const [giornoError, setGiornoError] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { setLocalEventi(eventi) }, [eventi])
@@ -100,30 +101,34 @@ export default function ProgrammaElenco({ eventi, corseName, corsoId, canManage 
     const res = await fetch(`/api/corso/${corsoId}/eventi`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data, ...newFascia }),
+      body: JSON.stringify({ data, ...newFascia, location: newFascia.location || null }),
     })
     const json = await res.json()
     if (json.evento) {
       setLocalEventi(prev => [...prev, json.evento])
     }
-    setNewFascia({ materia: '', ora_inizio: '', ora_fine: '', note: '' })
+    setNewFascia({ materia: '', ora_inizio: '', ora_fine: '', note: '', location: '' })
     setAddingFasciaDate(null)
     setSaving(false)
   }
 
   async function addGiorno() {
-    if (!newGiorno.data || !newGiorno.materia || !newGiorno.ora_inizio || !newGiorno.ora_fine) return
+    if (!newGiorno.data || !newGiorno.materia || !newGiorno.ora_inizio || !newGiorno.ora_fine) {
+      setGiornoError('Compila tutti i campi: data, materia, ora inizio e ora fine.')
+      return
+    }
+    setGiornoError('')
     setSaving(true)
     const res = await fetch(`/api/corso/${corsoId}/eventi`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newGiorno),
+      body: JSON.stringify({ ...newGiorno, location: newGiorno.location || null }),
     })
     const json = await res.json()
     if (json.evento) {
       setLocalEventi(prev => [...prev, json.evento])
     }
-    setNewGiorno({ data: '', materia: '', ora_inizio: '', ora_fine: '' })
+    setNewGiorno({ data: '', materia: '', ora_inizio: '', ora_fine: '', location: '' })
     setAddingGiorno(false)
     setSaving(false)
   }
@@ -167,13 +172,16 @@ export default function ProgrammaElenco({ eventi, corseName, corsoId, canManage 
               <input type="time" value={newGiorno.ora_fine} onChange={e => setNewGiorno(p => ({ ...p, ora_fine: e.target.value }))}
                 className="rounded-lg border text-xs px-2 py-1" style={inputStyle} />
             </div>
+            {giornoError && (
+              <p className="text-xs" style={{ color: '#DC2626' }}>{giornoError}</p>
+            )}
             <div className="flex gap-2">
               <button onClick={addGiorno} disabled={saving}
                 className="px-3 py-1 rounded-lg text-xs font-medium text-white transition"
                 style={{ background: '#1B3768', opacity: saving ? 0.6 : 1 }}>
                 {saving ? 'Salvataggio…' : 'Aggiungi'}
               </button>
-              <button onClick={() => setAddingGiorno(false)}
+              <button onClick={() => { setAddingGiorno(false); setGiornoError('') }}
                 className="px-3 py-1 rounded-lg text-xs font-medium border transition hover:bg-gray-50"
                 style={{ borderColor: 'rgba(27,55,104,0.2)', color: '#1B3768' }}>
                 Annulla
@@ -232,11 +240,17 @@ export default function ProgrammaElenco({ eventi, corseName, corsoId, canManage 
                 return (
                   <div key={iso} className="flex items-start gap-3 py-1.5 px-3 rounded-xl"
                     style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(27,55,104,0.07)' }}>
-                    {/* Label giorno */}
-                    <span className="text-xs font-semibold flex-shrink-0 w-20 pt-1"
-                      style={{ color: '#1B3768' }}>
-                      {formatDate(iso)}
-                    </span>
+                    {/* Label giorno + sede */}
+                    <div className="flex-shrink-0 w-28 pt-1">
+                      <span className="text-xs font-semibold block" style={{ color: '#1B3768' }}>
+                        {formatDate(iso)}
+                      </span>
+                      {fasce[0]?.location && (
+                        <span className="text-[10px] flex items-center gap-0.5 mt-0.5" style={{ color: '#0891B2' }}>
+                          📍 {fasce[0].location}
+                        </span>
+                      )}
+                    </div>
                     {/* Blocchi fascia */}
                     <div className="flex flex-wrap gap-1.5 flex-1">
                       {fasce.map(ev => {
@@ -339,7 +353,7 @@ export default function ProgrammaElenco({ eventi, corseName, corsoId, canManage 
                             </button>
                           </div>
                         ) : (
-                          <button onClick={() => { setAddingFasciaDate(iso); setNewFascia({ materia: '', ora_inizio: '', ora_fine: '', note: '' }) }}
+                          <button onClick={() => { const last = fasce[fasce.length - 1]; setAddingFasciaDate(iso); setNewFascia({ materia: '', ora_inizio: last ? formatTime(last.ora_fine) : '', ora_fine: '', note: '', location: fasce[0]?.location ?? '' }) }}
                             className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs border transition hover:bg-gray-50"
                             style={{ borderColor: 'rgba(27,55,104,0.15)', color: 'rgba(27,55,104,0.5)' }}>
                             <Plus size={10} /> Aggiungi fascia
@@ -370,6 +384,8 @@ export default function ProgrammaElenco({ eventi, corseName, corsoId, canManage 
                   className="rounded-lg border text-xs px-2 py-1" style={inputStyle} />
                 <input type="time" value={newGiorno.ora_fine} onChange={e => setNewGiorno(p => ({ ...p, ora_fine: e.target.value }))}
                   className="rounded-lg border text-xs px-2 py-1" style={inputStyle} />
+                <input type="text" placeholder="Sede (opzionale, es. Roma)" value={newGiorno.location} onChange={e => setNewGiorno(p => ({ ...p, location: e.target.value }))}
+                  className="rounded-lg border text-xs px-2 py-1 flex-1 min-w-28" style={inputStyle} />
               </div>
               <div className="flex gap-2">
                 <button onClick={addGiorno} disabled={saving}

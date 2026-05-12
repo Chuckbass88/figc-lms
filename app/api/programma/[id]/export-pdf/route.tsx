@@ -240,11 +240,12 @@ export async function GET(request: Request, { params }: Params) {
 
   const buffer = await renderToBuffer(<PdfDoc />)
   const filename = encodeURIComponent(`${program.title}.pdf`)
+  const inline = new URL(request.url).searchParams.get('preview') === '1'
 
   return new Response(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${filename}"`,
     },
   })
 }

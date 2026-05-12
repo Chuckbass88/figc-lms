@@ -23,6 +23,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.ora_fine !== undefined) patch.ora_fine = body.ora_fine
   if (body.note !== undefined) patch.note = body.note ?? null
   if (body.data !== undefined) patch.data = body.data
+  if (body.location !== undefined) patch.location = body.location ?? null
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: 'Nessun campo da aggiornare' }, { status: 400 })

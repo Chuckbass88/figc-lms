@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, UserCheck, BookMarked, ClipboardList, Clock, Award, ClipboardCheck, Megaphone, TrendingUp, CheckCircle, Star, CalendarRange, CalendarCheck } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, UserCheck, BookMarked, ClipboardList, Clock, Award, ClipboardCheck, Megaphone, TrendingUp, CheckCircle, Star, CalendarRange, CalendarCheck, FolderOpen } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 
 const STATUS_LABELS: Record<string, string> = { active: 'In Corso', completed: 'Completato', draft: 'Bozza' }
@@ -209,6 +209,12 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition"
           >
             <CalendarCheck size={14} /> Calendario
+          </Link>
+          <Link
+            href={`/studente/corsi/${id}/archivio`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition"
+          >
+            <FolderOpen size={14} /> Archivio file
           </Link>
           {attendancePct !== null && (
             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${attendancePct >= 75 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>

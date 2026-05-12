@@ -12,6 +12,7 @@ interface Props {
 export default function PdfPreviewModal({ programId, programTitle, onClose }: Props) {
   const [loaded, setLoaded] = useState(false)
   const pdfUrl = `/api/programma/${programId}/export-pdf`
+  const previewUrl = `${pdfUrl}?preview=1`
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/70">
@@ -41,7 +42,7 @@ export default function PdfPreviewModal({ programId, programTitle, onClose }: Pr
           </div>
         )}
         <iframe
-          src={pdfUrl}
+          src={previewUrl}
           className="w-full h-full border-0"
           onLoad={() => setLoaded(true)}
           title={`Anteprima — ${programTitle}`}

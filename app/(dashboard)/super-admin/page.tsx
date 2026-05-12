@@ -73,8 +73,9 @@ export default async function SuperAdminDashboard() {
     supabase.from('task_submissions').select('task_id').is('grade', null),
     supabase.from('courses')
       .select(`
-        id, name, status, regione, tipo_corso, cu_number, cu_url,
-        course_instructors(profiles(full_name))
+        id, name, status, regione, tipo_corso, cu_number, cu_url, end_date,
+        course_instructors(profiles(full_name)),
+        course_enrollments(id, status)
       `)
       .eq('status', 'active')
       .order('name', { ascending: true }),
@@ -83,6 +84,8 @@ export default async function SuperAdminDashboard() {
   // --- Mappa corsi per tabella ---
   const corsiMappati = (corsiPerTabella ?? []).map(c => {
     const instructors = (c.course_instructors as unknown as { profiles: { full_name: string } | null }[]) ?? []
+    const enrollments = (c.course_enrollments as unknown as { id: string; status: string }[]) ?? []
+    const iscritti = enrollments.filter(e => e.status === 'active').length
     return {
       id: c.id,
       name: c.name,
@@ -90,7 +93,9 @@ export default async function SuperAdminDashboard() {
       tipo_corso: (c as any).tipo_corso as string | null ?? null,
       cu_number: (c as any).cu_number as string | null ?? null,
       cu_url: (c as any).cu_url as string | null ?? null,
+      end_date: (c as any).end_date as string | null ?? null,
       docente: instructors[0]?.profiles?.full_name ?? null,
+      iscritti,
     }
   })
 
@@ -226,22 +231,28 @@ export default async function SuperAdminDashboard() {
         />
       </div>
 
-      {/* ── Widget summary + Tabella corsi ── */}
+      {/* ── Widget summary ── */}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(27,55,104,0.1)' }}>
           <p className="text-xs font-medium mb-1" style={{ color: 'rgba(27,55,104,0.6)' }}>Corsi attivi</p>
           <p className="text-2xl font-bold" style={{ color: '#1B3768' }}>{totalActiveCourses ?? 0}</p>
-          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>in corso adesso</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>
+            {corsiMappati.reduce((acc, c) => acc + c.iscritti, 0)} corsisti iscritti
+          </p>
         </div>
-        <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(27,55,104,0.1)' }}>
+        <div className="rounded-2xl p-4" style={{ background: `rgba(255,255,255,0.6)`, border: `1px solid ${scadenzeCount > 0 ? 'rgba(245,158,11,0.3)' : 'rgba(27,55,104,0.1)'}` }}>
           <p className="text-xs font-medium mb-1" style={{ color: 'rgba(27,55,104,0.6)' }}>Scadenze prossime</p>
-          <p className="text-2xl font-bold" style={{ color: '#1B3768' }}>{scadenzeCount}</p>
-          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>entro 7 giorni</p>
+          <p className="text-2xl font-bold" style={{ color: scadenzeCount > 0 ? '#D97706' : '#1B3768' }}>{scadenzeCount}</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>
+            {(upcomingSessions?.length ?? 0)} sessioni · {(upcomingTasksRaw?.length ?? 0)} task entro 7 giorni
+          </p>
         </div>
-        <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(27,55,104,0.1)' }}>
+        <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.6)', border: `1px solid ${totalPendingEvaluations > 0 ? 'rgba(239,68,68,0.25)' : 'rgba(27,55,104,0.1)'}` }}>
           <p className="text-xs font-medium mb-1" style={{ color: 'rgba(27,55,104,0.6)' }}>Task da valutare</p>
-          <p className="text-2xl font-bold" style={{ color: '#1B3768' }}>{totalPendingEvaluations}</p>
-          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>risposte in attesa</p>
+          <p className="text-2xl font-bold" style={{ color: totalPendingEvaluations > 0 ? '#DC2626' : '#1B3768' }}>{totalPendingEvaluations}</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(27,55,104,0.5)' }}>
+            {pendingTasksList.length > 0 ? `${pendingTasksList.length} task con consegne in attesa` : 'nessuna consegna in attesa'}
+          </p>
         </div>
       </div>
 
