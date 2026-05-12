@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { List, CalendarDays, Users } from 'lucide-react'
+import { List, CalendarDays, Users, LayoutTemplate } from 'lucide-react'
 import ProgrammaElenco from './ProgrammaElenco'
+import ApplicaTemplateModal from '@/components/template/ApplicaTemplateModal'
 import ProgrammaPresenze from './ProgrammaPresenze'
 import PrintLayout from './PrintLayout'
 import StampaModal from './StampaModal'
@@ -38,6 +39,7 @@ export default function ProgrammaTab({
 }: Props) {
   const [activeTab, setActiveTab] = useState<SubTab>('elenco')
   const [printSections, setPrintSections] = useState({ elenco: true, presenze: false })
+  const [showApplica, setShowApplica] = useState(false)
 
   return (
     <div className="space-y-4">
@@ -56,6 +58,25 @@ export default function ProgrammaTab({
           ))}
         </div>
 
+        {canManage && (
+          <>
+            <button
+              onClick={() => setShowApplica(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition hover:bg-gray-50"
+              style={{ borderColor: 'rgba(27,55,104,0.15)', color: '#1B3768' }}>
+              <LayoutTemplate size={14} /> Applica template
+            </button>
+            {showApplica && (
+              <ApplicaTemplateModal
+                corsoId={corsoId}
+                corsoHasEventi={eventi.length > 0}
+                onClose={() => setShowApplica(false)}
+                onDone={() => { setShowApplica(false); window.location.reload() }}
+              />
+            )}
+          </>
+        )}
+
         <StampaModal
           corseName={corseName}
           corsoId={corsoId}
@@ -72,7 +93,7 @@ export default function ProgrammaTab({
 
       {/* Content */}
       {activeTab === 'elenco' && (
-        <ProgrammaElenco eventi={eventi} corseName={corseName} />
+        <ProgrammaElenco eventi={eventi} corseName={corseName} corsoId={corsoId} canManage={canManage} />
       )}
 
       {activeTab === 'calendario' && (
