@@ -75,4 +75,17 @@ input, select, textarea, button {
   aside, header, nav {
     display: none !important;
   }
+  /* Nascondi sidebar, header, nav */
+  nav, header, aside, [data-print-hide] {
+    display: none !important;
+  }
+  /* Mostra solo il PrintLayout */
+  body {
+    background: white !important;
+  }
+  .glass, .glass-header {
+    background: white !important;
+    backdrop-filter: none !important;
+    border: none !important;
+  }
 }
