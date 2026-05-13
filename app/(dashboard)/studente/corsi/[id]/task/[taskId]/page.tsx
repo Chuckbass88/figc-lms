@@ -193,8 +193,8 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
         </div>
       )}
 
-      {/* Feedback thread (singolo + microgruppo) */}
-      {hasFeedbackThread && sub && (
+      {/* Feedback thread — sempre visibile dopo la consegna */}
+      {sub && (
         <FeedbackThread submissionId={sub.id} isValutato={isValutato} />
       )}
 

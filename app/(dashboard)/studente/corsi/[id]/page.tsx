@@ -223,12 +223,15 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 transition">
             <Award size={13} /> Presenze
           </Link>
-          {(quizCount ?? 0) > 0 && (
-            <Link href={`/studente/corsi/${id}/quiz`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition">
-              <GraduationCap size={13} /> Quiz & Esami
-            </Link>
-          )}
+          <Link href={`/studente/corsi/${id}/quiz`}
+            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition">
+            <GraduationCap size={13} /> Quiz & Esami
+            {(quizCount ?? 0) > 0 && (
+              <span className="ml-0.5 text-xs bg-purple-200 text-purple-800 px-1.5 rounded-full font-bold">
+                {quizCount}
+              </span>
+            )}
+          </Link>
           <Link href={`/studente/corsi/${id}/calendario`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">
             <CalendarCheck size={13} /> Calendario
