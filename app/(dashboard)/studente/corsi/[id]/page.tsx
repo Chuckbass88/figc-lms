@@ -45,7 +45,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
     { data: courseTasks },
   ] = await Promise.all([
     supabase.from('courses')
-      .select('id, name, description, location, start_date, end_date, status, category, ore_totali')
+      .select('id, name, description, location, start_date, end_date, status, category')
       .eq('id', id).single(),
     supabase.from('course_instructors').select('profiles(id, full_name)').eq('course_id', id),
     supabase.from('course_groups')
@@ -70,6 +70,10 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
   ])
 
   if (!course) notFound()
+
+  // Fetch ore_totali separately — the column may not exist yet (migration 030)
+  const { data: oreRow } = await supabase
+    .from('courses').select('ore_totali').eq('id', id).single()
 
   // ── Materiali visibili ───────────────────────────────────────────────────────
   const myGroupId = myGroupRow?.id ?? null
@@ -118,7 +122,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
     s.attendances.some((a: { student_id: string; present: boolean }) => a.student_id === user.id && !a.present)
   ).length
   const totalPast = pastSessions.length
-  const oreTotali = (course as unknown as { ore_totali?: number | null }).ore_totali ?? null
+  const oreTotali = (oreRow as unknown as { ore_totali?: number | null } | null)?.ore_totali ?? null
 
   // Calcolo ore assenza: se ore_totali disponibile → proporzionale
   const orePerSessione = oreTotali && sessionList.length > 0 ? oreTotali / sessionList.length : null
