@@ -225,7 +225,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
           </Link>
           <Link href={`/studente/corsi/${id}/quiz`}
             className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition">
-            <GraduationCap size={13} /> Quiz & Esami
+            <GraduationCap size={13} /> Quiz e Esami
             {(quizCount ?? 0) > 0 && (
               <span className="ml-0.5 text-xs bg-purple-200 text-purple-800 px-1.5 rounded-full font-bold">
                 {quizCount}

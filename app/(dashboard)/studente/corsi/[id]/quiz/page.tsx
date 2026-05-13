@@ -72,7 +72,7 @@ export default async function StudenteQuizListPage({ params }: { params: Promise
         </Link>
         <div className="flex items-center gap-2">
           <ClipboardCheck size={18} className="text-blue-600" />
-          <h2 className="text-xl font-bold text-gray-900">Quiz & Esami</h2>
+          <h2 className="text-xl font-bold text-gray-900">Quiz e Esami</h2>
           {visibleQuizzes.length > 0 && (
             <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
               {visibleQuizzes.length}
