@@ -35,7 +35,7 @@ export default async function AdminTaskDetailPage({ params }: { params: Promise<
       .eq('course_id', id)
       .eq('status', 'active'),
     supabase.from('task_submissions')
-      .select('id, student_id, file_url, file_name, file_size, notes, submitted_at, grade, feedback')
+      .select('id, student_id, file_url, file_name, file_size, notes, submitted_at, status, grade, grade_decimal, feedback')
       .eq('task_id', taskId),
   ])
 
@@ -44,8 +44,8 @@ export default async function AdminTaskDetailPage({ params }: { params: Promise<
   type Enrollment = { student_id: string; profiles: { id: string; full_name: string; email: string } | null }
   type Submission = {
     id: string; student_id: string; file_url: string | null; file_name: string | null
-    file_size: number | null; notes: string | null; submitted_at: string
-    grade: string | null; feedback: string | null
+    file_size: number | null; notes: string | null; submitted_at: string; status: string
+    grade: string | null; grade_decimal: number | null; feedback: string | null
   }
 
   let students = (enrollments as unknown as Enrollment[] ?? [])
@@ -168,7 +168,8 @@ export default async function AdminTaskDetailPage({ params }: { params: Promise<
                       submissionId={sub.id}
                       studentId={student.id}
                       taskTitle={task.title}
-                      initialGrade={sub.grade}
+                      courseId={id}
+                      initialGradeDecimal={sub.grade_decimal ?? null}
                       initialFeedback={sub.feedback}
                     />
                   ) : (

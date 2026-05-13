@@ -8,9 +8,15 @@ interface Props {
   taskId: string
   courseId: string
   hasExisting: boolean
+  requireFile?: boolean
+  acceptedFormats?: string[]
+  versionNumber?: number
 }
 
-export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props) {
+export default function SubmitTaskForm({
+  taskId, courseId, hasExisting,
+  requireFile = true, acceptedFormats = ['pdf', 'pptx', 'xlsx'], versionNumber = 0,
+}: Props) {
   const [notes, setNotes] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -95,8 +101,18 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
 
         <div>
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">
-            Allegato (opzionale) <span className="text-gray-400 font-normal normal-case">— max 50MB</span>
+            {requireFile ? (
+              <>Allegato <span className="text-red-400">*</span> <span className="text-gray-400 font-normal normal-case">— {acceptedFormats.map(f => f.toUpperCase()).join(', ')}</span></>
+            ) : (
+              <>Allegato <span className="text-gray-400 font-normal normal-case">(opzionale) — {acceptedFormats.map(f => f.toUpperCase()).join(', ')}</span></>
+            )}
           </label>
+          {hasExisting && versionNumber > 0 && (
+            <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5 mb-2 flex items-center gap-1.5">
+              <AlertTriangle size={11} />
+              Stai inviando la versione {versionNumber + 1}. Il file precedente verrà sostituito.
+            </p>
+          )}
           {file ? (
             <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <Upload size={14} className="text-blue-600 flex-shrink-0" />
@@ -116,13 +132,14 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
               onClick={() => fileRef.current?.click()}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-blue-300 hover:text-blue-600 transition"
             >
-              <Upload size={14} /> Seleziona file
+              <Upload size={14} /> Seleziona file {acceptedFormats.map(f => f.toUpperCase()).join(' / ')}
             </button>
           )}
           <input
             ref={fileRef}
             type="file"
             className="hidden"
+            accept={acceptedFormats.map(f => `.${f}`).join(',')}
             onChange={e => setFile(e.target.files?.[0] ?? null)}
           />
         </div>
@@ -151,7 +168,7 @@ export default function SubmitTaskForm({ taskId, courseId, hasExisting }: Props)
 
         <button
           onClick={() => setShowConfirm(true)}
-          disabled={loading || (!notes.trim() && !file)}
+          disabled={loading || (requireFile && !file) || (!notes.trim() && !file)}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
           style={{ backgroundColor: '#1EB8E5' }}
         >

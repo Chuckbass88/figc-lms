@@ -1,8 +1,7 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Plus, X, Loader2, Link2, Upload, FileText } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { Plus, X, Loader2, Link2, Upload, FileText, Paperclip, Eye, EyeOff } from 'lucide-react'
 
 interface Group { id: string; name: string }
 interface Student { id: string; full_name: string }
@@ -14,6 +13,9 @@ export default function NuovoTaskForm({ courseId, groups, students }: Props) {
   const [description, setDescription] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [recipient, setRecipient] = useState('')
+  const [requireFile, setRequireFile] = useState(true)
+  const [referenteId, setReferenteId] = useState('')
+  const [groupMembers, setGroupMembers] = useState<Student[]>([])
   const [attachType, setAttachType] = useState<'none' | 'link' | 'file'>('none')
   const [linkUrl, setLinkUrl] = useState('')
   const [linkName, setLinkName] = useState('')
@@ -21,7 +23,21 @@ export default function NuovoTaskForm({ courseId, groups, students }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
+
+  const isGroupRecipient = recipient.startsWith('group:')
+
+  useEffect(() => {
+    if (!isGroupRecipient) { setGroupMembers([]); setReferenteId(''); return }
+    const groupId = recipient.replace('group:', '')
+    fetch(`/api/groups/${groupId}/members`)
+      .then(r => r.json())
+      .then(data => {
+        const members: Student[] = Array.isArray(data) ? data : []
+        setGroupMembers(members)
+        setReferenteId(members[0]?.id ?? '')
+      })
+      .catch(() => setGroupMembers([]))
+  }, [recipient]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function reset() {
     setOpen(false)
@@ -29,6 +45,9 @@ export default function NuovoTaskForm({ courseId, groups, students }: Props) {
     setDescription('')
     setDueDate('')
     setRecipient('')
+    setRequireFile(true)
+    setReferenteId('')
+    setGroupMembers([])
     setAttachType('none')
     setLinkUrl('')
     setLinkName('')
@@ -44,12 +63,14 @@ export default function NuovoTaskForm({ courseId, groups, students }: Props) {
     fd.append('courseId', courseId)
     if (recipient.startsWith('group:')) {
       fd.append('groupId', recipient.replace('group:', ''))
+      if (referenteId) fd.append('referenteId', referenteId)
     } else if (recipient.startsWith('student:')) {
       fd.append('studentId', recipient.replace('student:', ''))
     }
     fd.append('title', title.trim())
     fd.append('description', description.trim())
     fd.append('dueDate', dueDate)
+    fd.append('requireFile', requireFile ? '1' : '0')
     if (attachType === 'link' && linkUrl.trim()) {
       fd.append('attachmentUrl', linkUrl.trim())
       fd.append('attachmentName', linkName.trim() || linkUrl.trim())
@@ -160,10 +181,42 @@ export default function NuovoTaskForm({ courseId, groups, students }: Props) {
                 </div>
               </div>
 
-              {/* Allegato */}
+              {/* Referente microgruppo */}
+              {isGroupRecipient && groupMembers.length > 0 && (
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">
+                    Referente consegna <span className="text-gray-400 font-normal normal-case">(chi carica il file per il gruppo)</span>
+                  </label>
+                  <select
+                    value={referenteId}
+                    onChange={e => setReferenteId(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    {groupMembers.map(m => (
+                      <option key={m.id} value={m.id}>{m.full_name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* File richiesto */}
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <div
+                  onClick={() => setRequireFile(v => !v)}
+                  className={`relative w-8 h-4 rounded-full transition ${requireFile ? 'bg-blue-600' : 'bg-gray-300'}`}
+                >
+                  <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${requireFile ? 'left-4.5' : 'left-0.5'}`} />
+                </div>
+                <span className="text-xs text-gray-600 flex items-center gap-1.5">
+                  <Paperclip size={12} />
+                  {requireFile ? 'File allegato richiesto al corsista' : 'File allegato facoltativo'}
+                </span>
+              </label>
+
+              {/* Allegato docente */}
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2">
-                  Allegato (opzionale)
+                  Allegato docente (opzionale)
                 </label>
                 <div className="flex gap-2 mb-3">
                   {([['none', 'Nessuno'], ['link', 'Link / cartella'], ['file', 'Carica file']] as const).map(([val, label]) => (

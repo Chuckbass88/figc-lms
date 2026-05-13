@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Clock, Star, CheckCircle, FileText, MessageSquare, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Clock, Star, CheckCircle, FileText, AlertCircle } from 'lucide-react'
 import SubmitTaskForm from './SubmitTaskForm'
+import FeedbackThread from './FeedbackThread'
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
@@ -30,14 +31,14 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
     { data: task },
     { data: submission },
   ] = await Promise.all([
-    supabase.from('courses').select('id, name').eq('id', id).single(),
+    supabase.from('courses').select('id, name, grading_scale').eq('id', id).single(),
     supabase.from('course_tasks')
-      .select('id, title, description, due_date, student_id, course_groups(name)')
+      .select('id, title, description, due_date, student_id, group_id, referente_id, require_file, accepted_formats, grade_visible, course_groups(name)')
       .eq('id', taskId)
       .eq('course_id', id)
       .single(),
     supabase.from('task_submissions')
-      .select('id, file_url, file_name, file_size, notes, submitted_at, grade, feedback')
+      .select('id, file_url, file_name, file_size, file_deleted_at, notes, submitted_at, status, grade, grade_decimal, feedback, version_number')
       .eq('task_id', taskId)
       .eq('student_id', user.id)
       .maybeSingle(),
@@ -45,18 +46,30 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
 
   if (!course || !task) notFound()
 
-  // Se il task è assegnato a un singolo corsista, verifica che sia l'utente corrente
   if (task.student_id && task.student_id !== user.id) notFound()
 
   const today = new Date().toISOString().split('T')[0]
   const isOverdue = task.due_date && task.due_date < today
   const group = task.course_groups as unknown as { name: string } | null
+  const gradingScale = (course as unknown as { grading_scale?: number })?.grading_scale ?? 10
 
   type Submission = {
     id: string; file_url: string | null; file_name: string | null; file_size: number | null
-    notes: string | null; submitted_at: string; grade: string | null; feedback: string | null
+    file_deleted_at: string | null; notes: string | null; submitted_at: string; status: string
+    grade: string | null; grade_decimal: number | null; feedback: string | null; version_number: number
   }
   const sub = submission as Submission | null
+
+  const isValutato = sub?.status === 'valutato'
+  const gradeVisible = task.grade_visible ?? false
+  const gradeDisplay = sub?.grade_decimal != null ? (sub.grade_decimal * (gradingScale / 10)).toFixed(1) : null
+  const hasFeedbackThread = !!(task.student_id || task.group_id)
+  const isReferente = !task.group_id || task.referente_id === user.id || !task.referente_id
+  const acceptedFormats: string[] = (task.accepted_formats as string[] | null) ?? ['pdf', 'pptx', 'xlsx']
+  const requireFile = task.require_file ?? true
+
+  // Referente check for microgruppo: non-referente can see thread but not upload
+  const canSubmit = task.group_id ? isReferente : true
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -77,6 +90,16 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
               {group.name}
             </span>
           )}
+          {sub && (
+            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+              sub.status === 'valutato' ? 'bg-green-100 text-green-700' :
+              sub.status === 'in_revisione' ? 'bg-amber-100 text-amber-700' :
+              'bg-blue-100 text-blue-700'
+            }`}>
+              {sub.status === 'valutato' ? 'Valutato' :
+               sub.status === 'in_revisione' ? 'In revisione' : 'Consegnato'}
+            </span>
+          )}
           {task.due_date && (
             <span className={`flex items-center gap-1.5 text-xs font-medium ${isOverdue && !sub ? 'text-red-500' : 'text-gray-500'}`}>
               <Clock size={12} />
@@ -87,37 +110,48 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
         </div>
       </div>
 
-      {/* Feedback received */}
-      {sub?.grade && (
+      {/* Valutazione (solo se grade_visible = true) */}
+      {isValutato && gradeVisible && gradeDisplay && (
         <div className="bg-amber-50 rounded-xl border border-amber-200 p-5 space-y-2">
           <div className="flex items-center gap-2">
             <Star size={14} className="text-amber-600" />
             <p className="text-sm font-semibold text-amber-900">Valutazione ricevuta</p>
           </div>
-          <p className="text-xl font-bold text-amber-800">{sub.grade}</p>
-          {sub.feedback && (
+          <p className="text-2xl font-bold text-amber-800">{gradeDisplay}/{gradingScale}</p>
+          {sub?.feedback && (
             <p className="text-sm text-amber-700 bg-amber-100 rounded-lg px-3 py-2">{sub.feedback}</p>
           )}
         </div>
       )}
 
-      {/* Existing submission */}
+      {/* Task valutata senza voto condiviso */}
+      {isValutato && !gradeVisible && (
+        <div className="bg-green-50 rounded-xl border border-green-200 p-4 flex items-center gap-3">
+          <CheckCircle size={15} className="text-green-600 flex-shrink-0" />
+          <p className="text-sm text-green-800">
+            Il tuo lavoro è stato valutato. Il docente non ha condiviso il voto.
+          </p>
+        </div>
+      )}
+
+      {/* Consegna esistente */}
       {sub && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
           <div className="flex items-center gap-2">
             <CheckCircle size={15} className="text-green-600" />
             <p className="text-sm font-semibold text-gray-900">La tua consegna</p>
             <span className="ml-auto text-xs text-gray-400">
-              {new Date(sub.submitted_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              v{sub.version_number} · {new Date(sub.submitted_at).toLocaleDateString('it-IT', {
+                day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+              })}
             </span>
           </div>
           {sub.notes && (
-            <div className="flex items-start gap-2 text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">
-              <MessageSquare size={13} className="text-gray-400 flex-shrink-0 mt-0.5" />
-              <span>{sub.notes}</span>
-            </div>
+            <p className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">{sub.notes}</p>
           )}
-          {sub.file_url && (
+          {sub.file_deleted_at ? (
+            <p className="text-xs text-gray-400 italic">File rimosso dopo la valutazione.</p>
+          ) : sub.file_url ? (
             <a
               href={sub.file_url}
               target="_blank"
@@ -128,29 +162,49 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
               <span className="truncate max-w-[250px]">{sub.file_name ?? 'File allegato'}</span>
               {sub.file_size && <span className="text-blue-400 flex-shrink-0">· {formatSize(sub.file_size)}</span>}
             </a>
-          )}
+          ) : null}
+        </div>
+      )}
+
+      {/* Feedback thread (singolo + microgruppo) */}
+      {hasFeedbackThread && sub && (
+        <FeedbackThread submissionId={sub.id} isValutato={isValutato} />
+      )}
+
+      {/* Microgruppo non-referente: solo lettura */}
+      {task.group_id && !isReferente && !isValutato && (
+        <div className="bg-blue-50 rounded-xl border border-blue-200 p-4 text-sm text-blue-800">
+          Solo il referente del gruppo può caricare il file. Puoi seguire il thread feedback sopra.
         </div>
       )}
 
       {/* Upload form */}
-      {isOverdue && !sub ? (
-        <div className="bg-red-50 rounded-xl border border-red-200 p-5 flex items-start gap-3">
-          <AlertCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-red-800">Task scaduta</p>
-            <p className="text-sm text-red-600 mt-0.5">
-              Il termine per la consegna era il {new Date(task.due_date!).toLocaleDateString('it-IT')}.
-              Non è più possibile inviare la consegna.
-            </p>
+      {!isValutato && canSubmit && (
+        isOverdue && !sub ? (
+          <div className="bg-red-50 rounded-xl border border-red-200 p-5 flex items-start gap-3">
+            <AlertCircle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-800">Task scaduta</p>
+              <p className="text-sm text-red-600 mt-0.5">
+                Il termine era il {new Date(task.due_date!).toLocaleDateString('it-IT')}. Contatta il docente per una proroga.
+              </p>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <p className="text-sm font-semibold text-gray-900 mb-4">
-            {sub ? 'Aggiorna la consegna' : 'Carica il tuo lavoro'}
-          </p>
-          <SubmitTaskForm taskId={taskId} courseId={id} hasExisting={!!sub} />
-        </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <p className="text-sm font-semibold text-gray-900 mb-4">
+              {sub ? `Aggiorna la consegna (versione ${(sub.version_number ?? 0) + 1})` : 'Carica il tuo lavoro'}
+            </p>
+            <SubmitTaskForm
+              taskId={taskId}
+              courseId={id}
+              hasExisting={!!sub}
+              requireFile={requireFile}
+              acceptedFormats={acceptedFormats}
+              versionNumber={sub?.version_number ?? 0}
+            />
+          </div>
+        )
       )}
     </div>
   )

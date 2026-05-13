@@ -13,9 +13,11 @@ export async function POST(request: Request) {
   const courseId = formData.get('courseId') as string
   const groupId = formData.get('groupId') as string || null
   const studentId = formData.get('studentId') as string || null
+  const referenteId = formData.get('referenteId') as string || null
   const title = formData.get('title') as string
   const description = formData.get('description') as string || null
   const dueDate = formData.get('dueDate') as string || null
+  const requireFile = formData.get('requireFile') !== '0'
   const attachmentType = formData.get('attachmentType') as string | null
   let attachmentUrl: string | null = null
   let attachmentName: string | null = null
@@ -50,9 +52,12 @@ export async function POST(request: Request) {
     title: title.trim(),
     description: description?.trim() || null,
     due_date: dueDate || null,
+    require_file: requireFile,
+    grade_visible: false,
     created_by: user.id,
   }
   if (studentId) insertData.student_id = studentId
+  if (referenteId && groupId) insertData.referente_id = referenteId
   if (attachmentUrl) insertData.attachment_url = attachmentUrl
   if (attachmentName) insertData.attachment_name = attachmentName
   if (attachmentType) insertData.attachment_type = attachmentType

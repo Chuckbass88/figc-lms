@@ -32,14 +32,14 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
     { data: enrollments },
     { data: submissions },
   ] = await Promise.all([
-    supabase.from('courses').select('id, name').eq('id', id).single(),
+    supabase.from('courses').select('id, name, grading_scale').eq('id', id).single(),
     supabase.from('course_tasks').select('*, course_groups(name)').eq('id', taskId).eq('course_id', id).single(),
     supabase.from('course_enrollments')
       .select('student_id, profiles(id, full_name, email)')
       .eq('course_id', id)
       .eq('status', 'active'),
     supabase.from('task_submissions')
-      .select('id, student_id, file_url, file_name, file_size, notes, submitted_at, grade, feedback')
+      .select('id, student_id, file_url, file_name, file_size, storage_path, file_deleted_at, notes, submitted_at, status, grade, grade_decimal, feedback, version_number')
       .eq('task_id', taskId),
   ])
 
@@ -48,8 +48,10 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
   type Enrollment = { student_id: string; profiles: { id: string; full_name: string; email: string } | null }
   type Submission = {
     id: string; student_id: string; file_url: string | null; file_name: string | null
-    file_size: number | null; notes: string | null; submitted_at: string
-    grade: string | null; feedback: string | null
+    file_size: number | null; storage_path: string | null; file_deleted_at: string | null
+    notes: string | null; submitted_at: string; status: string
+    grade: string | null; grade_decimal: number | null; feedback: string | null
+    version_number: number
   }
 
   let students = (enrollments as unknown as Enrollment[] ?? [])
@@ -74,8 +76,11 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
   const isOverdue = task.due_date && task.due_date < today
   const group = task.course_groups as { name: string } | null
 
+  const gradingScale = (course as unknown as { grading_scale?: number })?.grading_scale ?? 10
+  const hasFeedbackThread = !!(task.student_id || task.group_id)
+
   const submittedCount = submissions?.length ?? 0
-  const evaluatedCount = (submissions as Submission[] ?? []).filter(s => s.grade).length
+  const evaluatedCount = (submissions as Submission[] ?? []).filter(s => s.status === 'valutato').length
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -172,7 +177,7 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
                   file_name: sub?.file_name ?? null,
                   file_url: sub?.file_url ?? null,
                   notes: sub?.notes ?? null,
-                  grade: sub?.grade ?? null,
+                  grade: sub?.grade_decimal != null ? String(sub.grade_decimal * (gradingScale / 10)) : (sub?.grade ?? null),
                   feedback: sub?.feedback ?? null,
                 }
               })}
@@ -183,6 +188,10 @@ export default async function DocenteTaskDetailPage({ params }: { params: Promis
           students={students}
           submissionMap={Object.fromEntries(submissionMap)}
           taskTitle={task.title}
+          courseId={id}
+          gradingScale={gradingScale}
+          taskId={taskId}
+          hasFeedbackThread={hasFeedbackThread}
         />
       </div>
     </div>
