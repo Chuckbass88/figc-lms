@@ -6,9 +6,9 @@ import { createClient } from '@/lib/supabase/server'
 import {
   ArrowLeft, MapPin, Calendar, UserCheck, BookMarked,
   ClipboardList, Clock, CheckCircle, Megaphone, CalendarCheck,
-  AlertCircle, Users, Award,
+  AlertCircle, Users, Award, GraduationCap, FileText, Download,
+  File, FileImage, FileSpreadsheet,
 } from 'lucide-react'
-import MaterialiClient from '@/components/materiali/MaterialiClient'
 import MiniCalendario from '@/components/calendario/MiniCalendario'
 
 const STATUS_LABELS: Record<string, string> = { active: 'In Corso', completed: 'Completato', draft: 'Bozza' }
@@ -16,6 +16,20 @@ const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-100 text-green-700',
   completed: 'bg-blue-100 text-blue-700',
   draft: 'bg-amber-100 text-amber-700',
+}
+
+function FileIcon({ type }: { type: string | null }) {
+  const t = type?.toLowerCase()
+  if (t === 'pdf') return <FileText size={16} className="text-red-500 flex-shrink-0" />
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(t ?? '')) return <FileImage size={16} className="text-blue-500 flex-shrink-0" />
+  if (['xlsx', 'xls', 'csv'].includes(t ?? '')) return <FileSpreadsheet size={16} className="text-green-600 flex-shrink-0" />
+  return <File size={16} className="text-gray-400 flex-shrink-0" />
+}
+
+function formatSize(bytes: number | null) {
+  if (!bytes) return ''
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / 1048576).toFixed(1)} MB`
 }
 
 export default async function StudenteCourseDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -43,6 +57,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
     { count: announcementCount },
     { data: allSessions },
     { data: courseTasks },
+    { count: quizCount },
   ] = await Promise.all([
     supabase.from('courses')
       .select('id, name, description, location, start_date, end_date, status, category')
@@ -67,6 +82,8 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
     supabase.from('course_tasks')
       .select('id, title, due_date, student_id, group_id')
       .eq('course_id', id),
+    supabase.from('course_quizzes')
+      .select('*', { count: 'exact', head: true }).eq('course_id', id),
   ])
 
   if (!course) notFound()
@@ -86,18 +103,17 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
     return true
   })
 
-  // ── Task: pendenti e consegnati ──────────────────────────────────────────────
+  // ── Task: pendenti ───────────────────────────────────────────────────────────
   type TaskRow = { id: string; title: string; due_date: string | null; student_id: string | null; group_id: string | null }
   const taskList = (courseTasks ?? []) as unknown as TaskRow[]
 
-  // Filtra task visibili per questo studente
   const { data: myGroupMembership } = myGroupId
     ? await supabase.from('course_group_members').select('group_id').eq('student_id', user.id)
     : { data: [] }
   const myGroupIds = new Set((myGroupMembership ?? []).map(m => m.group_id))
 
   const myTaskIds = taskList
-    .filter(t => !t.student_id && !t.group_id || t.student_id === user.id || (t.group_id && myGroupIds.has(t.group_id)))
+    .filter(t => (!t.student_id && !t.group_id) || t.student_id === user.id || (t.group_id && myGroupIds.has(t.group_id)))
     .map(t => t.id)
 
   const { data: mySubmissions } = myTaskIds.length > 0
@@ -106,7 +122,7 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
 
   const submittedSet = new Set((mySubmissions ?? []).map(s => s.task_id))
   const myVisibleTasks = taskList.filter(t =>
-    !t.student_id && !t.group_id || t.student_id === user.id || (t.group_id && myGroupIds.has(t.group_id))
+    (!t.student_id && !t.group_id) || t.student_id === user.id || (t.group_id && myGroupIds.has(t.group_id))
   )
   const pendingTasks = myVisibleTasks.filter(t => !submittedSet.has(t.id))
   const overdueTasks = pendingTasks.filter(t => t.due_date && t.due_date < today)
@@ -124,7 +140,6 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
   const totalPast = pastSessions.length
   const oreTotali = (oreRow as unknown as { ore_totali?: number | null } | null)?.ore_totali ?? null
 
-  // Calcolo ore assenza: se ore_totali disponibile → proporzionale
   const orePerSessione = oreTotali && sessionList.length > 0 ? oreTotali / sessionList.length : null
   const oreAssenza = orePerSessione ? Math.round(absentCount * orePerSessione * 10) / 10 : null
   const oreMassime = oreTotali ? Math.round(oreTotali * 0.10 * 10) / 10 : null
@@ -133,10 +148,9 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
     ? oreAssenza > oreMassime
     : pctAssenza > 10
 
-  // Prossima sessione
   const nextSession = sessionList.find(s => s.session_date > today)
 
-  const docenti = instructors?.map(r => r.profiles).filter(Boolean) as unknown as { id: string; full_name: string }[] ?? []
+  const docenti = (instructors ?? []).map(r => r.profiles).filter(Boolean) as unknown as { id: string; full_name: string }[]
 
   const myGroup = myGroupRow as {
     id: string; name: string; description: string | null
@@ -162,8 +176,8 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
         </Link>
         <div className="flex items-start gap-3 flex-wrap">
           <h2 className="text-2xl font-bold text-gray-900">{course.name}</h2>
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium mt-1 flex-shrink-0 ${STATUS_COLORS[course.status]}`}>
-            {STATUS_LABELS[course.status]}
+          <span className={`text-xs px-2.5 py-1 rounded-full font-medium mt-1 flex-shrink-0 ${STATUS_COLORS[course.status] ?? 'bg-gray-100 text-gray-600'}`}>
+            {STATUS_LABELS[course.status] ?? course.status}
           </span>
         </div>
         {course.description && (
@@ -205,6 +219,16 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
               </span>
             )}
           </Link>
+          <Link href={`/studente/corsi/${id}/presenze`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 transition">
+            <Award size={13} /> Presenze
+          </Link>
+          {(quizCount ?? 0) > 0 && (
+            <Link href={`/studente/corsi/${id}/quiz`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition">
+              <GraduationCap size={13} /> Quiz & Esami
+            </Link>
+          )}
           <Link href={`/studente/corsi/${id}/calendario`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition">
             <CalendarCheck size={13} /> Calendario
@@ -219,13 +243,18 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
             )}
           </Link>
           <Link href={`/studente/corsi/${id}/materiali`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 transition">
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-50 text-orange-700 hover:bg-orange-100 transition">
             <BookMarked size={13} /> Materiali
+            {visibleMaterials.length > 0 && (
+              <span className="ml-0.5 text-xs bg-orange-200 text-orange-800 px-1.5 rounded-full font-bold">
+                {visibleMaterials.length}
+              </span>
+            )}
           </Link>
         </div>
       </div>
 
-      {/* ── Task in evidenza (se ci sono pendenti) ─────────────────────────── */}
+      {/* ── Task in evidenza ───────────────────────────────────────────────── */}
       {pendingTasks.length > 0 && (
         <div className={`rounded-xl border p-4 space-y-2 ${overdueTasks.length > 0 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
           <div className="flex items-center gap-2">
@@ -259,93 +288,112 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
         </div>
       )}
 
-      {/* ── Calendario anteprima ───────────────────────────────────────────── */}
-      {sessionDates.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <CalendarCheck size={15} className="text-blue-600" />
-              <h3 className="font-semibold text-gray-900 text-sm">Calendario lezioni</h3>
-            </div>
-            <div className="flex items-center gap-3">
-              {nextSession && (
-                <span className="text-xs text-gray-500">
-                  Prossima: <strong className="text-blue-700">
-                    {new Date(nextSession.session_date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}
-                  </strong>
-                </span>
-              )}
-              <Link href={`/studente/corsi/${id}/calendario`}
-                className="text-xs text-blue-600 hover:underline">
-                Apri →
-              </Link>
-            </div>
-          </div>
-          <MiniCalendario sessionDates={sessionDates} compact />
+      {/* ── Task tutti completati ──────────────────────────────────────────── */}
+      {myVisibleTasks.length > 0 && pendingTasks.length === 0 && (
+        <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-xl px-4 py-3">
+          <CheckCircle size={15} /> Tutte le task sono state consegnate.
         </div>
       )}
 
-      {/* ── Presenze ───────────────────────────────────────────────────────── */}
-      {totalPast > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Award size={15} className={isSogliaSuperata ? 'text-red-500' : 'text-green-600'} />
-              <h3 className="font-semibold text-gray-900 text-sm">Presenze</h3>
-            </div>
+      {/* ── Calendario anteprima — SEMPRE VISIBILE ─────────────────────────── */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <CalendarCheck size={15} className="text-blue-600" />
+            <h3 className="font-semibold text-gray-900 text-sm">Calendario lezioni</h3>
+          </div>
+          <div className="flex items-center gap-3">
+            {nextSession && (
+              <span className="text-xs text-gray-500">
+                Prossima: <strong className="text-blue-700">
+                  {new Date(nextSession.session_date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}
+                </strong>
+              </span>
+            )}
+            <Link href={`/studente/corsi/${id}/calendario`}
+              className="text-xs text-blue-600 hover:underline">
+              Apri →
+            </Link>
+          </div>
+        </div>
+        {sessionDates.length > 0 ? (
+          <MiniCalendario sessionDates={sessionDates} compact />
+        ) : (
+          <div className="py-8 text-center">
+            <CalendarCheck size={28} className="text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">Nessuna data pianificata.</p>
+            <p className="text-xs text-gray-400 mt-0.5">Le date delle lezioni verranno aggiunte dal docente.</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Presenze — SEMPRE VISIBILE ─────────────────────────────────────── */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Award size={15} className={totalPast > 0 && isSogliaSuperata ? 'text-red-500' : 'text-green-600'} />
+            <h3 className="font-semibold text-gray-900 text-sm">Presenze</h3>
+          </div>
+          {totalPast > 0 && (
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
               isSogliaSuperata ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
             }`}>
-              {isSogliaSuperata ? '⚠ Soglia assenze superata' : '✓ Idoneo'}
+              {isSogliaSuperata ? 'Soglia superata' : 'In regola'}
             </span>
-          </div>
-
-          {/* Barra presenze */}
-          <div>
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
-              <span>{presentCount} presenze su {totalPast} sessioni passate</span>
-              <span className="font-semibold">{100 - pctAssenza}% frequenza</span>
-            </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  isSogliaSuperata ? 'bg-red-400' : 'bg-green-500'
-                }`}
-                style={{ width: `${100 - pctAssenza}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Dettaglio ore */}
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div className="text-center">
-              <p className={`text-xl font-bold ${absentCount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                {oreAssenza !== null ? `${oreAssenza}h` : `${absentCount}`}
-              </p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {oreAssenza !== null ? 'ore di assenza' : 'sessioni assenti'}
-              </p>
-            </div>
-            {oreMassime !== null && (
-              <div className="text-center">
-                <p className="text-xl font-bold text-gray-400">{oreMassime}h</p>
-                <p className="text-xs text-gray-400 mt-0.5">massimo consentito (10%)</p>
-              </div>
-            )}
-            {oreTotali && (
-              <div className="text-center">
-                <p className="text-xl font-bold text-gray-600">{oreTotali}h</p>
-                <p className="text-xs text-gray-400 mt-0.5">ore totali corso</p>
-              </div>
-            )}
-          </div>
-
-          <Link href={`/studente/corsi/${id}/presenze`}
-            className="text-xs text-blue-600 hover:underline block">
-            Dettaglio presenze →
-          </Link>
+          )}
         </div>
-      )}
+
+        {totalPast === 0 ? (
+          <div className="py-6 text-center">
+            <Award size={28} className="text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">Nessuna presenza registrata.</p>
+            <p className="text-xs text-gray-400 mt-0.5">Le presenze vengono registrate dal docente ad ogni lezione.</p>
+          </div>
+        ) : (
+          <>
+            {/* Barra */}
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>{presentCount} presenti · {absentCount} assenti su {totalPast} giornate</span>
+                <span className="font-semibold">{100 - pctAssenza}% frequenza</span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${isSogliaSuperata ? 'bg-red-400' : 'bg-green-500'}`}
+                  style={{ width: `${100 - pctAssenza}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Numeri ore */}
+            <div className="flex flex-wrap gap-4">
+              <div>
+                <p className={`text-xl font-bold ${absentCount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  {oreAssenza !== null ? `${oreAssenza}h` : absentCount}
+                </p>
+                <p className="text-xs text-gray-400">{oreAssenza !== null ? 'ore assenza' : 'sessioni assenti'}</p>
+              </div>
+              {oreMassime !== null && (
+                <div>
+                  <p className="text-xl font-bold text-gray-400">{oreMassime}h</p>
+                  <p className="text-xs text-gray-400">massimo (10%)</p>
+                </div>
+              )}
+              {oreTotali && (
+                <div>
+                  <p className="text-xl font-bold text-gray-600">{oreTotali}h</p>
+                  <p className="text-xs text-gray-400">ore totali</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        <Link href={`/studente/corsi/${id}/presenze`}
+          className="text-xs text-blue-600 hover:underline block mt-3">
+          Dettaglio presenze →
+        </Link>
+      </div>
 
       {/* ── Il mio gruppo ──────────────────────────────────────────────────── */}
       {myGroup && (
@@ -389,24 +437,47 @@ export default async function StudenteCourseDetail({ params }: { params: Promise
         </div>
       )}
 
-      {/* ── Materiali ──────────────────────────────────────────────────────── */}
+      {/* ── Materiali (preview — server rendered, no client component) ──────── */}
       {visibleMaterials.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-            <BookMarked size={15} className="text-amber-600" />
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+            <BookMarked size={15} className="text-orange-600" />
             <h3 className="font-semibold text-gray-900 text-sm">Materiali</h3>
-            <span className="ml-auto text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+            <span className="ml-auto text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
               {visibleMaterials.length}
             </span>
           </div>
-          <MaterialiClient courseId={id} initialMaterials={visibleMaterials} canUpload={false} />
-        </div>
-      )}
-
-      {/* Task tutti completati — no pending */}
-      {myVisibleTasks.length > 0 && pendingTasks.length === 0 && (
-        <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-xl px-4 py-3">
-          <CheckCircle size={15} /> Tutte le task sono state consegnate.
+          <div className="divide-y divide-gray-50">
+            {visibleMaterials.slice(0, 5).map(m => (
+              <div key={m.id} className="flex items-center gap-3 px-5 py-3">
+                <FileIcon type={(m as { file_type: string | null }).file_type} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{m.name}</p>
+                  {(m as { file_size: number | null }).file_size && (
+                    <p className="text-xs text-gray-400">{formatSize((m as { file_size: number | null }).file_size)}</p>
+                  )}
+                </div>
+                {(m as { file_url: string }).file_url && (
+                  <a
+                    href={(m as { file_url: string }).file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 transition flex-shrink-0"
+                  >
+                    <Download size={14} />
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+          {visibleMaterials.length > 5 && (
+            <div className="px-5 py-3 border-t border-gray-50">
+              <Link href={`/studente/corsi/${id}/materiali`}
+                className="text-xs text-blue-600 hover:underline">
+                Vedi tutti i {visibleMaterials.length} materiali →
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>
