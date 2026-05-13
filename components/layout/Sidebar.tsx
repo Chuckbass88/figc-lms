@@ -7,7 +7,7 @@ import {
   LayoutDashboard, BookOpen, Users, Bell, GraduationCap,
   Calendar, LogOut, ChevronRight, ChevronDown, UserCircle,
   MessageSquare, StickyNote, Archive, Search, Shield,
-  BookMarked, CalendarRange,
+  BookMarked, CalendarRange, ClipboardList,
 } from 'lucide-react'
 import type { UserRole, Profile } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
@@ -96,6 +96,7 @@ const NAV: Record<UserRole, NavNode[]> = {
     { type: 'leaf', label: 'Dashboard', href: '/studente', icon: <LayoutDashboard size={17} /> },
     { type: 'divider' },
     { type: 'leaf', label: 'I miei corsi', href: '/studente/corsi', icon: <BookOpen size={17} /> },
+    { type: 'leaf', label: 'Le mie task', href: '/studente/task', icon: <ClipboardList size={17} /> },
     { type: 'leaf', label: 'Calendario', href: '/studente/calendario', icon: <Calendar size={17} /> },
     { type: 'divider' },
     { type: 'leaf', label: 'Messaggi', href: '/messaggi', icon: <MessageSquare size={17} />, badge: 'messages' },

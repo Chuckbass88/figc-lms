@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Clock, Star, CheckCircle, FileText, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Clock, Star, CheckCircle, FileText, AlertCircle, Info } from 'lucide-react'
 import SubmitTaskForm from './SubmitTaskForm'
 import FeedbackThread from './FeedbackThread'
 
@@ -109,6 +109,33 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
           )}
         </div>
       </div>
+
+      {/* Status bar post-consegna */}
+      {sub && (
+        <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex flex-wrap gap-x-5 gap-y-1.5 items-center text-xs text-blue-800">
+          <span className="flex items-center gap-1.5 font-semibold">
+            <Info size={12} /> Riepilogo consegna
+          </span>
+          {task.due_date && (
+            <span className="flex items-center gap-1 text-blue-600">
+              <Clock size={11} />
+              Scadenza: <strong>{new Date(task.due_date).toLocaleDateString('it-IT')}</strong>
+            </span>
+          )}
+          <span className="text-blue-600">
+            Tipo: <strong>{task.student_id ? 'Individuale' : task.group_id ? 'Gruppo' : 'Corso intero'}</strong>
+          </span>
+          {sub.file_name && !sub.file_deleted_at && (
+            <span className="flex items-center gap-1 text-blue-600">
+              <FileText size={11} />
+              <strong className="truncate max-w-[160px]">{sub.file_name}</strong>
+            </span>
+          )}
+          <span className="text-blue-600">
+            Inviato: <strong>{new Date(sub.submitted_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</strong>
+          </span>
+        </div>
+      )}
 
       {/* Valutazione (solo se grade_visible = true) */}
       {isValutato && gradeVisible && gradeDisplay && (

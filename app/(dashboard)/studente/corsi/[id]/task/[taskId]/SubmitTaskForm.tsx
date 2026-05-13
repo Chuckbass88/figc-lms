@@ -62,7 +62,6 @@ export default function SubmitTaskForm({
 
       setSaved(true)
       router.refresh()
-      setTimeout(() => router.push(`/studente/corsi/${courseId}/task`), 1500)
     })
 
     xhr.addEventListener('error', () => {
@@ -78,7 +77,7 @@ export default function SubmitTaskForm({
   if (saved) {
     return (
       <div className="flex items-center gap-2 text-sm font-semibold text-green-700 bg-green-50 rounded-xl px-4 py-3">
-        <Check size={15} /> Consegna inviata con successo!
+        <Check size={15} /> Task consegnata — la pagina si aggiornerà tra un momento.
       </div>
     )
   }

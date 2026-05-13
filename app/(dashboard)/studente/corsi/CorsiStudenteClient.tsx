@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { MapPin, Calendar, UserCheck, Search, ClipboardCheck, ClipboardList } from 'lucide-react'
+import { MapPin, Calendar, UserCheck, Search, ClipboardCheck, ClipboardList, AlertCircle } from 'lucide-react'
 
 interface CourseEnrollment {
   id: string
@@ -157,21 +157,34 @@ export default function CorsiStudenteClient({ enrollments }: { enrollments: Cour
                       )}
                     </span>
                   )}
-                  {enrollment.taskStats && (
-                    <span className="flex items-center gap-1 text-xs text-gray-500">
-                      <ClipboardList size={11} className="text-amber-400" />
-                      Task: <span className="font-semibold text-amber-600">{enrollment.taskStats.submitted}</span>/{enrollment.taskStats.total}
-                    </span>
-                  )}
+                  {enrollment.taskStats && (() => {
+                    const pending = enrollment.taskStats.total - enrollment.taskStats.submitted
+                    return (
+                      <span className={`flex items-center gap-1 text-xs font-medium ${pending > 0 ? 'text-amber-700' : 'text-gray-500'}`}>
+                        {pending > 0
+                          ? <AlertCircle size={11} className="text-amber-500 flex-shrink-0" />
+                          : <ClipboardList size={11} className="text-amber-400" />
+                        }
+                        {pending > 0
+                          ? <><span className="font-bold">{pending}</span> task da consegnare</>
+                          : <>Task: <span className="font-semibold text-amber-600">{enrollment.taskStats.submitted}</span>/{enrollment.taskStats.total} consegnati</>
+                        }
+                      </span>
+                    )
+                  })()}
                 </div>
               )}
 
-              <div className="mt-3 flex items-center justify-between">
-                <Link href={`/studente/corsi/${course.id}`} className="text-xs text-blue-600 hover:underline">
-                  Vai al dettaglio →
+              <div className="mt-4 flex items-center justify-between gap-2">
+                <Link
+                  href={`/studente/corsi/${course.id}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition"
+                  style={{ backgroundColor: '#1EB8E5' }}
+                >
+                  Vai al corso →
                 </Link>
-                <Link href={`/studente/corsi/${course.id}/attestato`} className="text-xs text-gray-400 hover:text-gray-600 transition">
-                  Attestato →
+                <Link href={`/studente/corsi/${course.id}/attestato`} className="text-xs text-gray-400 hover:text-gray-600 transition flex-shrink-0">
+                  Attestato
                 </Link>
               </div>
 
