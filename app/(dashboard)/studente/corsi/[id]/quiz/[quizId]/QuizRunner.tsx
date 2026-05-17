@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
-import { Loader2, Send, Clock, CheckCircle, Play, AlertTriangle } from 'lucide-react'
+import { Loader2, Send, Clock, CheckCircle, Play, AlertTriangle, ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 interface Option { id: string; text: string; is_correct: boolean; order_index: number }
 interface Question { id: string; text: string; order_index: number; quiz_options: Option[] }
@@ -38,6 +38,8 @@ export default function QuizRunner({
   const [confirmed, setConfirmed] = useState(false)
   const [started, setStarted] = useState(false)
   const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [timeLeft, setTimeLeft] = useState<number>(timerMinutes * 60)
@@ -114,11 +116,11 @@ export default function QuizRunner({
     setAnswers(prev => ({ ...prev, [questionId]: optionId }))
   }
 
-  const allAnswered = displayQuestions.every(q => answers[q.id])
+  const answeredCount = Object.keys(answers).length
+  const unansweredCount = displayQuestions.length - answeredCount
 
   async function handleSubmit(auto = false) {
     if (submitting || submitted) return
-    if (!auto && !allAnswered) return
     setSubmitting(true)
 
     const startedAt = localStorage.getItem(storageKey)
@@ -143,7 +145,7 @@ export default function QuizRunner({
         <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
           <CheckCircle size={32} className="text-blue-600" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900">Quiz consegnato</h3>
+        <h3 className="text-xl font-bold text-gray-900">Prova consegnata</h3>
         <p className="text-gray-500 text-sm">
           Le tue risposte sono state registrate. Il docente analizzerà i risultati.
         </p>
@@ -151,13 +153,13 @@ export default function QuizRunner({
           href={`/studente/corsi/${courseId}/quiz`}
           className="inline-block mt-4 text-sm text-blue-600 hover:underline"
         >
-          ← Torna alla lista quiz
+          ← Torna alla lista
         </a>
       </div>
     )
   }
 
-  // Schermata introduttiva (sempre mostrata)
+  // Schermata introduttiva (riepilogo regole)
   if (!started) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -190,34 +192,48 @@ export default function QuizRunner({
           </div>
         </div>
 
-        {/* Regole punteggio */}
-        {penaltyWrong && (
-          <div className="px-8 pt-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 flex items-center gap-2">
-              <span className="font-semibold">Attenzione:</span>
-              risposta corretta +1 punto · risposta sbagliata −1 punto · non risposta 0 punti
-            </div>
-          </div>
-        )}
+        {/* Regole della prova */}
+        <div className="px-8 py-5">
+          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Regole della prova</h4>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 font-bold flex-shrink-0">•</span>
+              <span>Le domande e le risposte sono in <strong>ordine casuale</strong> e diverse per ogni studente.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 font-bold flex-shrink-0">•</span>
+              <span>Vedrai <strong>una domanda alla volta</strong>. Puoi navigare avanti e indietro e modificare le risposte fino all&apos;invio.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 font-bold flex-shrink-0">•</span>
+              <span>Il timer di <strong>{timerMinutes} minuti</strong> parte appena visualizzi la prima domanda.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 font-bold flex-shrink-0">•</span>
+              <span>Servono almeno <strong>{passingScore} punti</strong> per superare la prova.</span>
+            </li>
+            {penaltyWrong && (
+              <li className="flex items-start gap-2">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
+                <span>Risposta corretta <strong>+1</strong> · risposta sbagliata <strong>−1</strong> · non risposta <strong>0</strong>.</span>
+              </li>
+            )}
+            <li className="flex items-start gap-2">
+              <span className="text-red-500 font-bold flex-shrink-0">•</span>
+              <span>Una volta inviate, <strong>le risposte non sono più modificabili</strong> e la prova è conclusa.</span>
+            </li>
+          </ul>
 
-        {/* Istruzioni */}
-        {instructions ? (
-          <div className="px-8 py-5">
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Istruzioni</h4>
-            <div className="bg-blue-50 rounded-xl p-4">
+          {instructions && (
+            <div className="mt-4 bg-blue-50 rounded-xl p-4">
+              <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1.5">Istruzioni del docente</p>
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{instructions}</p>
             </div>
-          </div>
-        ) : (
-          <div className="px-8 py-5">
-            <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-500 text-center">
-              Leggi attentamente ogni domanda. Hai {timerMinutes} minuti di tempo.
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Conferma + Avvio */}
-        <div className="px-8 pb-8 space-y-4">
+        <div className="px-8 pb-8 space-y-4 border-t border-gray-100 pt-5">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -226,7 +242,7 @@ export default function QuizRunner({
               className="mt-0.5 flex-shrink-0 w-4 h-4 accent-blue-600 cursor-pointer"
             />
             <span className="text-sm text-gray-700 select-none">
-              Ho letto e compreso le istruzioni del quiz. Sono pronto/a a iniziare.
+              Ho letto e compreso le regole. Sono pronto/a a iniziare.
             </span>
           </label>
           <div className="flex items-center gap-3">
@@ -236,7 +252,7 @@ export default function QuizRunner({
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ backgroundColor: '#1EB8E5' }}
             >
-              <Play size={15} /> Inizia quiz
+              <Play size={15} /> Inizia la prova
             </button>
             <p className="text-xs text-gray-400">Il timer partirà al click.</p>
           </div>
@@ -248,6 +264,10 @@ export default function QuizRunner({
   const isWarning = timeLeft <= 300 && timeLeft > 0
   const isDanger = timeLeft <= 60 && timeLeft > 0
   const isExpired = timeLeft === 0
+
+  const currentQuestion = displayQuestions[currentIndex]
+  const isFirst = currentIndex === 0
+  const isLast = currentIndex === displayQuestions.length - 1
 
   return (
     <div className="space-y-5">
@@ -261,7 +281,7 @@ export default function QuizRunner({
       }`}>
         <div className="flex items-center justify-between px-4 py-2.5">
           <p className="text-xs text-gray-500 font-medium">
-            {Object.keys(answers).length}/{displayQuestions.length} risposte date
+            {answeredCount}/{displayQuestions.length} risposte date
           </p>
           <div className={`flex items-center gap-1.5 font-mono font-bold text-sm ${
             graceMode ? 'text-orange-700' :
@@ -300,24 +320,54 @@ export default function QuizRunner({
           <div>
             <p className="text-sm font-semibold text-orange-800">Tempo scaduto</p>
             <p className="text-xs text-orange-700 mt-0.5">
-              Hai ancora {formatTime(graceLeft)} di tempo aggiuntivo per completare e consegnare il quiz.
-              Passato questo limite il quiz verrà consegnato automaticamente.
+              Hai ancora {formatTime(graceLeft)} di tempo aggiuntivo per completare e consegnare.
+              Passato questo limite la prova verrà consegnata automaticamente.
             </p>
           </div>
         </div>
       )}
 
-      {/* Domande */}
-      {displayQuestions.map((q, qi) => (
-        <div key={q.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <p className="text-sm font-semibold text-gray-900 mb-4">{qi + 1}. {q.text}</p>
-          <div className="space-y-2">
-            {q.quiz_options.map(opt => {
-              const selected = answers[q.id] === opt.id
+      {/* Navigatore domande */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Domande</p>
+        <div className="flex flex-wrap gap-2">
+          {displayQuestions.map((q, i) => {
+            const isAnswered = !!answers[q.id]
+            const isCurrent = i === currentIndex
+            return (
+              <button
+                key={q.id}
+                onClick={() => setCurrentIndex(i)}
+                className={`w-9 h-9 rounded-lg text-sm font-bold transition border-2 ${
+                  isCurrent
+                    ? 'border-blue-600 bg-blue-600 text-white'
+                    : isAnswered
+                      ? 'border-green-300 bg-green-50 text-green-700 hover:border-green-400'
+                      : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-gray-300'
+                }`}
+                title={isAnswered ? 'Risposta data' : 'Senza risposta'}
+              >
+                {i + 1}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Domanda corrente */}
+      {currentQuestion && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide mb-2">
+            Domanda {currentIndex + 1} di {displayQuestions.length}
+          </p>
+          <p className="text-base font-semibold text-gray-900 mb-5">{currentQuestion.text}</p>
+          <div className="space-y-2.5">
+            {currentQuestion.quiz_options.map(opt => {
+              const selected = answers[currentQuestion.id] === opt.id
               return (
                 <button
                   key={opt.id}
-                  onClick={() => selectAnswer(q.id, opt.id)}
+                  onClick={() => selectAnswer(currentQuestion.id, opt.id)}
                   className={`w-full text-left px-4 py-3 rounded-lg border text-sm transition ${
                     selected
                       ? 'border-blue-500 bg-blue-50 text-blue-800 font-medium'
@@ -330,19 +380,101 @@ export default function QuizRunner({
             })}
           </div>
         </div>
-      ))}
+      )}
 
-      <div className="flex items-center justify-end">
+      {/* Navigazione avanti/indietro + invio */}
+      <div className="flex items-center justify-between gap-3">
         <button
-          onClick={() => handleSubmit(false)}
-          disabled={!allAnswered || submitting}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
-          style={{ backgroundColor: '#1EB8E5' }}
+          onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
+          disabled={isFirst}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-          Invia risposte
+          <ChevronLeft size={15} /> Indietro
         </button>
+
+        {isLast ? (
+          <button
+            onClick={() => setShowConfirm(true)}
+            disabled={submitting}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
+            style={{ backgroundColor: '#1EB8E5' }}
+          >
+            <Send size={15} /> Concludi e invia
+          </button>
+        ) : (
+          <button
+            onClick={() => setCurrentIndex(i => Math.min(displayQuestions.length - 1, i + 1))}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-white hover:opacity-90 transition"
+            style={{ backgroundColor: '#1EB8E5' }}
+          >
+            Avanti <ChevronRight size={15} />
+          </button>
+        )}
       </div>
+
+      {/* Pulsante invio sempre disponibile (non solo ultima domanda) */}
+      {!isLast && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowConfirm(true)}
+            disabled={submitting}
+            className="text-xs text-gray-400 hover:text-blue-600 hover:underline transition"
+          >
+            Concludi e invia ora →
+          </button>
+        </div>
+      )}
+
+      {/* Modale conferma invio */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={18} className="text-amber-500" />
+                <h3 className="text-base font-bold text-gray-900">Confermi l&apos;invio?</h3>
+              </div>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 transition"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-3">
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Una volta inviate, <strong>le risposte non potranno più essere modificate</strong> e la prova sarà conclusa.
+              </p>
+              {unansweredCount > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                  Hai <strong>{unansweredCount} domand{unansweredCount === 1 ? 'a' : 'e'} senza risposta</strong>.
+                  {penaltyWrong ? ' Le domande non risposte valgono 0 punti.' : ''}
+                </div>
+              )}
+              <p className="text-xs text-gray-400">
+                {answeredCount} risposte date su {displayQuestions.length} domande.
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition"
+              >
+                Torna alla prova
+              </button>
+              <button
+                onClick={() => { setShowConfirm(false); handleSubmit(false) }}
+                disabled={submitting}
+                className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
+                style={{ backgroundColor: '#1EB8E5' }}
+              >
+                {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                Invia definitivamente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
