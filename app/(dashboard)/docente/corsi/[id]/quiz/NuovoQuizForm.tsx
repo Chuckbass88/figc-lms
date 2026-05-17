@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Trash2, Loader2, Check, X, AlertCircle } from 'lucide-react'
+import { Plus, Trash2, Loader2, Check, X, AlertCircle, ToggleLeft, List } from 'lucide-react'
 
 interface Option { text: string; isCorrect: boolean }
-interface Question { text: string; options: Option[] }
+interface Question { text: string; options: Option[]; type?: 'multipla' | 'vero_falso' }
 
 interface Props {
   courseId: string
@@ -20,11 +20,21 @@ interface FormErrors {
 
 const defaultQuestion = (): Question => ({
   text: '',
+  type: 'multipla',
   options: [
     { text: '', isCorrect: true },
     { text: '', isCorrect: false },
     { text: '', isCorrect: false },
     { text: '', isCorrect: false },
+  ],
+})
+
+const veroFalsoQuestion = (text = ''): Question => ({
+  text,
+  type: 'vero_falso',
+  options: [
+    { text: 'Vero', isCorrect: true },
+    { text: 'Falso', isCorrect: false },
   ],
 })
 
@@ -65,6 +75,33 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
 
   function addQuestion() {
     setQuestions(qs => [...qs, defaultQuestion()])
+  }
+
+  function addVeroFalso() {
+    setQuestions(qs => [...qs, veroFalsoQuestion()])
+  }
+
+  function toggleType(i: number) {
+    setQuestions(qs => qs.map((q, idx) => {
+      if (idx !== i) return q
+      if (q.type === 'vero_falso') {
+        return { ...q, type: 'multipla', options: [
+          { text: '', isCorrect: true },
+          { text: '', isCorrect: false },
+          { text: '', isCorrect: false },
+          { text: '', isCorrect: false },
+        ] }
+      }
+      return { ...q, type: 'vero_falso', options: [
+        { text: 'Vero', isCorrect: true },
+        { text: 'Falso', isCorrect: false },
+      ] }
+    }))
+    setErrors(e => {
+      const q = { ...(e.questions ?? {}) }
+      delete q[i]
+      return { ...e, questions: q }
+    })
   }
 
   function removeQuestion(i: number) {
@@ -283,12 +320,20 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
               </span>
             )}
           </span>
-          <button
-            onClick={addQuestion}
-            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition font-medium"
-          >
-            <Plus size={12} /> Aggiungi domanda
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={addQuestion}
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition font-medium"
+            >
+              <Plus size={12} /> Scelta multipla
+            </button>
+            <button
+              onClick={addVeroFalso}
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition font-medium"
+            >
+              <Plus size={12} /> Vero/Falso
+            </button>
+          </div>
         </div>
 
         {questions.map((q, qi) => {
@@ -320,40 +365,75 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
                     </p>
                   )}
                 </div>
-                {questions.length > 1 && (
-                  <button onClick={() => removeQuestion(qi)} className="text-gray-300 hover:text-red-400 mt-1 flex-shrink-0">
-                    <Trash2 size={14} />
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => toggleType(qi)}
+                    className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-md border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 transition"
+                    title="Cambia tipo domanda"
+                  >
+                    {q.type === 'vero_falso'
+                      ? <><ToggleLeft size={12} /> Vero/Falso</>
+                      : <><List size={12} /> Multipla</>}
                   </button>
-                )}
+                  {questions.length > 1 && (
+                    <button onClick={() => removeQuestion(qi)} className="text-gray-300 hover:text-red-400 flex-shrink-0">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="ml-5 space-y-2">
-                {q.options.map((opt, oi) => (
-                  <div key={oi} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name={`q${qi}-correct`}
-                      checked={opt.isCorrect}
-                      onChange={() => updateOption(qi, oi, 'isCorrect', true)}
-                      className="flex-shrink-0 accent-green-600"
-                      title="Risposta corretta"
-                    />
-                    <input
-                      type="text"
-                      value={opt.text}
-                      onChange={e => updateOption(qi, oi, 'text', e.target.value)}
-                      placeholder={`Opzione ${oi + 1}${oi < 2 ? ' *' : ''}`}
-                      className={`flex-1 px-3 py-1.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        opt.isCorrect ? 'border-green-300 bg-green-50' : 'border-gray-200'
-                      }`}
-                    />
-                  </div>
-                ))}
+                {q.type === 'vero_falso' ? (
+                  q.options.map((opt, oi) => (
+                    <label key={oi} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`q${qi}-correct`}
+                        checked={opt.isCorrect}
+                        onChange={() => updateOption(qi, oi, 'isCorrect', true)}
+                        className="flex-shrink-0 accent-green-600"
+                        title="Risposta corretta"
+                      />
+                      <span className={`flex-1 px-3 py-1.5 rounded-lg border text-sm select-none ${
+                        opt.isCorrect ? 'border-green-300 bg-green-50 text-green-800 font-medium' : 'border-gray-200 text-gray-600'
+                      }`}>
+                        {opt.text}
+                      </span>
+                    </label>
+                  ))
+                ) : (
+                  q.options.map((opt, oi) => (
+                    <div key={oi} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name={`q${qi}-correct`}
+                        checked={opt.isCorrect}
+                        onChange={() => updateOption(qi, oi, 'isCorrect', true)}
+                        className="flex-shrink-0 accent-green-600"
+                        title="Risposta corretta"
+                      />
+                      <input
+                        type="text"
+                        value={opt.text}
+                        onChange={e => updateOption(qi, oi, 'text', e.target.value)}
+                        placeholder={`Opzione ${oi + 1}${oi < 2 ? ' *' : ''}`}
+                        className={`flex-1 px-3 py-1.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          opt.isCorrect ? 'border-green-300 bg-green-50' : 'border-gray-200'
+                        }`}
+                      />
+                    </div>
+                  ))
+                )}
                 {qErr?.options && (
                   <p className="text-xs text-red-600 flex items-center gap-1">
                     <AlertCircle size={10} /> {qErr.options}
                   </p>
                 )}
-                <p className="text-xs text-gray-400">Seleziona il radio della risposta corretta (verde)</p>
+                <p className="text-xs text-gray-400">
+                  {q.type === 'vero_falso'
+                    ? 'Seleziona se la risposta corretta è Vero o Falso'
+                    : 'Seleziona il radio della risposta corretta (verde)'}
+                </p>
               </div>
             </div>
           )
