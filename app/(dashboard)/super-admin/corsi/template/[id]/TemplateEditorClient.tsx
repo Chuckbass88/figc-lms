@@ -36,6 +36,15 @@ export default function TemplateEditorClient({ template, aree }: Props) {
     template.ore_totali != null ? String(template.ore_totali) : ''
   )
 
+  const t = template as unknown as {
+    peso_task?: number; peso_pratiche?: number; peso_esame?: number; quiz_intermedi_in_media?: boolean
+  }
+  const [pesoTask, setPesoTask] = useState<number>(t.peso_task ?? 40)
+  const [pesoPratiche, setPesoPratiche] = useState<number>(t.peso_pratiche ?? 30)
+  const [pesoEsame, setPesoEsame] = useState<number>(t.peso_esame ?? 30)
+  const [quizInMedia, setQuizInMedia] = useState<boolean>(t.quiz_intermedi_in_media ?? false)
+  const pesoTot = pesoTask + pesoPratiche + pesoEsame
+
   const [giorni, setGiorni] = useState<TemplateGiorno[]>(template.giorni ?? [])
   const [moduli, setModuli] = useState<TemplateModulo[]>(template.moduli ?? [])
 
@@ -57,6 +66,10 @@ export default function TemplateEditorClient({ template, aree }: Props) {
         quiz_tags: quizTags,
         parametri: { ...template.parametri, tipo_corso: tipoCorsoProp },
         ore_totali: oreTotali !== '' ? parseFloat(oreTotali) : null,
+        peso_task: pesoTask,
+        peso_pratiche: pesoPratiche,
+        peso_esame: pesoEsame,
+        quiz_intermedi_in_media: quizInMedia,
       }),
     })
     const json = await res.json()
@@ -103,6 +116,12 @@ export default function TemplateEditorClient({ template, aree }: Props) {
           {saved ? 'Salvato!' : saving ? 'Salvataggio...' : 'Salva'}
         </button>
       </div>
+
+      {saved && (
+        <div className="rounded-xl px-4 py-3 text-sm font-medium" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a' }}>
+          Template salvato con successo
+        </div>
+      )}
 
       {error && (
         <div className="rounded-xl px-4 py-3 text-sm bg-red-50 border border-red-200 text-red-700">{error}</div>
@@ -155,6 +174,50 @@ export default function TemplateEditorClient({ template, aree }: Props) {
             style={{ borderColor: 'rgba(27,55,104,0.2)', color: '#1B3768' }}
           />
           <span className="text-xs" style={{ color: 'rgba(27,55,104,0.4)' }}>ore di lezione</span>
+        </div>
+
+        {/* Pesi voto ponderato */}
+        <div className="pt-3 border-t" style={{ borderColor: 'rgba(27,55,104,0.1)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-xs font-semibold" style={{ color: 'rgba(27,55,104,0.7)' }}>
+              Pesi media finale
+            </label>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              pesoTot === 100 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+            }`}>
+              Totale {pesoTot}%{pesoTot !== 100 ? ' (consigliato 100)' : ''}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {([
+              ['Task', pesoTask, setPesoTask],
+              ['Prove pratiche', pesoPratiche, setPesoPratiche],
+              ['Esame finale', pesoEsame, setPesoEsame],
+            ] as const).map(([lbl, val, setter]) => (
+              <div key={lbl}>
+                <label className="text-[11px] block mb-1" style={{ color: 'rgba(27,55,104,0.5)' }}>{lbl}</label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number" min="0" max="100" value={val}
+                    onChange={e => setter(Math.max(0, Math.min(100, Number(e.target.value))))}
+                    className="w-full rounded-xl px-3 py-2 text-sm border bg-white focus:outline-none focus:ring-2"
+                    style={{ borderColor: 'rgba(27,55,104,0.2)', color: '#1B3768' }}
+                  />
+                  <span className="text-xs" style={{ color: 'rgba(27,55,104,0.4)' }}>%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <label className="flex items-center gap-2 mt-3 cursor-pointer">
+            <input
+              type="checkbox" checked={quizInMedia}
+              onChange={e => setQuizInMedia(e.target.checked)}
+              className="w-4 h-4 accent-blue-600"
+            />
+            <span className="text-xs" style={{ color: 'rgba(27,55,104,0.6)' }}>
+              Includi i quiz intermedi nella media (insieme alle task). Se disattivo, i quiz intermedi sono solo formativi.
+            </span>
+          </label>
         </div>
       </div>
 

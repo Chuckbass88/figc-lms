@@ -6,20 +6,11 @@ import { Loader2, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Course, CourseTemplate } from '@/lib/types'
 import ApplicaTemplateModal from '@/components/template/ApplicaTemplateModal'
+import { TIPOLOGIE_CORSO } from '@/lib/tipologie-corso'
 
 const CATEGORY_OPTIONS = [
   { value: '', label: 'Nessuna categoria' },
-  { value: 'UEFA Pro', label: 'UEFA Pro' },
-  { value: 'UEFA A', label: 'UEFA A' },
-  { value: 'Licenza D', label: 'Licenza D' },
-  { value: 'UEFA C', label: 'UEFA C' },
-  { value: 'UEFA GK A', label: 'UEFA GK A' },
-  { value: 'UEFA GK B', label: 'UEFA GK B' },
-  { value: 'UEFA GK C', label: 'UEFA GK C' },
-  { value: 'UEFA Fitness A', label: 'UEFA Fitness A' },
-  { value: 'UEFA Fitness B', label: 'UEFA Fitness B' },
-  { value: 'Allenatore Giovani', label: 'Allenatore Giovani' },
-  { value: 'Allenatore Base', label: 'Allenatore Base' },
+  ...TIPOLOGIE_CORSO.map(t => ({ value: t, label: t })),
 ]
 
 const STATUS_OPTIONS = [
@@ -96,6 +87,18 @@ export default function CourseForm({ course }: { course?: Course }) {
       const newCourseData = await supabase.from('courses')
         .select('id').eq('name', payload.name).order('created_at', { ascending: false }).limit(1).single()
       if (newCourseData.data) {
+        // Eredita i pesi voto dal template selezionato
+        const { data: tmpl } = await supabase.from('course_templates')
+          .select('peso_task, peso_pratiche, peso_esame, quiz_intermedi_in_media')
+          .eq('id', selectedTemplateId).single()
+        if (tmpl) {
+          await supabase.from('courses').update({
+            peso_task: (tmpl as { peso_task?: number }).peso_task ?? 40,
+            peso_pratiche: (tmpl as { peso_pratiche?: number }).peso_pratiche ?? 30,
+            peso_esame: (tmpl as { peso_esame?: number }).peso_esame ?? 30,
+            quiz_intermedi_in_media: (tmpl as { quiz_intermedi_in_media?: boolean }).quiz_intermedi_in_media ?? false,
+          }).eq('id', newCourseData.data.id)
+        }
         setNewCorsoId(newCourseData.data.id)
         setLoading(false)
         setShowApplica(true)
