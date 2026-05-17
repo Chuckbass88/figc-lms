@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star, CalendarRange } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, GraduationCap, Layers, ClipboardList, BookMarked, ChevronRight, ClipboardCheck, Megaphone, UsersRound, Star, CalendarRange, Award } from 'lucide-react'
 import MaterialiClient from '@/components/materiali/MaterialiClient'
 import ArchivioCorsoSection from '@/components/archivio/ArchivioCorsoSection'
 import LinkInvitoBtn from '@/app/(dashboard)/super-admin/corsi/[id]/LinkInvitoBtn'
@@ -146,6 +146,14 @@ export default async function DocenteCourseDetail({ params }: { params: Promise<
           <Link href={`/docente/corsi/${id}/valutazioni`}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
             <Star size={14} /> Valutazioni
+          </Link>
+          <Link href={`/docente/corsi/${id}/voti`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+            <Award size={14} /> Gestione voti
+          </Link>
+          <Link href={`/docente/corsi/${id}/esame-finale`}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+            <GraduationCap size={14} /> Esame finale
           </Link>
           <LinkInvitoBtn courseId={id} courseName={course.name} inviteToken={(course as { invite_token?: string | null }).invite_token ?? null} />
         </div>
