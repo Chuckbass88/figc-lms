@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const {
     courseId, groupId, title, description, passingScore, timerMinutes, questions,
     category, instructions, shuffleQuestions, availableFrom, availableUntil, autoCloseOnTimer,
-    penaltyWrong, questionsPerStudent,
+    penaltyWrong, questionsPerStudent, isEsameFinale, gradingScale,
   } = parsed
 
   // Verifica autorizzazione
@@ -55,6 +55,8 @@ export async function POST(request: Request) {
       auto_close_on_timer: autoCloseOnTimer ?? true,
       penalty_wrong: penaltyWrong ?? false,
       questions_per_student: questionsPerStudent ?? null,
+      is_esame_finale: isEsameFinale ?? false,
+      grading_scale: gradingScale ?? 30,
       created_by: user.id,
     })
     .select()

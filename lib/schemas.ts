@@ -38,6 +38,8 @@ export const CreateQuizSchema = z.object({
   autoCloseOnTimer: z.boolean().default(true),
   penaltyWrong: z.boolean().default(false),
   questionsPerStudent: z.number().int().min(1).nullable().optional(),
+  isEsameFinale: z.boolean().default(false),
+  gradingScale: z.union([z.literal(10), z.literal(30)]).default(30),
 })
 
 // ---- Messaggi ----

@@ -45,6 +45,8 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
   const [groupId, setGroupId] = useState('')
   const [passingScore, setPassingScore] = useState(60)
   const [timerMinutes, setTimerMinutes] = useState(30)
+  const [isEsameFinale, setIsEsameFinale] = useState(false)
+  const [gradingScale, setGradingScale] = useState<10 | 30>(30)
   const [questions, setQuestions] = useState<Question[]>([defaultQuestion()])
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
@@ -174,6 +176,9 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
         passingScore,
         timerMinutes,
         questions: cleanedQuestions,
+        isEsameFinale,
+        gradingScale,
+        category: isEsameFinale ? 'Esame Finale' : null,
       }),
     })
 
@@ -194,6 +199,7 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
     setTitle(''); setDescription(''); setGroupId(''); setPassingScore(60)
     setQuestions([defaultQuestion()])
     setTimerMinutes(30)
+    setIsEsameFinale(false); setGradingScale(30)
     router.refresh()
   }
 
@@ -293,6 +299,41 @@ export default function NuovoQuizForm({ courseId, groups }: Props) {
             min={1} max={180}
             className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+        </div>
+        <div className="sm:col-span-2 bg-white rounded-lg border border-gray-200 p-3 space-y-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isEsameFinale}
+              onChange={e => {
+                setIsEsameFinale(e.target.checked)
+                if (e.target.checked) { setGradingScale(30); setPassingScore(18) }
+              }}
+              className="w-4 h-4 accent-purple-600"
+            />
+            <span className="text-sm font-semibold text-gray-800">Esame finale</span>
+            <span className="text-xs text-gray-400">— conta nel peso esame, voto mai visibile allo studente</span>
+          </label>
+          <div className="flex items-center gap-2 pl-6">
+            <span className="text-xs font-medium text-gray-500">Scala voto:</span>
+            {([30, 10] as const).map(s => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setGradingScale(s)}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold border transition ${
+                  gradingScale === s
+                    ? 'border-purple-400 bg-purple-50 text-purple-700'
+                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                }`}
+              >
+                /{s}
+              </button>
+            ))}
+            {isEsameFinale && (
+              <span className="text-xs text-gray-400 ml-1">soglia {gradingScale === 30 ? '18/30' : '6/10'}</span>
+            )}
+          </div>
         </div>
         {groups.length > 0 && (
           <div>
