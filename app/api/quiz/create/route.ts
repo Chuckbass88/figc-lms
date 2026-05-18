@@ -23,7 +23,17 @@ export async function POST(request: Request) {
     courseId, groupId, title, description, passingScore, timerMinutes, questions,
     category, instructions, shuffleQuestions, availableFrom, availableUntil, autoCloseOnTimer,
     penaltyWrong, questionsPerStudent, isEsameFinale, gradingScale,
+    fromLibrary, courseTag, poolCategories, poolDifficolta, extractCount,
   } = parsed
+
+  // Validazione coerenza contenuto
+  if (fromLibrary) {
+    if (!extractCount || extractCount < 1) {
+      return NextResponse.json({ error: 'Indica quante domande estrarre dalla libreria' }, { status: 400 })
+    }
+  } else if (!questions || questions.length < 1) {
+    return NextResponse.json({ error: 'Il quiz deve avere almeno 1 domanda' }, { status: 400 })
+  }
 
   // Verifica autorizzazione
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
@@ -57,6 +67,11 @@ export async function POST(request: Request) {
       questions_per_student: questionsPerStudent ?? null,
       is_esame_finale: isEsameFinale ?? false,
       grading_scale: gradingScale ?? 30,
+      from_library: fromLibrary ?? false,
+      course_tag: courseTag || null,
+      pool_categories: poolCategories ?? [],
+      pool_difficolta: poolDifficolta ?? [],
+      extract_count: fromLibrary ? (extractCount ?? null) : null,
       created_by: user.id,
     })
     .select()
@@ -64,9 +79,9 @@ export async function POST(request: Request) {
 
   if (quizError || !quiz) return NextResponse.json({ error: quizError?.message }, { status: 500 })
 
-  // Crea domande e opzioni
+  // Crea domande e opzioni (solo quiz manuali; quelli da libreria estraggono al runtime)
   let questionsFailed = 0
-  for (let i = 0; i < questions.length; i++) {
+  if (!fromLibrary) for (let i = 0; i < questions.length; i++) {
     const q = questions[i]
     const { data: question, error: qErr } = await supabase
       .from('quiz_questions')

@@ -25,7 +25,7 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_quizzes')
-      .select('id, title, description, passing_score, timer_minutes, instructions, shuffle_questions, available_from, available_until, auto_close_on_timer, penalty_wrong, questions_per_student, quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
+      .select('id, title, description, passing_score, timer_minutes, instructions, shuffle_questions, available_from, available_until, auto_close_on_timer, penalty_wrong, questions_per_student, from_library, extract_count, quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
       .eq('id', quizId)
       .eq('course_id', id)
       .single(),
@@ -47,6 +47,8 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
     auto_close_on_timer: boolean
     penalty_wrong: boolean | null
     questions_per_student: number | null
+    from_library: boolean
+    extract_count: number | null
   }
   const quizMeta = quiz as unknown as QuizMeta
 
@@ -119,8 +121,8 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
     questions = questions.slice(0, quizMeta.questions_per_student)
   }
 
-  // Se già completato, mostra schermata neutra senza risultati
-  if (attempt) {
+  // Se già completato (submitted_at valorizzato), mostra schermata neutra
+  if (attempt && attempt.submitted_at) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
@@ -163,12 +165,14 @@ export default async function StudenteQuizPage({ params }: { params: Promise<{ i
         quizId={quizId}
         courseId={id}
         quizTitle={quiz.title}
-        questions={questions}
+        questions={quizMeta.from_library ? [] : questions}
         passingScore={quiz.passing_score}
         timerMinutes={quizMeta.timer_minutes ?? 30}
         instructions={quizMeta.instructions ?? null}
         autoCloseOnTimer={quizMeta.auto_close_on_timer ?? true}
         penaltyWrong={quizMeta.penalty_wrong ?? false}
+        libraryMode={quizMeta.from_library ?? false}
+        questionCount={quizMeta.from_library ? (quizMeta.extract_count ?? 0) : questions.length}
       />
     </div>
   )

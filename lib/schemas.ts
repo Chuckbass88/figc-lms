@@ -28,8 +28,13 @@ export const CreateQuizSchema = z.object({
   timerMinutes: z.number().int().min(1).max(360).default(30),
   questions: z
     .array(QuizQuestionSchema)
-    .min(1, 'Il quiz deve avere almeno 1 domanda')
-    .max(200, 'Il quiz può avere al massimo 200 domande'),
+    .max(200, 'Il quiz può avere al massimo 200 domande')
+    .default([]),
+  fromLibrary: z.boolean().default(false),
+  courseTag: z.string().max(100).nullable().optional(),
+  poolCategories: z.array(z.string().max(100)).default([]),
+  poolDifficolta: z.array(z.string().max(20)).default([]),
+  extractCount: z.number().int().min(1).max(200).nullable().optional(),
   category: z.string().max(100).nullable().optional(),
   instructions: z.string().max(2000).nullable().optional(),
   shuffleQuestions: z.boolean().default(false),

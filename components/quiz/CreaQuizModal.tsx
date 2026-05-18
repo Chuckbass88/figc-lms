@@ -2,24 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Trash2, Loader2, Check, X, Archive, ChevronDown, ChevronUp } from 'lucide-react'
-
-interface Option { text: string; isCorrect: boolean }
-interface Question { text: string; points: number; options: Option[] }
+import Link from 'next/link'
+import { Plus, Loader2, Check, X, Library, ExternalLink, GraduationCap } from 'lucide-react'
+import { TIPOLOGIE_CORSO } from '@/lib/tipologie-corso'
 
 export interface CourseForQuiz {
   id: string
   name: string
   groups: { id: string; name: string }[]
-}
-
-interface QuizTemplate {
-  id: string
-  title: string
-  description: string | null
-  category: string | null
-  course_tag: string | null
-  _count: number
 }
 
 interface Props {
@@ -28,151 +18,97 @@ interface Props {
   label?: string
 }
 
-const CATEGORIE = ['Esame Finale', 'Verifica Intermedia', 'Esercitazione', 'Simulazione']
-
-const defaultQuestion = (): Question => ({
-  text: '',
-  points: 1,
-  options: [
-    { text: '', isCorrect: true },
-    { text: '', isCorrect: false },
-    { text: '', isCorrect: false },
-    { text: '', isCorrect: false },
-  ],
-})
+const DIFFICOLTA = ['facile', 'medio', 'difficile'] as const
 
 export default function CreaQuizModal({ courses, defaultCourseId, label = 'Crea quiz' }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+
+  // Destinatari
   const [courseId, setCourseId] = useState(defaultCourseId ?? '')
   const [groupId, setGroupId] = useState('')
+
+  // Tipo prova
+  const [isEsameFinale, setIsEsameFinale] = useState(false)
+  const [gradingScale, setGradingScale] = useState<10 | 30>(30)
+  const [courseTag, setCourseTag] = useState('')
+
+  // Info
   const [title, setTitle] = useState('')
-  const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
   const [instructions, setInstructions] = useState('')
+
+  // Estrazione dalla libreria
+  const [extractCount, setExtractCount] = useState(30)
+  const [poolDifficolta, setPoolDifficolta] = useState<string[]>([])
+  const [catInput, setCatInput] = useState('')
+  const [poolCategories, setPoolCategories] = useState<string[]>([])
+
+  // Regole
   const [passingScore, setPassingScore] = useState(18)
   const [timerMinutes, setTimerMinutes] = useState(30)
-  const [shuffleQuestions, setShuffleQuestions] = useState(false)
-  const [autoCloseOnTimer, setAutoCloseOnTimer] = useState(true)
+  const [penaltyWrong, setPenaltyWrong] = useState(true)
   const [availableFrom, setAvailableFrom] = useState('')
   const [availableUntil, setAvailableUntil] = useState('')
-  const [questions, setQuestions] = useState<Question[]>([defaultQuestion()])
-  const [penaltyWrong, setPenaltyWrong] = useState(false)
-  const [questionsPerStudent, setQuestionsPerStudent] = useState<number | null>(null)
-  const [loading, setLoading] = useState(false)
 
-  // Paniere (quiz pre-archiviati)
-  const [showPaniere, setShowPaniere] = useState(false)
-  const [templates, setTemplates] = useState<QuizTemplate[]>([])
-  const [loadingTemplates, setLoadingTemplates] = useState(false)
-  const [loadedTemplateName, setLoadedTemplateName] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const selectedCourse = courses.find(c => c.id === courseId)
   const groups = selectedCourse?.groups ?? []
 
-  function updateQuestion(i: number, field: 'text' | 'points', value: string | number) {
-    setQuestions(qs => qs.map((q, idx) => idx === i ? { ...q, [field]: value } : q))
+  function toggleDiff(d: string) {
+    setPoolDifficolta(p => p.includes(d) ? p.filter(x => x !== d) : [...p, d])
   }
-
-  function updateOption(qi: number, oi: number, field: 'text' | 'isCorrect', value: string | boolean) {
-    setQuestions(qs => qs.map((q, idx) => {
-      if (idx !== qi) return q
-      const opts = q.options.map((o, j) => {
-        if (field === 'isCorrect') return { ...o, isCorrect: j === oi }
-        return j === oi ? { ...o, [field]: value as string } : o
-      })
-      return { ...q, options: opts }
-    }))
-  }
-
-  function addQuestion() { setQuestions(qs => [...qs, defaultQuestion()]) }
-  function removeQuestion(i: number) {
-    if (questions.length <= 1) return
-    setQuestions(qs => qs.filter((_, idx) => idx !== i))
-  }
-
-  function isValid() {
-    if (!courseId || !title.trim()) return false
-    for (const q of questions) {
-      if (!q.text.trim()) return false
-      const filled = q.options.filter(o => o.text.trim())
-      if (filled.length < 2) return false
-      if (!q.options.some(o => o.isCorrect && o.text.trim())) return false
-    }
-    return true
+  function addCat() {
+    const v = catInput.trim()
+    if (v && !poolCategories.includes(v)) setPoolCategories(p => [...p, v])
+    setCatInput('')
   }
 
   function reset() {
-    setOpen(false)
-    setTitle(''); setCategory(''); setDescription(''); setInstructions('')
-    setGroupId(''); setPassingScore(18); setTimerMinutes(30)
-    setShuffleQuestions(false); setAutoCloseOnTimer(true); setAvailableFrom(''); setAvailableUntil('')
-    setQuestions([defaultQuestion()]); setPenaltyWrong(false); setQuestionsPerStudent(null)
-    setShowPaniere(false); setTemplates([]); setLoadedTemplateName(null)
+    setOpen(false); setError(null)
+    setGroupId(''); setIsEsameFinale(false); setGradingScale(30); setCourseTag('')
+    setTitle(''); setDescription(''); setInstructions('')
+    setExtractCount(30); setPoolDifficolta([]); setCatInput(''); setPoolCategories([])
+    setPassingScore(18); setTimerMinutes(30); setPenaltyWrong(true)
+    setAvailableFrom(''); setAvailableUntil('')
     if (!defaultCourseId) setCourseId('')
   }
 
-  async function openPaniere() {
-    setShowPaniere(v => {
-      if (!v && templates.length === 0) {
-        setLoadingTemplates(true)
-        fetch('/api/quiz/templates')
-          .then(r => r.json())
-          .then(data => { setTemplates(data.templates ?? []); setLoadingTemplates(false) })
-          .catch(() => setLoadingTemplates(false))
-      }
-      return !v
-    })
-  }
-
-  async function loadTemplate(tpl: QuizTemplate) {
-    const res = await fetch(`/api/quiz/template/${tpl.id}`)
-    const data = await res.json()
-    if (data.questions) {
-      const loaded: Question[] = data.questions.map((q: { text: string; points: number; options: { text: string; is_correct: boolean }[] }) => ({
-        text: q.text,
-        points: q.points ?? 1,
-        options: q.options.map((o: { text: string; is_correct: boolean }) => ({ text: o.text, isCorrect: o.is_correct })),
-      }))
-      setQuestions(loaded)
-      setLoadedTemplateName(tpl.title)
-      if (tpl.category && CATEGORIE.includes(tpl.category)) setCategory(tpl.category)
-      if (data.penalty_wrong) setPenaltyWrong(data.penalty_wrong)
-      if (data.questions_per_student) setQuestionsPerStudent(data.questions_per_student)
-    }
-    setShowPaniere(false)
-  }
+  const valid = !!courseId && title.trim().length >= 3 && extractCount >= 1
 
   async function pubblica() {
-    if (!isValid() || loading) return
-    setLoading(true)
-    const cleanedQuestions = questions.map(q => ({
-      text: q.text.trim(),
-      points: q.points,
-      options: q.options.filter(o => o.text.trim()),
-    }))
-    await fetch('/api/quiz/create', {
+    if (!valid || loading) return
+    setLoading(true); setError(null)
+    const res = await fetch('/api/quiz/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         courseId,
         groupId: groupId || null,
-        title,
-        category: category || null,
-        description,
-        instructions,
+        title: title.trim(),
+        description: description.trim() || null,
+        instructions: instructions.trim() || null,
         passingScore,
         timerMinutes,
-        shuffleQuestions,
-        availableFrom: availableFrom || null,
-        availableUntil: availableUntil || null,
-        autoCloseOnTimer,
-        questions: cleanedQuestions,
         penaltyWrong,
-        questionsPerStudent,
+        availableFrom: availableFrom ? new Date(availableFrom).toISOString() : null,
+        availableUntil: availableUntil ? new Date(availableUntil).toISOString() : null,
+        isEsameFinale,
+        gradingScale,
+        category: isEsameFinale ? 'Esame Finale' : null,
+        fromLibrary: true,
+        courseTag: courseTag || null,
+        poolCategories,
+        poolDifficolta,
+        extractCount,
+        questions: [],
       }),
     })
+    const json = await res.json()
     setLoading(false)
+    if (!res.ok) { setError(json.error ?? 'Errore durante la creazione'); return }
     reset()
     router.refresh()
   }
@@ -189,83 +125,40 @@ export default function CreaQuizModal({ courses, defaultCourseId, label = 'Crea 
     )
   }
 
-  const totalPoints = questions.reduce((sum, q) => sum + (q.points || 1), 0)
+  const lbl = 'text-xs font-semibold text-gray-600 block mb-1'
+  const inp = 'w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-8">
-
-        {/* Header */}
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl my-8">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-bold text-gray-900">Crea nuovo quiz</h3>
-          <button onClick={reset} className="text-gray-400 hover:text-gray-600 transition">
-            <X size={18} />
-          </button>
+          <h3 className="text-base font-bold text-gray-900">Crea prova {isEsameFinale ? '(esame finale)' : '(quiz)'}</h3>
+          <button onClick={reset} className="text-gray-400 hover:text-gray-600 transition"><X size={18} /></button>
         </div>
 
         <div className="px-6 py-5 space-y-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
 
-          {/* Sezione 0: Paniere */}
-          <div className="border border-indigo-200 rounded-xl overflow-hidden">
-            <button
-              type="button"
-              onClick={openPaniere}
-              className="w-full flex items-center gap-2 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 transition text-left"
-            >
-              <Archive size={14} className="text-indigo-600 flex-shrink-0" />
-              <span className="text-xs font-semibold text-indigo-700 flex-1">
-                {loadedTemplateName ? `Da paniere: ${loadedTemplateName}` : 'Carica da quiz pre-archiviato (paniere)'}
-              </span>
-              {showPaniere ? <ChevronUp size={14} className="text-indigo-500" /> : <ChevronDown size={14} className="text-indigo-500" />}
-            </button>
-            {showPaniere && (
-              <div className="bg-white border-t border-indigo-100 p-3">
-                {loadingTemplates ? (
-                  <div className="flex items-center gap-2 text-xs text-gray-400 py-2">
-                    <Loader2 size={12} className="animate-spin" /> Caricamento...
-                  </div>
-                ) : templates.length === 0 ? (
-                  <p className="text-xs text-gray-400 py-2">Nessun quiz pre-archiviato disponibile. Creane uno dalla panoramica quiz.</p>
-                ) : (
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                    {templates.map(tpl => (
-                      <button
-                        key={tpl.id}
-                        type="button"
-                        onClick={() => loadTemplate(tpl)}
-                        className="w-full text-left px-3 py-2.5 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-900 flex-1">{tpl.title}</span>
-                          {tpl.course_tag && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{tpl.course_tag}</span>
-                          )}
-                          {tpl.category && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{tpl.category}</span>
-                          )}
-                          <span className="text-xs text-gray-400">{tpl._count} dom.</span>
-                        </div>
-                        {tpl.description && <p className="text-xs text-gray-400 mt-0.5 truncate">{tpl.description}</p>}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+          {/* Info libreria */}
+          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-start gap-2.5">
+            <Library size={15} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-blue-800 leading-relaxed">
+              Le domande vengono estratte automaticamente dalla libreria, in ordine casuale e
+              diverse per ogni studente. Qui definisci solo le <strong>regole</strong>.
+              <Link href="/docente/domande" target="_blank"
+                className="inline-flex items-center gap-1 ml-1 font-semibold text-blue-700 hover:underline">
+                Gestisci le tue domande <ExternalLink size={11} />
+              </Link>
+            </div>
           </div>
 
-          {/* Sezione 1: Destinatari */}
+          {/* Destinatari */}
           <div>
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Destinatari</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {!defaultCourseId && (
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-gray-600 block mb-1">Corso *</label>
-                  <select
-                    value={courseId}
-                    onChange={e => { setCourseId(e.target.value); setGroupId('') }}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
+                  <label className={lbl}>Corso *</label>
+                  <select value={courseId} onChange={e => { setCourseId(e.target.value); setGroupId('') }} className={`${inp} bg-white`}>
                     <option value="">Seleziona corso...</option>
                     {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
@@ -273,229 +166,165 @@ export default function CreaQuizModal({ courses, defaultCourseId, label = 'Crea 
               )}
               {groups.length > 0 && (
                 <div>
-                  <label className="text-xs font-semibold text-gray-600 block mb-1">Gruppo</label>
-                  <select
-                    value={groupId}
-                    onChange={e => setGroupId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
+                  <label className={lbl}>Gruppo</label>
+                  <select value={groupId} onChange={e => setGroupId(e.target.value)} className={`${inp} bg-white`}>
                     <option value="">Tutto il corso</option>
                     {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                   </select>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Sezione 2: Informazioni */}
-          <div>
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Informazioni</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-gray-600 block mb-1">Titolo *</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  autoFocus
-                  placeholder="Es. Esame finale modulo A"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">Tipologia</label>
-                <select
-                  value={category}
-                  onChange={e => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                >
-                  <option value="">Nessuna</option>
-                  {CATEGORIE.map(c => <option key={c} value={c}>{c}</option>)}
+                <label className={lbl}>Tag corso</label>
+                <select value={courseTag} onChange={e => setCourseTag(e.target.value)} className={`${inp} bg-white`}>
+                  <option value="">Nessuno</option>
+                  {TIPOLOGIE_CORSO.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">Descrizione</label>
+            </div>
+          </div>
+
+          {/* Tipo prova */}
+          <div>
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Tipo prova</h4>
+            <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
-                  type="text"
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  placeholder="Breve descrizione"
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="checkbox" checked={isEsameFinale}
+                  onChange={e => { setIsEsameFinale(e.target.checked); if (e.target.checked) { setGradingScale(30); setPassingScore(18) } }}
+                  className="w-4 h-4 accent-purple-600"
                 />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-gray-600 block mb-1">
-                  Istruzioni <span className="text-gray-400 font-normal">(mostrate allo studente prima di iniziare)</span>
-                </label>
-                <textarea
-                  value={instructions}
-                  onChange={e => setInstructions(e.target.value)}
-                  rows={2}
-                  placeholder="Es. Leggi ogni domanda con attenzione. Non puoi tornare indietro. Il quiz si chiude automaticamente allo scadere del tempo."
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                />
+                <GraduationCap size={14} className="text-purple-600" />
+                <span className="text-sm font-semibold text-gray-800">Esame finale</span>
+                <span className="text-xs text-gray-400">— voto mai visibile allo studente, conta nel peso esame</span>
+              </label>
+              <div className="flex items-center gap-2 pl-6">
+                <span className="text-xs font-medium text-gray-500">Scala voto:</span>
+                {([30, 10] as const).map(s => (
+                  <button key={s} type="button" onClick={() => setGradingScale(s)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold border transition ${
+                      gradingScale === s ? 'border-purple-400 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}>
+                    /{s}
+                  </button>
+                ))}
+                <span className="text-xs text-gray-400 ml-1">soglia {gradingScale === 30 ? '18/30' : '6/10'}</span>
               </div>
             </div>
           </div>
 
-          {/* Sezione 3: Regole */}
+          {/* Estrazione dalla libreria */}
+          <div>
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Estrazione domande</h4>
+            <div className="space-y-3">
+              <div>
+                <label className={lbl}>Quante domande per studente *</label>
+                <input type="number" min={1} max={200} value={extractCount}
+                  onChange={e => setExtractCount(Math.max(1, Number(e.target.value)))}
+                  className={`${inp} w-32`} />
+              </div>
+              <div>
+                <label className={lbl}>Difficoltà (vuoto = tutte)</label>
+                <div className="flex gap-2">
+                  {DIFFICOLTA.map(d => (
+                    <button key={d} type="button" onClick={() => toggleDiff(d)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border capitalize transition ${
+                        poolDifficolta.includes(d) ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      }`}>
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className={lbl}>Materie / categorie (vuoto = tutte)</label>
+                <div className="flex gap-2">
+                  <input
+                    value={catInput}
+                    onChange={e => setCatInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCat() } }}
+                    placeholder="Scrivi e premi Invio (es. Tattica)"
+                    className={inp}
+                  />
+                  <button type="button" onClick={addCat} className="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">Aggiungi</button>
+                </div>
+                {poolCategories.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {poolCategories.map(c => (
+                      <span key={c} className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+                        {c}
+                        <button type="button" onClick={() => setPoolCategories(p => p.filter(x => x !== c))} className="text-gray-400 hover:text-red-500">
+                          <X size={11} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Informazioni */}
+          <div>
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Informazioni</h4>
+            <div className="space-y-3">
+              <div>
+                <label className={lbl}>Titolo *</label>
+                <input value={title} onChange={e => setTitle(e.target.value)} autoFocus
+                  placeholder={isEsameFinale ? 'Es. Esame finale UEFA A' : 'Es. Verifica modulo 1'} className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Descrizione</label>
+                <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Breve descrizione" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Istruzioni <span className="text-gray-400 font-normal">(mostrate prima di iniziare)</span></label>
+                <textarea value={instructions} onChange={e => setInstructions(e.target.value)} rows={2}
+                  className={`${inp} resize-none`} />
+              </div>
+            </div>
+          </div>
+
+          {/* Regole */}
           <div>
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Regole</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">
-                  Voto minimo
-                  {totalPoints > 0 && <span className="text-gray-400 font-normal ml-1">/ {totalPoints} pt</span>}
-                </label>
-                <input
-                  type="number" value={passingScore}
-                  onChange={e => setPassingScore(Number(e.target.value))}
-                  min={0}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className={lbl}>Punteggio minimo</label>
+                <input type="number" min={0} value={passingScore} onChange={e => setPassingScore(Number(e.target.value))} className={inp} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">Timer (min)</label>
-                <input
-                  type="number" value={timerMinutes}
-                  onChange={e => setTimerMinutes(Math.max(1, Number(e.target.value)))}
-                  min={1} max={300}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className={lbl}>Timer (minuti)</label>
+                <input type="number" min={1} max={300} value={timerMinutes} onChange={e => setTimerMinutes(Math.max(1, Number(e.target.value)))} className={inp} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">Apre il</label>
-                <input
-                  type="datetime-local" value={availableFrom}
-                  onChange={e => setAvailableFrom(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className={lbl}>Apre il</label>
+                <input type="datetime-local" value={availableFrom} onChange={e => setAvailableFrom(e.target.value)} className={`${inp} text-xs`} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">Chiude il</label>
-                <input
-                  type="datetime-local" value={availableUntil}
-                  onChange={e => setAvailableUntil(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className={lbl}>Chiude il</label>
+                <input type="datetime-local" value={availableUntil} onChange={e => setAvailableUntil(e.target.value)} className={`${inp} text-xs`} />
               </div>
             </div>
-            <div className="mt-3 space-y-2.5">
-              <button
-                type="button"
-                onClick={() => setShuffleQuestions(v => !v)}
-                className="flex items-center gap-2.5 group w-fit"
-              >
-                <div className={`w-9 h-5 rounded-full transition-colors duration-200 relative flex-shrink-0 ${shuffleQuestions ? 'bg-blue-600' : 'bg-gray-200'}`}>
-                  <span className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${shuffleQuestions ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
-                </div>
-                <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900">Mischia ordine domande</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAutoCloseOnTimer(v => !v)}
-                className="flex items-center gap-2.5 group w-fit"
-              >
-                <div className={`w-9 h-5 rounded-full transition-colors duration-200 relative flex-shrink-0 ${autoCloseOnTimer ? 'bg-blue-600' : 'bg-gray-200'}`}>
-                  <span className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${autoCloseOnTimer ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
-                </div>
-                <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900">
-                  Chiudi automaticamente allo scadere del timer
-                  <span className="text-gray-400 font-normal ml-1">{autoCloseOnTimer ? '' : '(+25% tempo di grazia)'}</span>
-                </span>
-              </button>
-            </div>
+            <label className="flex items-center gap-2 mt-3 cursor-pointer">
+              <input type="checkbox" checked={penaltyWrong} onChange={e => setPenaltyWrong(e.target.checked)} className="w-4 h-4 accent-blue-600" />
+              <span className="text-xs text-gray-700">Penalità risposta sbagliata (−1 punto)</span>
+            </label>
           </div>
 
-          {/* Sezione 4: Domande */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                Domande ({questions.length}) · {totalPoints} punti totali
-              </h4>
-              <button
-                onClick={addQuestion}
-                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition font-medium"
-              >
-                <Plus size={12} /> Aggiungi domanda
-              </button>
-            </div>
-            <div className="space-y-4">
-              {questions.map((q, qi) => (
-                <div key={qi} className="bg-gray-50 rounded-xl border border-gray-200 p-4 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <span className="text-xs font-bold text-gray-400 mt-2 flex-shrink-0">{qi + 1}.</span>
-                    <input
-                      type="text"
-                      value={q.text}
-                      onChange={e => updateQuestion(qi, 'text', e.target.value)}
-                      placeholder="Testo della domanda"
-                      className="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {questions.length > 1 && (
-                      <button onClick={() => removeQuestion(qi)} className="text-gray-300 hover:text-red-400 mt-1 flex-shrink-0">
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                  {/* Difficoltà */}
-                  <div className="ml-5">
-                    <button
-                      type="button"
-                      onClick={() => updateQuestion(qi, 'points', q.points === 2 ? 1 : 2)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition ${
-                        q.points === 2
-                          ? 'bg-orange-50 border-orange-300 text-orange-700'
-                          : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
-                      }`}
-                    >
-                      {q.points === 2 ? '⚡ Difficile (2 punti)' : '· Standard (1 punto)'}
-                    </button>
-                  </div>
-                  <div className="ml-5 space-y-2">
-                    {q.options.map((opt, oi) => (
-                      <div key={oi} className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name={`modal-q${qi}-correct`}
-                          checked={opt.isCorrect}
-                          onChange={() => updateOption(qi, oi, 'isCorrect', true)}
-                          className="flex-shrink-0 accent-green-600"
-                          title="Risposta corretta"
-                        />
-                        <input
-                          type="text"
-                          value={opt.text}
-                          onChange={e => updateOption(qi, oi, 'text', e.target.value)}
-                          placeholder={`Opzione ${oi + 1}${oi < 2 ? ' *' : ''}`}
-                          className={`flex-1 px-3 py-1.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${opt.isCorrect ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white'}`}
-                        />
-                      </div>
-                    ))}
-                    <p className="text-xs text-gray-400">🟢 Seleziona il radio della risposta corretta</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 text-xs text-red-700">{error}</div>
+          )}
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-          <button
-            onClick={reset}
-            className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 transition"
-          >
+          <button onClick={reset} className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 transition">
             Annulla
           </button>
-          <button
-            onClick={pubblica}
-            disabled={!isValid() || loading}
+          <button onClick={pubblica} disabled={!valid || loading}
             className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-50"
-            style={{ backgroundColor: '#1EB8E5' }}
-          >
+            style={{ backgroundColor: '#1EB8E5' }}>
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-            Pubblica quiz
+            Pubblica
           </button>
         </div>
       </div>

@@ -13,6 +13,13 @@ ALTER TABLE course_quizzes
   ADD COLUMN IF NOT EXISTS pool_difficolta text[] NOT NULL DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS extract_count   integer;
 
+-- ── quiz_attempts: tentativo "in corso" per estrazione al runtime ────────────
+-- submitted_at diventa il flag univoco di completamento (NULL = in corso).
+-- Il submit imposterà sempre submitted_at esplicitamente (anche legacy).
+ALTER TABLE quiz_attempts ADD COLUMN IF NOT EXISTS submitted_at timestamptz;
+ALTER TABLE quiz_attempts ALTER COLUMN submitted_at DROP DEFAULT;
+ALTER TABLE quiz_attempts ALTER COLUMN submitted_at DROP NOT NULL;
+
 -- ── Snapshot domande estratte per singolo tentativo ──────────────────────────
 CREATE TABLE IF NOT EXISTS quiz_attempt_questions (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { Loader2, Send, Clock, CheckCircle, Play, AlertTriangle, ChevronLeft, ChevronRight, X } from 'lucide-react'
 
-interface Option { id: string; text: string; is_correct: boolean; order_index: number }
+interface Option { id: string; text: string; is_correct?: boolean; order_index?: number }
 interface Question { id: string; text: string; order_index: number; quiz_options: Option[] }
 
 interface Props {
@@ -17,6 +17,8 @@ interface Props {
   instructions?: string | null
   autoCloseOnTimer: boolean
   penaltyWrong?: boolean
+  libraryMode?: boolean
+  questionCount?: number
 }
 
 function formatTime(seconds: number) {
@@ -27,16 +29,43 @@ function formatTime(seconds: number) {
 
 export default function QuizRunner({
   quizId, courseId, quizTitle, questions, passingScore, timerMinutes, instructions, autoCloseOnTimer, penaltyWrong = false,
+  libraryMode = false, questionCount = 0,
 }: Props) {
-  // Shuffle answer options once on mount
-  const [displayQuestions] = useState(() =>
-    questions.map(q => ({
-      ...q,
-      quiz_options: [...q.quiz_options].sort(() => Math.random() - 0.5),
-    }))
+  // Quiz manuali: opzioni mescolate on mount. Quiz da libreria: domande caricate al via.
+  const [displayQuestions, setDisplayQuestions] = useState<Question[]>(() =>
+    libraryMode
+      ? []
+      : questions.map(q => ({
+          ...q,
+          quiz_options: [...q.quiz_options].sort(() => Math.random() - 0.5),
+        }))
   )
   const [confirmed, setConfirmed] = useState(false)
   const [started, setStarted] = useState(false)
+  const [startLoading, setStartLoading] = useState(false)
+  const [startError, setStartError] = useState<string | null>(null)
+
+  async function beginQuiz() {
+    if (!libraryMode) { setStarted(true); return }
+    setStartLoading(true); setStartError(null)
+    try {
+      const res = await fetch(`/api/quiz/${quizId}/start`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) { setStartError(data.error ?? 'Errore avvio prova'); setStartLoading(false); return }
+      const qs: Question[] = (data.questions ?? []).map((q: { id: string; text: string; options: { id: string; text: string }[] }, i: number) => ({
+        id: q.id,
+        text: q.text,
+        order_index: i,
+        quiz_options: q.options.map((o, j) => ({ id: o.id, text: o.text, order_index: j })),
+      }))
+      if (qs.length === 0) { setStartError('Nessuna domanda disponibile per questa prova.'); setStartLoading(false); return }
+      setDisplayQuestions(qs)
+      setStarted(true)
+    } catch {
+      setStartError('Errore di rete. Riprova.')
+    }
+    setStartLoading(false)
+  }
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -179,7 +208,7 @@ export default function QuizRunner({
         {/* Metadati */}
         <div className="grid grid-cols-3 divide-x divide-gray-100 border-b border-gray-100">
           <div className="px-4 py-5 text-center">
-            <p className="text-2xl font-bold text-gray-900">{displayQuestions.length}</p>
+            <p className="text-2xl font-bold text-gray-900">{libraryMode ? questionCount : displayQuestions.length}</p>
             <p className="text-xs text-gray-500 mt-0.5">domande</p>
           </div>
           <div className="px-4 py-5 text-center">
@@ -245,14 +274,21 @@ export default function QuizRunner({
               Ho letto e compreso le regole. Sono pronto/a a iniziare.
             </span>
           </label>
+          {startError && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+              <AlertTriangle size={13} className="text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-red-700">{startError}</p>
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setStarted(true)}
-              disabled={!confirmed}
+              onClick={beginQuiz}
+              disabled={!confirmed || startLoading}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ backgroundColor: '#1EB8E5' }}
             >
-              <Play size={15} /> Inizia la prova
+              {startLoading ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />}
+              {startLoading ? 'Preparazione…' : 'Inizia la prova'}
             </button>
             <p className="text-xs text-gray-400">Il timer partirà al click.</p>
           </div>
