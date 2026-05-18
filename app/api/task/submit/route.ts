@@ -104,8 +104,9 @@ export async function POST(request: Request) {
 
     if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
 
-    const { data: urlData } = admin.storage.from('task-submissions').getPublicUrl(storagePath)
-    fileUrl  = urlData.publicUrl
+    // Bucket PRIVATO: nessun URL pubblico persistito. Il download avviene
+    // sempre via signed URL on-demand (/api/task/signed-url) usando storage_path.
+    fileUrl  = null
     fileName = file.name
     fileSize = file.size
   }

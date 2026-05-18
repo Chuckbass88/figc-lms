@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ArrowLeft, Clock, Star, CheckCircle, FileText, AlertCircle, Info } from 'lucide-react'
 import SubmitTaskForm from './SubmitTaskForm'
 import FeedbackThread from './FeedbackThread'
+import ScaricaConsegnaBtn from './ScaricaConsegnaBtn'
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
@@ -38,7 +39,7 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
       .eq('course_id', id)
       .single(),
     supabase.from('task_submissions')
-      .select('id, file_url, file_name, file_size, file_deleted_at, notes, submitted_at, status, grade, grade_decimal, feedback, version_number')
+      .select('id, file_url, file_name, file_size, file_deleted_at, storage_path, notes, submitted_at, status, grade, grade_decimal, feedback, version_number')
       .eq('task_id', taskId)
       .eq('student_id', user.id)
       .maybeSingle(),
@@ -55,7 +56,7 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
 
   type Submission = {
     id: string; file_url: string | null; file_name: string | null; file_size: number | null
-    file_deleted_at: string | null; notes: string | null; submitted_at: string; status: string
+    file_deleted_at: string | null; storage_path: string | null; notes: string | null; submitted_at: string; status: string
     grade: string | null; grade_decimal: number | null; feedback: string | null; version_number: number
   }
   const sub = submission as Submission | null
@@ -178,17 +179,12 @@ export default async function StudenteTaskDetailPage({ params }: { params: Promi
           )}
           {sub.file_deleted_at ? (
             <p className="text-xs text-gray-400 italic">File rimosso dopo la valutazione.</p>
-          ) : sub.file_url ? (
-            <a
-              href={sub.file_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 rounded-lg px-3 py-2.5 hover:bg-blue-100 transition w-fit"
-            >
-              <FileText size={14} />
-              <span className="truncate max-w-[250px]">{sub.file_name ?? 'File allegato'}</span>
-              {sub.file_size && <span className="text-blue-400 flex-shrink-0">· {formatSize(sub.file_size)}</span>}
-            </a>
+          ) : sub.storage_path ? (
+            <ScaricaConsegnaBtn
+              submissionId={sub.id}
+              fileName={sub.file_name}
+              fileSizeLabel={sub.file_size ? formatSize(sub.file_size) : null}
+            />
           ) : null}
         </div>
       )}

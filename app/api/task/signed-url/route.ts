@@ -17,17 +17,20 @@ export async function GET(request: Request) {
     .eq('id', user.id)
     .single()
 
-  if (!['docente', 'super_admin', 'admin'].includes(profile?.role ?? '')) {
-    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
-  }
-
   const { data: sub } = await supabase
     .from('task_submissions')
-    .select('storage_path, file_name, file_deleted_at')
+    .select('storage_path, file_name, file_deleted_at, student_id')
     .eq('id', submissionId)
     .single()
 
   if (!sub) return NextResponse.json({ error: 'Submission non trovata' }, { status: 404 })
+
+  // Accesso privato: solo lo studente proprietario o lo staff del corso
+  const isStaff = ['docente', 'super_admin', 'admin'].includes(profile?.role ?? '')
+  const isOwner = sub.student_id === user.id
+  if (!isStaff && !isOwner) {
+    return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 })
+  }
   if (sub.file_deleted_at) return NextResponse.json({ error: 'File eliminato' }, { status: 410 })
   if (!sub.storage_path) return NextResponse.json({ error: 'Nessun file allegato' }, { status: 404 })
 
