@@ -84,6 +84,8 @@ export default async function StudenteQuizListPage({ params }: { params: Promise
       <div className="space-y-3">
         {visibleQuizzes.map(quiz => {
           const attempt = attemptMap.get(quiz.id)
+          const consegnato = !!attempt?.submitted_at
+          const inCorso = !!attempt && !attempt.submitted_at
           return (
             <Link
               key={quiz.id}
@@ -99,9 +101,13 @@ export default async function StudenteQuizListPage({ params }: { params: Promise
                   <p className="text-xs text-gray-400 mt-1">Voto minimo: {quiz.passing_score} pt</p>
                 </div>
                 <div className="flex-shrink-0">
-                  {attempt ? (
+                  {consegnato ? (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
                       <CheckCircle size={11} /> Consegnato
+                    </span>
+                  ) : inCorso ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                      <Clock size={11} /> Riprendi
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">

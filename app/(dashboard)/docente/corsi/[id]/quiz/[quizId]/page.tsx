@@ -34,7 +34,7 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
   ] = await Promise.all([
     supabase.from('courses').select('id, name').eq('id', id).single(),
     supabase.from('course_quizzes')
-      .select('id, title, description, passing_score, timer_minutes, created_at, group_id, category, instructions, shuffle_questions, available_from, available_until, auto_close_on_timer, course_groups(name), quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
+      .select('id, title, description, passing_score, timer_minutes, created_at, group_id, category, instructions, shuffle_questions, available_from, available_until, auto_close_on_timer, from_library, extract_count, course_groups(name), quiz_questions(id, text, order_index, quiz_options(id, text, is_correct, order_index))')
       .eq('id', quizId)
       .eq('course_id', id)
       .single(),
@@ -55,13 +55,18 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
   const students = (enrollments as unknown as Enrollment[] ?? [])
     .map(e => e.profiles).filter(Boolean) as { id: string; full_name: string; email: string }[]
 
-  const attemptMap = new Map((attempts as Attempt[] ?? []).map(a => [a.student_id, a]))
+  // Solo i tentativi effettivamente consegnati (submitted_at valorizzato)
+  const submittedAttempts = (attempts as Attempt[] ?? []).filter(a => !!a.submitted_at)
+  const fromLibrary = (quiz as unknown as { from_library?: boolean }).from_library ?? false
+  const extractCount = (quiz as unknown as { extract_count?: number | null }).extract_count ?? null
+
+  const attemptMap = new Map(submittedAttempts.map(a => [a.student_id, a]))
   const group = quiz.course_groups as unknown as { name: string } | null
   const questions = (quiz.quiz_questions as { id: string; text: string; order_index: number; quiz_options: { id: string; text: string; is_correct: boolean; order_index: number }[] }[])
     .sort((a, b) => a.order_index - b.order_index)
 
-  const completedCount = attempts?.length ?? 0
-  const passedCount = (attempts as Attempt[] ?? []).filter(a => a.passed).length
+  const completedCount = submittedAttempts.length
+  const passedCount = submittedAttempts.filter(a => a.passed).length
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -116,8 +121,18 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
           <ClipboardCheck size={15} className="text-blue-600" />
-          <h3 className="font-semibold text-gray-900 text-sm">Domande ({questions.length})</h3>
+          <h3 className="font-semibold text-gray-900 text-sm">
+            {fromLibrary ? 'Domande dalla libreria' : `Domande (${questions.length})`}
+          </h3>
         </div>
+        {fromLibrary ? (
+          <div className="px-5 py-6 text-sm text-gray-500 leading-relaxed">
+            Le domande vengono estratte automaticamente dalla libreria, in ordine casuale e
+            <strong> diverse per ogni studente</strong>
+            {extractCount ? <> — <strong>{extractCount}</strong> domande a testa</> : ''}.
+            Non c&apos;è un&apos;anteprima fissa: ogni studente riceve un set differente al momento dello svolgimento.
+          </div>
+        ) : (
         <div className="divide-y divide-gray-50">
           {questions.map((q, qi) => (
             <div key={q.id} className="px-5 py-3">
@@ -133,6 +148,7 @@ export default async function DocenteQuizDetailPage({ params }: { params: Promis
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* Risultati corsisti */}

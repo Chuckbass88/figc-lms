@@ -99,7 +99,9 @@ export async function calcolaVotiCorso(
   const allQuizIds = quizList.map(q => q.id)
   const { data: attempts } = allQuizIds.length > 0
     ? await supabase.from('quiz_attempts')
-        .select('student_id, quiz_id, score, total, passed').in('quiz_id', allQuizIds)
+        .select('student_id, quiz_id, score, total, passed')
+        .in('quiz_id', allQuizIds)
+        .not('submitted_at', 'is', null)
     : { data: [] }
 
   const quizById = new Map(quizList.map(q => [q.id, q]))
