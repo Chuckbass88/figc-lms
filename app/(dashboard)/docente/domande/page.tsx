@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import ImportaExcelDocenteBtn from './ImportaExcelDocenteBtn'
+import AggiungiDomandaDocenteBtn from './AggiungiDomandaDocenteBtn'
 import DocenteLibreriaClient from './DocenteLibreriaClient'
 
 export default async function DocenteLibreriaDomandePage() {
@@ -54,7 +55,10 @@ export default async function DocenteLibreriaDomandePage() {
             {myQuestions.length} domande · {myQuestions.filter(q => q.is_shared).length} condivise
           </p>
         </div>
-        <ImportaExcelDocenteBtn />
+        <div className="flex items-center gap-2 flex-wrap">
+          <AggiungiDomandaDocenteBtn categories={categories} />
+          <ImportaExcelDocenteBtn />
+        </div>
       </div>
 
       <DocenteLibreriaClient

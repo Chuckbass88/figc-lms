@@ -54,8 +54,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Almeno una risposta deve essere corretta' }, { status: 400 })
   }
 
+  // Docente → libreria PERSONALE (docente_question_library).
+  // Super_admin → libreria GLOBALE (question_library).
+  const isSuperAdmin = profile.role === 'super_admin'
+  const qTable = isSuperAdmin ? 'question_library' : 'docente_question_library'
+  const oTable = isSuperAdmin ? 'question_library_options' : 'docente_question_library_options'
+
   const { data: q, error } = await supabase
-    .from('question_library')
+    .from(qTable)
     .insert({
       text: text.trim(),
       category: category?.trim() || null,
@@ -67,7 +73,7 @@ export async function POST(request: Request) {
 
   if (error || !q) return NextResponse.json({ error: error?.message }, { status: 500 })
 
-  await supabase.from('question_library_options').insert(
+  const { error: optErr } = await supabase.from(oTable).insert(
     (options as { text: string; isCorrect: boolean }[])
       .filter(o => o.text?.trim())
       .map((o, i) => ({
@@ -77,6 +83,11 @@ export async function POST(request: Request) {
         order_index: i,
       }))
   )
+
+  if (optErr) {
+    await supabase.from(qTable).delete().eq('id', q.id)
+    return NextResponse.json({ error: optErr.message }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true, id: q.id })
 }
